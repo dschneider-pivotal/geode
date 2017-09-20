@@ -427,8 +427,8 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
     if (isDebugEnabled_LRU && _isOwnerALocalRegion()) {
       logger.trace(LogMarker.LRU,
           "lruUpdateCallback; list size is: {}; actual size is: {}; map size is: {}; delta is: {}; limit is: {}; tombstone count={}",
-          getTotalEntrySize(), this._getLruList().size(), size(), delta,
-          getLimit(), _getOwner().getTombstoneCount());
+          getTotalEntrySize(), this._getLruList().size(), size(), delta, getLimit(),
+          _getOwner().getTombstoneCount());
     }
     LRUStatistics stats = _getLruList().stats();
     if (!_isOwnerALocalRegion()) {
@@ -729,8 +729,8 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
     if (logger.isTraceEnabled(LogMarker.LRU)) {
       logger.trace(LogMarker.LRU,
           "lruEntryCreate for key={}; list size is: {}; actual size is: {}; map size is: {}; entry size: {}; in lru clock: {}",
-          re.getKey(), getTotalEntrySize(), this._getLruList().size(), size(),
-          e.getEntrySize(), !e.testEvicted());
+          re.getKey(), getTotalEntrySize(), this._getLruList().size(), size(), e.getEntrySize(),
+          !e.testEvicted());
     }
     // this.lruCreatedKey = re.getKey(); // [ bruce ] for DEBUGGING only
     e.unsetEvicted();
@@ -791,8 +791,8 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
     if (logger.isTraceEnabled(LogMarker.LRU)) {
       logger.trace(LogMarker.LRU,
           "lruEntryDestroy for key={}; list size is: {}; actual size is: {}; map size is: {}; entry size: {}; in lru clock: {}",
-          re.getKey(), getTotalEntrySize(), this._getLruList().size(), size(),
-          e.getEntrySize(), !e.testEvicted());
+          re.getKey(), getTotalEntrySize(), this._getLruList().size(), size(), e.getEntrySize(),
+          !e.testEvicted());
     }
 
     // if (this.lruCreatedKey == re.getKey()) {
@@ -868,7 +868,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
       return true;
     }
   }
-  
+
   @Override
   public long getEvictions() {
     return this._getLruList().stats().getEvictions();

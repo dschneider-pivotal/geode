@@ -12,20 +12,44 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package org.apache.geode.internal.cache.eviction;
 
-import org.apache.geode.internal.cache.RegionEntry;
-import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
+public interface LRUListNode {
 
-/**
- * Represents an entry in an LRU map
- */
-public interface LRUEntry extends LRUListNode, RegionEntry {
+  public void setNextLRUNode(LRUListNode next);
+
+  public void setPrevLRUNode(LRUListNode prev);
+
+  public LRUListNode nextLRUNode();
+
+  public LRUListNode prevLRUNode();
+
+  /** compute the new entry size and return the delta from the previous entry size */
+  public int updateEntrySize(EnableLRU ccHelper);
+
   /**
-   * If the key is stored as an Object then returns that object; but if the key is stored as
-   * primitives then returns null.
+   * compute the new entry size and return the delta from the previous entry size
+   * 
+   * @param value then entry's value
+   * @since GemFire 6.1.2.9
    */
-  Object getKeyForSizing();
+  public int updateEntrySize(EnableLRU ccHelper, Object value);
 
-  void setDelayedDiskId(DiskRecoveryStore diskRecoveryStore);
+  public int getEntrySize();
+
+  public boolean testRecentlyUsed();
+
+  public void setRecentlyUsed();
+
+  public void unsetRecentlyUsed();
+
+  public void setEvicted();
+
+  public void unsetEvicted();
+
+  public boolean testEvicted();
+
+  public boolean isInUseByTransaction();
+
 }

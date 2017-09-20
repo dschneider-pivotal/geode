@@ -1,18 +1,16 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package org.apache.geode.internal.cache.eviction;
 
@@ -32,16 +30,14 @@ import org.apache.geode.internal.logging.log4j.LogMarker;
 import org.apache.logging.log4j.Logger;
 
 /**
- * LRUListWithAsyncSorting holds the lrulist, and the behavior for maintaining the list
- * and determining the next entry to be removed. Each EntriesMap that supports LRU holds one of
- * these.
- * Evicts are always done from the head and assume that it is the least recent entry unless
- * if is being used by a transaction or is already evicted in which case it is removed from the list
- * and the next item is evicted.
- * Adds are always done to the end of the list and should not be marked recently used.
- * An async scanner runs periodically (how often TBD), head to tail, removing entries that have been
- * recently used, marking them as not recently used, and adding them back to the tail.
- * Removes may unlink entries from the list.
+ * LRUListWithAsyncSorting holds the lrulist, and the behavior for maintaining the list and
+ * determining the next entry to be removed. Each EntriesMap that supports LRU holds one of these.
+ * Evicts are always done from the head and assume that it is the least recent entry unless if is
+ * being used by a transaction or is already evicted in which case it is removed from the list and
+ * the next item is evicted. Adds are always done to the end of the list and should not be marked
+ * recently used. An async scanner runs periodically (how often TBD), head to tail, removing entries
+ * that have been recently used, marking them as not recently used, and adding them back to the
+ * tail. Removes may unlink entries from the list.
  */
 public class LRUListWithAsyncSorting implements LRUList {
   private static final Logger logger = LogService.getLogger();
@@ -49,10 +45,10 @@ public class LRUListWithAsyncSorting implements LRUList {
   private BucketRegion bucketRegion = null;
 
   /** The last node in the LRU list after which all new nodes are added */
-  protected final LRUClockNode tail = new GuardNode();
+  protected final LRUListNode tail = new GuardNode();
 
   /** The starting point in the LRU list for searching for the LRU node */
-  protected final LRUClockNode head = new GuardNode();
+  protected final LRUListNode head = new GuardNode();
 
   /** The object for locking this list */
   final protected Object lock = new Object();
@@ -94,7 +90,8 @@ public class LRUListWithAsyncSorting implements LRUList {
     }
   }
 
-  public LRUListWithAsyncSorting(Region region, EnableLRU ccHelper, LRUListWithAsyncSorting oldList) {
+  public LRUListWithAsyncSorting(Region region, EnableLRU ccHelper,
+      LRUListWithAsyncSorting oldList) {
     setBucketRegion(region);
     initEmptyList();
     if (oldList.stats == null) {
@@ -124,13 +121,13 @@ public class LRUListWithAsyncSorting implements LRUList {
    * Adds an lru node to the tail of the list.
    */
   @Override
-  public void appendEntry(final LRUClockNode aNode) {
+  public void appendEntry(final LRUListNode aNode) {
     synchronized (this.lock) {
       if (aNode.nextLRUNode() != null) {
         // already in the list
         return;
       }
-      
+
       aNode.unsetRecentlyUsed();
 
       if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
@@ -149,15 +146,15 @@ public class LRUListWithAsyncSorting implements LRUList {
   /**
    * Remove and return the head entry in the list
    */
-  private LRUClockNode getHeadEntry() {
+  private LRUListNode getHeadEntry() {
     synchronized (lock) {
-      LRUClockNode aNode = this.head.nextLRUNode();
+      LRUListNode aNode = this.head.nextLRUNode();
       if (aNode == this.tail) {
         // empty list
         return null;
       }
 
-      LRUClockNode next = aNode.nextLRUNode();
+      LRUListNode next = aNode.nextLRUNode();
       this.head.setNextLRUNode(next);
       next.setPrevLRUNode(this.head);
 
@@ -173,9 +170,9 @@ public class LRUListWithAsyncSorting implements LRUList {
    * Remove and return the Entry that is considered least recently used.
    */
   @Override
-  public LRUClockNode getLRUEntry() {
+  public LRUListNode getLRUEntry() {
     for (;;) {
-      final LRUClockNode aNode = getHeadEntry();
+      final LRUListNode aNode = getHeadEntry();
 
       if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
         logger.trace(LogMarker.LRU_CLOCK, "lru considering {}", aNode);
@@ -221,7 +218,7 @@ public class LRUListWithAsyncSorting implements LRUList {
     }
     synchronized (lock) {
       int idx = 1;
-      for (LRUClockNode aNode = this.head; aNode != null; aNode = aNode.nextLRUNode()) {
+      for (LRUListNode aNode = this.head; aNode != null; aNode = aNode.nextLRUNode()) {
         if (isDebugEnabled) {
           logger.trace(LogMarker.LRU_CLOCK, "  ({}) {}", (idx++), aNode);
         }
@@ -234,7 +231,7 @@ public class LRUListWithAsyncSorting implements LRUList {
     int evictedNodes = 0;
     int usedNodes = 0;
     synchronized (lock) {
-      LRUClockNode h = this.head;
+      LRUListNode h = this.head;
       while (h != null) {
         totalNodes++;
         if (h.testEvicted())
@@ -246,7 +243,7 @@ public class LRUListWithAsyncSorting implements LRUList {
     }
     StringBuilder result = new StringBuilder(128);
     result.append("LRUList Audit: listEntries = ").append(totalNodes).append(" evicted = ")
-    .append(evictedNodes).append(" used = ").append(usedNodes);
+        .append(evictedNodes).append(" used = ").append(usedNodes);
     return result.toString();
   }
 
@@ -257,14 +254,14 @@ public class LRUListWithAsyncSorting implements LRUList {
   }
 
   @Override
-  public boolean unlinkEntry(LRUClockNode entry) {
+  public boolean unlinkEntry(LRUListNode entry) {
     if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
       logger.trace(LogMarker.LRU_CLOCK,
           LocalizedMessage.create(LocalizedStrings.NewLRUClockHand_UNLINKENTRY_CALLED, entry));
     }
     synchronized (lock) {
-      LRUClockNode next = entry.nextLRUNode();
-      LRUClockNode prev = entry.prevLRUNode();
+      LRUListNode next = entry.nextLRUNode();
+      LRUListNode prev = entry.prevLRUNode();
       if (next == null || prev == null) {
         // not in the list anymore.
         return false;
@@ -279,9 +276,9 @@ public class LRUListWithAsyncSorting implements LRUList {
     stats().incDestroys();
     return true;
   }
-  
+
   public void scan() {
-    LRUClockNode aNode;
+    LRUListNode aNode;
     do {
       synchronized (lock) {
         aNode = this.head.nextLRUNode();
@@ -293,10 +290,10 @@ public class LRUListWithAsyncSorting implements LRUList {
         // happen then this will be detected by next and prev being null.
         if (aNode.testRecentlyUsed()) {
           aNode.unsetRecentlyUsed();
-          LRUClockNode next;
+          LRUListNode next;
           synchronized (lock) {
             next = aNode.nextLRUNode();
-            LRUClockNode prev = aNode.prevLRUNode();
+            LRUListNode prev = aNode.prevLRUNode();
             if (next != null && prev != null) {
               next.setPrevLRUNode(prev);
               prev.setNextLRUNode(next);
@@ -315,9 +312,9 @@ public class LRUListWithAsyncSorting implements LRUList {
       }
       // null indicates we tried to scan past a node that was concurrently removed.
       // In that case we need to start at the beginning.
-    } while (aNode == null); 
+    } while (aNode == null);
   }
-  
+
   @Override
   public LRUStatistics stats() {
     return this.stats;
@@ -338,7 +335,7 @@ public class LRUListWithAsyncSorting implements LRUList {
       initEmptyList();
     }
   }
-  
+
   private void initEmptyList() {
     this.size = 0;
     this.head.setNextLRUNode(this.tail);

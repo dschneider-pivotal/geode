@@ -46,7 +46,7 @@ import org.apache.geode.internal.cache.RegionEntryContext;
 import org.apache.geode.internal.cache.RegionMap;
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
-import org.apache.geode.internal.cache.eviction.LRUClockNode;
+import org.apache.geode.internal.cache.eviction.LRUListNode;
 import org.apache.geode.internal.cache.eviction.LRUEntry;
 import org.apache.geode.internal.cache.partitioned.Bucket;
 import org.apache.geode.internal.cache.persistence.BytesAndBits;
@@ -440,7 +440,8 @@ public interface DiskEntry extends RegionEntry {
     /**
      * Used to initialize a new disk entry
      */
-    public static void initialize(DiskEntry entry, DiskRecoveryStore diskRecoveryStore, Object newValue) {
+    public static void initialize(DiskEntry entry, DiskRecoveryStore diskRecoveryStore,
+        Object newValue) {
       DiskRegionView drv = null;
       if (diskRecoveryStore instanceof InternalRegion) {
         drv = ((InternalRegion) diskRecoveryStore).getDiskRegion();
@@ -1061,7 +1062,7 @@ public interface DiskEntry extends RegionEntry {
               // See if it is pending async because of a faultOut.
               // If so then if we are not a backup then we can unschedule the pending async.
               // In either case we need to do the lruFaultIn logic.
-              boolean evicted = ((LRUClockNode) entry).testEvicted();
+              boolean evicted = ((LRUListNode) entry).testEvicted();
               if (evicted) {
                 if (!dr.isBackup()) {
                   // @todo do we also need a bit that tells us if it is in the async queue?
@@ -1355,7 +1356,7 @@ public interface DiskEntry extends RegionEntry {
             region.updateSizeOnEvict(entry.getKey(), oldSize);
             entry.handleValueOverflow(region);
             entry.setValueWithContext(region, null);
-            change = ((LRUClockNode) entry).updateEntrySize(ccHelper);
+            change = ((LRUListNode) entry).updateEntrySize(ccHelper);
             // the caller checked to make sure we had something to overflow
             // so dec inVM and inc onDisk
             updateStats(dr, region, -1/* InVM */, 1/* OnDisk */, getValueLength(did));
@@ -1459,7 +1460,7 @@ public interface DiskEntry extends RegionEntry {
                     // Only setValue to null if this was an evict.
                     // We could just be a backup that is writing async.
                     if (!Token.isInvalid(entryVal) && (entryVal != Token.TOMBSTONE)
-                        && entry instanceof LRUEntry && ((LRUClockNode) entry).testEvicted()) {
+                        && entry instanceof LRUEntry && ((LRUListNode) entry).testEvicted()) {
                       // Moved this here to fix bug 40116.
                       region.updateSizeOnEvict(entry.getKey(), entryValSize);
                       updateStats(dr, region, -1/* InVM */, 1/* OnDisk */, did.getValueLength());

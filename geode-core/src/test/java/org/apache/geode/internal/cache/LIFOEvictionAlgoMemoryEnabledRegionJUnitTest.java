@@ -14,11 +14,29 @@
  */
 package org.apache.geode.internal.cache;
 
-import org.apache.geode.cache.*;
+import static org.apache.geode.distributed.ConfigurationProperties.LOCATORS;
+import static org.apache.geode.distributed.ConfigurationProperties.LOG_LEVEL;
+import static org.apache.geode.distributed.ConfigurationProperties.MCAST_PORT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import org.apache.geode.cache.AttributesFactory;
+import org.apache.geode.cache.Cache;
+import org.apache.geode.cache.CacheFactory;
+import org.apache.geode.cache.DataPolicy;
+import org.apache.geode.cache.DiskStoreFactory;
+import org.apache.geode.cache.EvictionAction;
+import org.apache.geode.cache.EvictionAttributes;
+import org.apache.geode.cache.Region;
+import org.apache.geode.cache.RegionAttributes;
+import org.apache.geode.cache.Scope;
 import org.apache.geode.distributed.DistributedSystem;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
-import org.apache.geode.internal.cache.eviction.LRUClockNode;
 import org.apache.geode.internal.cache.eviction.LRUList;
+import org.apache.geode.internal.cache.eviction.LRUListNode;
 import org.apache.geode.internal.cache.eviction.LRUStatistics;
 import org.apache.geode.test.junit.categories.IntegrationTest;
 import org.junit.After;
@@ -31,9 +49,6 @@ import org.junit.runners.MethodSorters;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Properties;
-
-import static org.apache.geode.distributed.ConfigurationProperties.*;
-import static org.junit.Assert.*;
 
 /**
  * This is a test verifies region is LIFO enabled by MEMORY verifies correct stats updating and
@@ -84,8 +99,6 @@ public class LIFOEvictionAlgoMemoryEnabledRegionJUnitTest {
 
   /**
    * Method for intializing the VM and create region with LIFO attached
-   * 
-   * @throws Exception
    */
   private static void initializeVM() throws Exception {
     Properties props = new Properties();
@@ -117,8 +130,8 @@ public class LIFOEvictionAlgoMemoryEnabledRegionJUnitTest {
 
     /* setting LIFO MEMORY related eviction attributes */
 
-    factory.setEvictionAttributes(EvictionAttributesImpl
-        .createLIFOMemoryAttributes(maximumMegabytes, EvictionAction.OVERFLOW_TO_DISK));
+    factory.setEvictionAttributes(EvictionAttributes.createLIFOMemoryAttributes(maximumMegabytes,
+        EvictionAction.OVERFLOW_TO_DISK));
     RegionAttributes attr = factory.create();
 
     ((GemFireCacheImpl) cache).createRegion(regionName, attr);
@@ -328,88 +341,85 @@ public class LIFOEvictionAlgoMemoryEnabledRegionJUnitTest {
     }
   }
 
-
   // purpose to create object ,size of byteArraySize
   private Object newDummyObject(long i) {
     byte[] value = new byte[byteArraySize];
     Arrays.fill(value, (byte) i);
     return value;
   }
+
+  // test class for validating LIFO queue
+  private static class TestLRUNode implements LRUListNode {
+
+    LRUListNode next = null;
+    LRUListNode prev = null;
+    boolean evicted = false;
+    boolean recentlyUsed = false;
+    int value = 0;
+
+    public TestLRUNode(int value) {
+      this.value = value;
+    }
+
+    public int getValue() {
+      return value;
+    }
+
+    public void setNextLRUNode(LRUListNode next) {
+      this.next = next;
+    }
+
+    public void setPrevLRUNode(LRUListNode prev) {
+      this.prev = prev;
+    }
+
+    public LRUListNode nextLRUNode() {
+      return next;
+    }
+
+    public LRUListNode prevLRUNode() {
+      return prev;
+    }
+
+    public int updateEntrySize(EnableLRU ccHelper) {
+      return 0;
+    }
+
+    public int updateEntrySize(EnableLRU ccHelper, Object value) {
+      return 0;
+    }
+
+    public int getEntrySize() {
+      return 0;
+    }
+
+    public boolean testRecentlyUsed() {
+      return recentlyUsed;
+    }
+
+    public void setRecentlyUsed() {
+      recentlyUsed = true;
+    }
+
+    public void unsetRecentlyUsed() {
+      recentlyUsed = false;
+    }
+
+    public void setEvicted() {
+      evicted = true;
+    }
+
+    public void unsetEvicted() {
+      evicted = false;
+    }
+
+    public boolean testEvicted() {
+      return evicted;
+    }
+
+    @Override
+    public boolean isInUseByTransaction() {
+      return false;
+    }
+  }
 }
-
-
-// test class for validating LIFO queue
-class TestLRUNode implements LRUClockNode {
-
-  LRUClockNode next = null;
-  LRUClockNode prev = null;
-  boolean evicted = false;
-  boolean recentlyUsed = false;
-  int value = 0;
-
-  public TestLRUNode(int value) {
-    this.value = value;
-  }
-
-  public int getValue() {
-    return value;
-  }
-
-  public void setNextLRUNode(LRUClockNode next) {
-    this.next = next;
-  }
-
-  public void setPrevLRUNode(LRUClockNode prev) {
-    this.prev = prev;
-  }
-
-  public LRUClockNode nextLRUNode() {
-    return next;
-  }
-
-  public LRUClockNode prevLRUNode() {
-    return prev;
-  }
-
-  public int updateEntrySize(EnableLRU ccHelper) {
-    return 0;
-  }
-
-  public int updateEntrySize(EnableLRU ccHelper, Object value) {
-    return 0;
-  }
-
-  public int getEntrySize() {
-    return 0;
-  }
-
-  public boolean testRecentlyUsed() {
-    return recentlyUsed;
-  }
-
-  public void setRecentlyUsed() {
-    recentlyUsed = true;
-  }
-
-  public void unsetRecentlyUsed() {
-    recentlyUsed = false;
-  }
-
-  public void setEvicted() {
-    evicted = true;
-  }
-
-  public void unsetEvicted() {
-    evicted = false;
-  }
-
-  public boolean testEvicted() {
-    return evicted;
-  }
-
-  @Override
-  public boolean isInUseByTransaction() {
-    return false;
-  }
-}
-

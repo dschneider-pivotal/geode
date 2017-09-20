@@ -12052,9 +12052,10 @@ public class LocalRegion extends AbstractRegion implements InternalRegion, Loade
     }
     return result;
   }
-  
+
   /**
    * Returns the number of LRU evictions done by this region.
+   * 
    * @return
    */
   public long getEvictions() {

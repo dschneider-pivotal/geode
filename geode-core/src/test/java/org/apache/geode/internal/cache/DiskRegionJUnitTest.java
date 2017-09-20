@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.geode.internal.cache.eviction.LRUList;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -701,7 +702,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
         byte[] bytes = new byte[this.dataSize];
         synchronized (this) {
           putsHaveStarted = true;
-          this.notify();
+          this.notifyAll();
         }
         region.put("1", bytes);
         putSuccessful[0] = true;
@@ -1690,8 +1691,6 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
   /**
    * If IOException occurs while updating an entry in a persist only synch mode, DiskAccessException
    * should occur & region should be destroyed
-   * 
-   * @throws Exception
    */
   private void entryUpdateInSynchPersistTypeForIOExceptionCase(Region region) throws Exception {
 
@@ -1749,8 +1748,6 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
   /**
    * If IOException occurs while invalidating an entry in a persist only synch mode,
    * DiskAccessException should occur & region should be destroyed
-   * 
-   * @throws Exception
    */
   private void entryInvalidateInSynchPersistTypeForIOExceptionCase(Region region) throws Exception {
     region.create("key1", "value1");
@@ -1803,11 +1800,8 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
   }
 
   /**
-   * 
    * If IOException occurs while creating an entry in a persist only synch mode, DiskAccessException
    * should occur & region should be destroyed
-   * 
-   * @throws Exception
    */
   private void entryCreateInSynchPersistTypeForIOExceptionCase(Region region) throws Exception {
 
@@ -1863,8 +1857,6 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
   /**
    * If IOException occurs while destroying an entry in a persist only synch mode,
    * DiskAccessException should occur & region should be destroyed
-   * 
-   * @throws Exception
    */
   private void entryDestructionInSynchPersistTypeForIOExceptionCase(Region region)
       throws Exception {
@@ -2084,7 +2076,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
           th.start();
           synchronized (region) {
             toWait[0] = false;
-            region.notify();
+            region.notifyAll();
           }
           // Lets wait for some time which will be enough to toggle glag.
           // ideally we need visibility
@@ -2227,7 +2219,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
           th.start();
           synchronized (region) {
             closeThreadStarted[0] = true;
-            region.notify();
+            region.notifyAll();
           }
           // wait for th to call afterSignallingCompactor
           synchronized (this.compactorSignalled) {
@@ -2300,7 +2292,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
         region.put("" + i, "" + i);
       }
       synchronized (anotherLock) {
-        anotherLock.notify();
+        anotherLock.notifyAll();
         allowCompactorThread[0] = true;
       }
       synchronized (region) {
@@ -2438,7 +2430,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
           th.start();
           synchronized (region) {
             closeThreadStarted[0] = true;
-            region.notify();
+            region.notifyAll();
           }
           // wait for th to call afterSignallingCompactor
           synchronized (this.compactorSignalled) {
@@ -2484,7 +2476,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
         region.put("" + i, "" + i);
       }
       synchronized (anotherLock) {
-        anotherLock.notify();
+        anotherLock.notifyAll();
         allowCompactorThread[0] = true;
       }
       synchronized (region) {
@@ -2558,7 +2550,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
         public void afterStoppingCompactor() {
           synchronized (region) {
             regionDestroyed[0] = true;
-            region.notify();
+            region.notifyAll();
           }
         }
       });
@@ -2567,7 +2559,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
         region.put("" + i, new byte[10]);
       }
       synchronized (anotherLock) {
-        anotherLock.notify();
+        anotherLock.notifyAll();
         allowCompactorThread[0] = true;
       }
       synchronized (region) {

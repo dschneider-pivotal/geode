@@ -41,15 +41,15 @@ public class NewLIFOClockHand extends NewLRUClockHand {
   /*
    * Fetch the tail member which should be the last added value and remove it from the list
    */
-  protected LRUClockNode getTailEntry() {
-    LRUClockNode aNode = null;
+  protected LRUListNode getTailEntry() {
+    LRUListNode aNode = null;
     synchronized (this.lock) {
       aNode = this.tail.prevLRUNode();
       if (aNode == this.head) {
         return null; // end of lru list
       }
       // remove entry from list
-      LRUClockNode prev = aNode.prevLRUNode();
+      LRUListNode prev = aNode.prevLRUNode();
       prev.setNextLRUNode(this.tail);
       this.tail.setPrevLRUNode(prev);
       aNode.setNextLRUNode(null);
@@ -63,9 +63,9 @@ public class NewLIFOClockHand extends NewLRUClockHand {
    * return the Entry that is considered most recently used and available to be evicted to overflow
    */
   @Override
-  public LRUClockNode getLRUEntry() {
+  public LRUListNode getLRUEntry() {
     long numEvals = 0;
-    LRUClockNode aNode = null;
+    LRUListNode aNode = null;
     // search for entry to return from list
     for (;;) {
       aNode = getTailEntry();
