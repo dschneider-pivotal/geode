@@ -185,14 +185,12 @@ public class LRUListWithAsyncSorting implements LRUList {
       // If this Entry is part of a transaction, skip it since
       // eviction should not cause commit conflicts
       synchronized (aNode) {
-        if (aNode instanceof AbstractRegionEntry) {
-          if (aNode.isInUseByTransaction()) {
-            if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
-              logger.trace(LogMarker.LRU_CLOCK, LocalizedMessage.create(
-                  LocalizedStrings.NewLRUClockHand_REMOVING_TRANSACTIONAL_ENTRY_FROM_CONSIDERATION));
-            }
-            continue;
+        if (aNode.isInUseByTransaction()) {
+          if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
+            logger.trace(LogMarker.LRU_CLOCK, LocalizedMessage.create(
+                LocalizedStrings.NewLRUClockHand_REMOVING_TRANSACTIONAL_ENTRY_FROM_CONSIDERATION));
           }
+          continue;
         }
         if (aNode.testEvicted()) {
           if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
