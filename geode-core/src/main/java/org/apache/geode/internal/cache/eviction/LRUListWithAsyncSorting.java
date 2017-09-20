@@ -260,7 +260,7 @@ public class LRUListWithAsyncSorting implements LRUList {
     synchronized (lock) {
       LRUListNode next = entry.nextLRUNode();
       LRUListNode prev = entry.prevLRUNode();
-      if (next == null || prev == null) {
+      if (next == null) {
         // not in the list anymore.
         return false;
       }
@@ -269,7 +269,7 @@ public class LRUListWithAsyncSorting implements LRUList {
       entry.setNextLRUNode(null);
       entry.setPrevLRUNode(null);
       this.size--;
-      entry.setEvicted(); // TODO is this safe to do when entry is not synced?
+      entry.setEvicted();
     }
     stats().incDestroys();
     return true;
@@ -291,8 +291,8 @@ public class LRUListWithAsyncSorting implements LRUList {
           LRUListNode next;
           synchronized (lock) {
             next = aNode.nextLRUNode();
-            LRUListNode prev = aNode.prevLRUNode();
-            if (next != null && prev != null) {
+            if (next != null) {
+              LRUListNode prev = aNode.prevLRUNode();
               next.setPrevLRUNode(prev);
               prev.setNextLRUNode(next);
               aNode.setNextLRUNode(this.tail);
