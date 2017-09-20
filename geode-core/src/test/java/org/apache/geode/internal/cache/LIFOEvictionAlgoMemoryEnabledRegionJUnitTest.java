@@ -18,8 +18,8 @@ import org.apache.geode.cache.*;
 import org.apache.geode.distributed.DistributedSystem;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.eviction.LRUClockNode;
+import org.apache.geode.internal.cache.eviction.LRUList;
 import org.apache.geode.internal.cache.eviction.LRUStatistics;
-import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 import org.apache.geode.test.junit.categories.IntegrationTest;
 import org.junit.After;
 import org.junit.Before;
@@ -64,7 +64,7 @@ public class LIFOEvictionAlgoMemoryEnabledRegionJUnitTest {
 
   private int deltaSize = 20738;
 
-  private static NewLRUClockHand lifoClockHand = null;
+  private static LRUList lifoClockHand = null;
 
 
   @Before
@@ -405,6 +405,11 @@ class TestLRUNode implements LRUClockNode {
 
   public boolean testEvicted() {
     return evicted;
+  }
+
+  @Override
+  public boolean isInUseByTransaction() {
+    return false;
   }
 }
 

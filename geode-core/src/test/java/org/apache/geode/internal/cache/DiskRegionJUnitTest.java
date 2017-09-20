@@ -40,7 +40,6 @@ import org.apache.geode.cache.server.CacheServer;
 import org.apache.geode.cache.util.CacheListenerAdapter;
 import org.apache.geode.internal.cache.entries.DiskEntry;
 import org.apache.geode.internal.cache.eviction.LRUStatistics;
-import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 import org.apache.geode.internal.cache.persistence.UninterruptibleFileChannel;
 import org.apache.geode.test.dunit.ThreadUtils;
 import org.apache.geode.test.dunit.Wait;
@@ -1543,7 +1542,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
     }
 
     assertFalse(this.failureCause, this.exceptionOccurred);
-    NewLRUClockHand lruList = ((VMLRURegionMap) ((LocalRegion) region).entries)._getLruList();
+    LRUList lruList = ((VMLRURegionMap) ((LocalRegion) region).entries)._getLruList();
     assertEquals(region.size(), 0);
     lruList.audit();
     assertNull("The LRU List should have been empty instead it contained a cleared entry",

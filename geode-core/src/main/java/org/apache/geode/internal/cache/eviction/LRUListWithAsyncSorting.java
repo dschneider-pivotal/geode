@@ -1,23 +1,23 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
- * agreements. See the NOTICE file distributed with this work for additional information regarding
- * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance with the License. You may obtain a
- * copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package org.apache.geode.internal.cache.eviction;
 
 import org.apache.geode.StatisticsFactory;
 import org.apache.geode.cache.Region;
-import org.apache.geode.distributed.internal.DistributionConfig;
 import org.apache.geode.internal.cache.BucketRegion;
 import org.apache.geode.internal.cache.GemFireCacheImpl;
 import org.apache.geode.internal.cache.InternalRegionArguments;
@@ -32,53 +32,40 @@ import org.apache.geode.internal.logging.log4j.LogMarker;
 import org.apache.logging.log4j.Logger;
 
 /**
- * AbstractLRUClockHand holds the lrulist, and the behavior for maintaining the list in a cu-pipe
+ * LRUListWithAsyncSorting holds the lrulist, and the behavior for maintaining the list
  * and determining the next entry to be removed. Each EntriesMap that supports LRU holds one of
  * these.
+ * Evicts are always done from the head and assume that it is the least recent entry unless
+ * if is being used by a transaction or is already evicted in which case it is removed from the list
+ * and the next item is evicted.
+ * Adds are always done to the end of the list and should not be marked recently used.
+ * An async scanner runs periodically (how often TBD), head to tail, removing entries that have been
+ * recently used, marking them as not recently used, and adding them back to the tail.
+ * Removes may unlink entries from the list.
  */
-public class NewLRUClockHand implements LRUList {
+public class LRUListWithAsyncSorting implements LRUList {
   private static final Logger logger = LogService.getLogger();
 
   private BucketRegion bucketRegion = null;
 
   /** The last node in the LRU list after which all new nodes are added */
-  protected LRUClockNode tail = new GuardNode();
+  protected final LRUClockNode tail = new GuardNode();
 
   /** The starting point in the LRU list for searching for the LRU node */
-  protected LRUClockNode head = new GuardNode();
+  protected final LRUClockNode head = new GuardNode();
 
-  /** The object for locking the head of the cu-pipe. */
-  final protected HeadLock lock;
+  /** The object for locking this list */
+  final protected Object lock = new Object();
 
   /** Description of the Field */
   final private LRUStatistics stats;
   /** Counter for the size of the LRU list */
   protected int size = 0;
 
-  public static final boolean debug =
-      Boolean.getBoolean(DistributionConfig.GEMFIRE_PREFIX + "verbose-lru-clock");
-
-  static private final int maxEntries;
-
-  static {
-    String squelch = System.getProperty(DistributionConfig.GEMFIRE_PREFIX + "lru.maxSearchEntries");
-    if (squelch == null)
-      maxEntries = -1;
-    else
-      maxEntries = Integer.parseInt(squelch);
-  }
-
-  /** only used by enhancer */
-  // protected NewLRUClockHand( ) { }
-
-  // private long size = 0;
-
-  public NewLRUClockHand(Object region, EnableLRU ccHelper,
+  public LRUListWithAsyncSorting(Object region, EnableLRU ccHelper,
       InternalRegionArguments internalRegionArgs) {
     setBucketRegion(region);
-    this.lock = new HeadLock();
-    // behavior relies on a single evicted node in the pipe when the pipe is empty.
-    initHeadAndTail();
+    initEmptyList();
     if (this.bucketRegion != null) {
       this.stats = internalRegionArgs.getPartitionedRegion() != null
           ? internalRegionArgs.getPartitionedRegion().getEvictionController().stats : null;
@@ -101,21 +88,15 @@ public class NewLRUClockHand implements LRUList {
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.apache.geode.internal.cache.lru.LRUList#setBucketRegion(java.lang.Object)
-   */
-  @Override
   public void setBucketRegion(Object r) {
     if (r instanceof BucketRegion) {
       this.bucketRegion = (BucketRegion) r; // see bug 41388
     }
   }
 
-  public NewLRUClockHand(Region region, EnableLRU ccHelper, NewLRUClockHand oldList) {
+  public LRUListWithAsyncSorting(Region region, EnableLRU ccHelper, LRUListWithAsyncSorting oldList) {
     setBucketRegion(region);
-    this.lock = new HeadLock();
-    // behavior relies on a single evicted node in the pipe when the pipe is empty.
-    initHeadAndTail();
+    initEmptyList();
     if (oldList.stats == null) {
       // see bug 41388
       StatisticsFactory sf = region.getCache().getDistributedSystem();
@@ -139,12 +120,18 @@ public class NewLRUClockHand implements LRUList {
     }
   }
 
+  /**
+   * Adds an lru node to the tail of the list.
+   */
   @Override
   public void appendEntry(final LRUClockNode aNode) {
     synchronized (this.lock) {
-      if (aNode.nextLRUNode() != null || aNode.prevLRUNode() != null) {
+      if (aNode.nextLRUNode() != null) {
+        // already in the list
         return;
       }
+      
+      aNode.unsetRecentlyUsed();
 
       if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
         logger.trace(LogMarker.LRU_CLOCK, LocalizedMessage
@@ -160,13 +147,13 @@ public class NewLRUClockHand implements LRUList {
   }
 
   /**
-   * return the head entry in the list preserving the cupipe requirement of at least one entry left
-   * in the list
+   * Remove and return the head entry in the list
    */
   private LRUClockNode getHeadEntry() {
     synchronized (lock) {
-      LRUClockNode aNode = NewLRUClockHand.this.head.nextLRUNode();
+      LRUClockNode aNode = this.head.nextLRUNode();
       if (aNode == this.tail) {
+        // empty list
         return null;
       }
 
@@ -182,30 +169,27 @@ public class NewLRUClockHand implements LRUList {
   }
 
 
+  /**
+   * Remove and return the Entry that is considered least recently used.
+   */
   @Override
   public LRUClockNode getLRUEntry() {
-    long numEvals = 0;
-
     for (;;) {
-      LRUClockNode aNode = null;
-      aNode = getHeadEntry();
+      final LRUClockNode aNode = getHeadEntry();
 
       if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
         logger.trace(LogMarker.LRU_CLOCK, "lru considering {}", aNode);
       }
 
       if (aNode == null) { // hit the end of the list
-        this.stats.incEvaluations(numEvals);
-        return aNode;
+        return null;
       } // hit the end of the list
-
-      numEvals++;
 
       // If this Entry is part of a transaction, skip it since
       // eviction should not cause commit conflicts
       synchronized (aNode) {
         if (aNode instanceof AbstractRegionEntry) {
-          if (((AbstractRegionEntry) aNode).isInUseByTransaction()) {
+          if (aNode.isInUseByTransaction()) {
             if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
               logger.trace(LogMarker.LRU_CLOCK, LocalizedMessage.create(
                   LocalizedStrings.NewLRUClockHand_REMOVING_TRANSACTIONAL_ENTRY_FROM_CONSIDERATION));
@@ -220,39 +204,13 @@ public class NewLRUClockHand implements LRUList {
           }
           continue;
         }
+      }
 
-        // At this point we have any acceptable entry. Now
-        // use various criteria to determine if it's good enough
-        // to return, or if we need to add it back to the list.
-        if (maxEntries > 0 && numEvals > maxEntries) {
-          if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
-            logger.trace(LogMarker.LRU_CLOCK, LocalizedMessage
-                .create(LocalizedStrings.NewLRUClockHand_GREEDILY_PICKING_AN_AVAILABLE_ENTRY));
-          }
-          this.stats.incGreedyReturns(1);
-          // fall through, return this node
-        } else if (aNode.testRecentlyUsed()) {
-          // Throw it back, it's in the working set
-          aNode.unsetRecentlyUsed();
-          // aNode.setInList();
-          if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
-            logger.trace(LogMarker.LRU_CLOCK, LocalizedMessage
-                .create(LocalizedStrings.NewLRUClockHand_SKIPPING_RECENTLY_USED_ENTRY, aNode));
-          }
-          appendEntry(aNode);
-          continue; // keep looking
-        } else {
-          if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
-            logger.trace(LogMarker.LRU_CLOCK, LocalizedMessage
-                .create(LocalizedStrings.NewLRUClockHand_RETURNING_UNUSED_ENTRY, aNode));
-          }
-          // fall through, return this node
-        }
-
-        // Return the current node.
-        this.stats.incEvaluations(numEvals);
-        return aNode;
-      } // synchronized
+      if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
+        logger.trace(LogMarker.LRU_CLOCK, LocalizedMessage
+            .create(LocalizedStrings.NewLRUClockHand_RETURNING_UNUSED_ENTRY, aNode));
+      }
+      return aNode;
     } // for
   }
 
@@ -272,23 +230,26 @@ public class NewLRUClockHand implements LRUList {
   }
 
   private String getAuditReport() {
-    LRUClockNode h = this.head;
     int totalNodes = 0;
     int evictedNodes = 0;
     int usedNodes = 0;
-    while (h != null) {
-      totalNodes++;
-      if (h.testEvicted())
-        evictedNodes++;
-      if (h.testRecentlyUsed())
-        usedNodes++;
-      h = h.nextLRUNode();
+    synchronized (lock) {
+      LRUClockNode h = this.head;
+      while (h != null) {
+        totalNodes++;
+        if (h.testEvicted())
+          evictedNodes++;
+        if (h.testRecentlyUsed())
+          usedNodes++;
+        h = h.nextLRUNode();
+      }
     }
-    StringBuffer result = new StringBuffer(128);
+    StringBuilder result = new StringBuilder(128);
     result.append("LRUList Audit: listEntries = ").append(totalNodes).append(" evicted = ")
-        .append(evictedNodes).append(" used = ").append(usedNodes);
+    .append(evictedNodes).append(" used = ").append(usedNodes);
     return result.toString();
   }
+
 
   @Override
   public void audit() {
@@ -301,8 +262,6 @@ public class NewLRUClockHand implements LRUList {
       logger.trace(LogMarker.LRU_CLOCK,
           LocalizedMessage.create(LocalizedStrings.NewLRUClockHand_UNLINKENTRY_CALLED, entry));
     }
-    entry.setEvicted();
-    stats().incDestroys();
     synchronized (lock) {
       LRUClockNode next = entry.nextLRUNode();
       LRUClockNode prev = entry.prevLRUNode();
@@ -315,10 +274,50 @@ public class NewLRUClockHand implements LRUList {
       entry.setNextLRUNode(null);
       entry.setPrevLRUNode(null);
       this.size--;
+      entry.setEvicted(); // TODO is this safe to do when entry is not synced?
     }
+    stats().incDestroys();
     return true;
   }
-
+  
+  public void scan() {
+    LRUClockNode aNode;
+    do {
+      synchronized (lock) {
+        aNode = this.head.nextLRUNode();
+      }
+      while (aNode != null && aNode != this.tail) {
+        // TODO add testAndSetRecentlyUsed instead of having two methods.
+        // No need to sync on aNode here. If the bit is set the only one to clear
+        // it is us (i.e. the scan) or evict/remove code. If either of these
+        // happen then this will be detected by next and prev being null.
+        if (aNode.testRecentlyUsed()) {
+          aNode.unsetRecentlyUsed();
+          LRUClockNode next;
+          synchronized (lock) {
+            next = aNode.nextLRUNode();
+            LRUClockNode prev = aNode.prevLRUNode();
+            if (next != null && prev != null) {
+              next.setPrevLRUNode(prev);
+              prev.setNextLRUNode(next);
+              aNode.setNextLRUNode(this.tail);
+              this.tail.prevLRUNode().setNextLRUNode(aNode);
+              aNode.setPrevLRUNode(this.tail.prevLRUNode());
+              this.tail.setPrevLRUNode(aNode);
+            }
+          }
+          aNode = next;
+        } else {
+          synchronized (lock) {
+            aNode = aNode.nextLRUNode();
+          }
+        }
+      }
+      // null indicates we tried to scan past a node that was concurrently removed.
+      // In that case we need to start at the beginning.
+    } while (aNode == null); 
+  }
+  
   @Override
   public LRUStatistics stats() {
     return this.stats;
@@ -336,38 +335,20 @@ public class NewLRUClockHand implements LRUList {
       } else {
         this.stats.resetCounter();
       }
-      initHeadAndTail();
-      // LRUClockNode node = this.tail;
-      // node.setEvicted();
-      //
-      // // NYI need to walk the list and call unsetInList for each one.
-      //
-      // // tail's next should already be null.
-      // setHead( node );
+      initEmptyList();
     }
   }
-
-  private void initHeadAndTail() {
-    // I'm not sure, but I think it's important that we
-    // drop the references to the old head and tail on a region clear
-    // That will prevent any concurrent operations that are messing
-    // with existing nodes from screwing up the head and tail after
-    // the clear.
-    // Dan 9/23/09
-    this.head = new GuardNode();
-    this.tail = new GuardNode();
+  
+  private void initEmptyList() {
+    this.size = 0;
     this.head.setNextLRUNode(this.tail);
     this.tail.setPrevLRUNode(this.head);
-    this.size = 0;
   }
 
   @Override
   public int size() {
-    return size;
-  }
-
-  /** Marker class name to identify the lock more easily in thread dumps */
-  protected static class HeadLock extends Object {
+    synchronized (lock) {
+      return size;
+    }
   }
 }
-

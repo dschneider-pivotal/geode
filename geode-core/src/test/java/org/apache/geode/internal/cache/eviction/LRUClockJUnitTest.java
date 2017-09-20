@@ -69,7 +69,7 @@ public class LRUClockJUnitTest {
 
   @Test
   public void testAddToClockFace() throws Exception {
-    NewLRUClockHand clock = getAClockHand(getARegion(), new TestEnableLRU());
+    LRUList clock = getAClockHand(getARegion(), new TestEnableLRU());
 
     // getLRUEntry( maxScan )
 
@@ -93,7 +93,7 @@ public class LRUClockJUnitTest {
 
   @Test
   public void testFIFO() throws Exception {
-    NewLRUClockHand clock = getAClockHand(getARegion(), new TestEnableLRU());
+    LRUList clock = getAClockHand(getARegion(), new TestEnableLRU());
 
     for (int i = 0; i < 100; i++) {
       LRUClockNode entry = getANode(i);
@@ -124,7 +124,7 @@ public class LRUClockJUnitTest {
 
   @Test
   public void testEvicted() throws Exception {
-    NewLRUClockHand clock = getAClockHand(getARegion(), new TestEnableLRU());
+    LRUList clock = getAClockHand(getARegion(), new TestEnableLRU());
 
     // getLRUEntry( maxScan )
 
@@ -152,7 +152,7 @@ public class LRUClockJUnitTest {
 
   @Test
   public void testRecentlyUsed() throws Exception {
-    NewLRUClockHand clock = getAClockHand(getARegion(), new TestEnableLRU());
+    LRUList clock = getAClockHand(getARegion(), new TestEnableLRU());
 
     // getLRUEntry( maxScan )
 
@@ -187,7 +187,7 @@ public class LRUClockJUnitTest {
 
   @Test
   public void testRemoveHead() throws Exception {
-    NewLRUClockHand clock = getAClockHand(getARegion(), new TestEnableLRU());
+    LRUList clock = getAClockHand(getARegion(), new TestEnableLRU());
     LRUTestEntry[] nodes = new LRUTestEntry[10];
     int i = 0;
     for (i = 0; i < 10; i++) {
@@ -205,7 +205,7 @@ public class LRUClockJUnitTest {
 
   @Test
   public void testRemoveMiddle() throws Exception {
-    NewLRUClockHand clock = getAClockHand(getARegion(), new TestEnableLRU());
+    LRUList clock = getAClockHand(getARegion(), new TestEnableLRU());
     LRUTestEntry[] nodes = new LRUTestEntry[10];
     int i = 0;
     for (i = 0; i < 10; i++) {
@@ -228,7 +228,7 @@ public class LRUClockJUnitTest {
 
   @Test
   public void testRemoveTail() throws Exception {
-    NewLRUClockHand clock = getAClockHand(getARegion(), new TestEnableLRU());
+    LRUList clock = getAClockHand(getARegion(), new TestEnableLRU());
     LRUTestEntry[] nodes = new LRUTestEntry[10];
     int i = 0;
     for (i = 0; i < 10; i++) {
@@ -358,6 +358,11 @@ public class LRUClockJUnitTest {
 
     public int cloneCount() {
       return 0;
+    }
+
+    @Override
+    public boolean isInUseByTransaction() {
+      return false;
     }
   }
 
@@ -496,7 +501,7 @@ public class LRUClockJUnitTest {
   }
 
   /** overridden in SharedLRUClockTest to test SharedLRUClockHand */
-  private NewLRUClockHand getAClockHand(Region reg, EnableLRU elru) {
+  private LRUList getAClockHand(Region reg, EnableLRU elru) {
     return new NewLRUClockHand(reg, elru, new InternalRegionArguments());
   }
 

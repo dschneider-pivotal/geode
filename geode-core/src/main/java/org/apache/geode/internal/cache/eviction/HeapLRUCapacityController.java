@@ -14,8 +14,6 @@
  */
 package org.apache.geode.internal.cache.eviction;
 
-import java.util.Properties;
-
 import org.apache.geode.StatisticDescriptor;
 import org.apache.geode.StatisticsFactory;
 import org.apache.geode.StatisticsType;
@@ -33,6 +31,8 @@ import org.apache.geode.internal.cache.control.InternalResourceManager;
 import org.apache.geode.internal.cache.persistence.DiskRegionView;
 import org.apache.geode.internal.i18n.LocalizedStrings;
 import org.apache.geode.internal.statistics.StatisticsTypeFactoryImpl;
+
+import java.util.Properties;
 
 /**
  * A <code>HeapLRUCapacityController</code> controls the contents of {@link Region} based on the

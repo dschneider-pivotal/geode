@@ -15,7 +15,7 @@
 
 package org.apache.geode.internal.cache.eviction;
 
-import org.apache.geode.*;
+import org.apache.geode.StatisticsFactory;
 // import org.apache.geode.internal.*;
 
 /**

@@ -15,12 +15,12 @@
 
 package org.apache.geode.internal.cache.eviction;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.geode.Statistics;
 import org.apache.geode.StatisticsFactory;
 import org.apache.geode.StatisticsType;
 import org.apache.geode.internal.Assert;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Statistics for both the LocalLRUClockHand. Note that all its instance fields are

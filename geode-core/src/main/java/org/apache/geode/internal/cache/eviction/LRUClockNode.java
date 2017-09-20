@@ -49,4 +49,7 @@ public interface LRUClockNode {
   public void unsetEvicted();
 
   public boolean testEvicted();
+  
+  public boolean isInUseByTransaction();
+
 }

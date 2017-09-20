@@ -37,7 +37,7 @@ import org.apache.geode.internal.cache.AbstractRegionMap.ARMLockTestHook;
 import org.apache.geode.internal.cache.InitialImageOperation.Entry;
 import org.apache.geode.internal.cache.entries.DiskEntry;
 import org.apache.geode.internal.cache.eviction.LRUEntry;
-import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
+import org.apache.geode.internal.cache.eviction.LRUList;
 import org.apache.geode.internal.cache.persistence.DiskRegionView;
 import org.apache.geode.internal.cache.tier.sockets.ClientProxyMembershipID;
 import org.apache.geode.internal.cache.versions.RegionVersionVector;
@@ -813,12 +813,12 @@ class ProxyRegionMap implements RegionMap {
     public void incRefCount() {}
 
     @Override
-    public void decRefCount(NewLRUClockHand lruList, InternalRegion region) {
+    public void decRefCount(LRUList lruList, InternalRegion region) {
       // nothing
     }
 
     @Override
-    public void resetRefCount(NewLRUClockHand lruList) {
+    public void resetRefCount(LRUList lruList) {
       // nothing
     }
 

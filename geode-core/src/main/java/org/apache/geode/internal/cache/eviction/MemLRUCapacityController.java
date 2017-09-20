@@ -14,8 +14,6 @@
  */
 package org.apache.geode.internal.cache.eviction;
 
-import java.util.Properties;
-
 import org.apache.geode.StatisticDescriptor;
 import org.apache.geode.StatisticsType;
 import org.apache.geode.StatisticsTypeFactory;
@@ -27,12 +25,14 @@ import org.apache.geode.cache.Region;
 import org.apache.geode.cache.RegionAttributes;
 import org.apache.geode.cache.util.ObjectSizer;
 import org.apache.geode.internal.ClassPathLoader;
-import org.apache.geode.internal.statistics.StatisticsTypeFactoryImpl;
 import org.apache.geode.internal.cache.AbstractLRURegionMap.CDValueWrapper;
 import org.apache.geode.internal.cache.CachedDeserializableFactory;
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.cache.persistence.DiskRegionView;
 import org.apache.geode.internal.i18n.LocalizedStrings;
+import org.apache.geode.internal.statistics.StatisticsTypeFactoryImpl;
+
+import java.util.Properties;
 
 
 /**
