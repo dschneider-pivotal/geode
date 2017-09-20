@@ -25,7 +25,11 @@ import org.apache.geode.internal.cache.RegionEntryContext;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
+<<<<<<< HEAD:geode-core/src/main/java/org/apache/geode/internal/cache/entries/VMThinLRURegionEntryOffHeapLongKey.java
 import org.apache.geode.internal.cache.eviction.LRUListNode;
+=======
+import org.apache.geode.internal.cache.lru.NewLRUClockHand;
+>>>>>>> dfbd9e438... initial wip:geode-core/src/main/java/org/apache/geode/internal/cache/VMThinLRURegionEntryOffHeapLongKey.java
 
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.offheap.OffHeapRegionEntryHelper;
@@ -272,6 +276,7 @@ public class VMThinLRURegionEntryOffHeapLongKey extends VMThinLRURegionEntryOffH
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
   private LRUListNode nextLRU;
+<<<<<<< HEAD:geode-core/src/main/java/org/apache/geode/internal/cache/entries/VMThinLRURegionEntryOffHeapLongKey.java
   private LRUListNode previousLRU;
   private int size;
 
@@ -281,10 +286,20 @@ public class VMThinLRURegionEntryOffHeapLongKey extends VMThinLRURegionEntryOffH
   }
 
   @Override
+=======
+  private LRUListNode prevLRU;
+  private int size;
+
+  public void setNextLRUNode(LRUListNode next) {
+    this.nextLRU = next;
+  }
+
+>>>>>>> dfbd9e438... initial wip:geode-core/src/main/java/org/apache/geode/internal/cache/VMThinLRURegionEntryOffHeapLongKey.java
   public LRUListNode nextLRUNode() {
     return this.nextLRU;
   }
 
+<<<<<<< HEAD:geode-core/src/main/java/org/apache/geode/internal/cache/entries/VMThinLRURegionEntryOffHeapLongKey.java
   @Override
   public void setPrevLRUNode(final LRUListNode previousLRU) {
     this.previousLRU = previousLRU;
@@ -293,6 +308,14 @@ public class VMThinLRURegionEntryOffHeapLongKey extends VMThinLRURegionEntryOffH
   @Override
   public LRUListNode prevLRUNode() {
     return this.previousLRU;
+=======
+  public void setPrevLRUNode(LRUListNode prev) {
+    this.prevLRU = prev;
+  }
+
+  public LRUListNode prevLRUNode() {
+    return this.prevLRU;
+>>>>>>> dfbd9e438... initial wip:geode-core/src/main/java/org/apache/geode/internal/cache/VMThinLRURegionEntryOffHeapLongKey.java
   }
 
   @Override

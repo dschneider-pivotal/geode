@@ -40,7 +40,7 @@ class VMLRURegionMap extends AbstractLRURegionMap {
    */
   private EnableLRU ccHelper;
   /** The list of nodes in LRU order */
-  private NewLRUClockHand lruList;
+  private LRUList lruList;
 
   @Override
   protected void _setCCHelper(EnableLRU ccHelper) {
@@ -53,12 +53,12 @@ class VMLRURegionMap extends AbstractLRURegionMap {
   }
 
   @Override
-  protected void _setLruList(NewLRUClockHand lruList) {
+  protected void _setLruList(LRUList lruList) {
     this.lruList = lruList;
   }
 
   @Override
-  public NewLRUClockHand _getLruList() {
+  public LRUList _getLruList() {
     return this.lruList;
   }
 }

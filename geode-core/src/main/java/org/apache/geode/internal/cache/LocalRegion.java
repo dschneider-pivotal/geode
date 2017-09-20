@@ -851,6 +851,7 @@ public class LocalRegion extends AbstractRegion implements InternalRegion, Loade
   }
 
   // TODO: createSubregion method is too complex for IDE to analyze
+  @Override
   public Region createSubregion(String subregionName, RegionAttributes attrs,
       InternalRegionArguments internalRegionArgs)
       throws RegionExistsException, TimeoutException, IOException, ClassNotFoundException {
@@ -12060,6 +12061,14 @@ public class LocalRegion extends AbstractRegion implements InternalRegion, Loade
   public long getLatestLastAccessTimeFromOthers(Object key) {
     // local regions have no other members so return 0.
     return 0L;
+  }
+
+  /**
+   * Returns the number of LRU evictions done by this region.
+   */
+  @Override
+  public long getEvictions() {
+    return this.entries.getEvictions();
   }
 
 }

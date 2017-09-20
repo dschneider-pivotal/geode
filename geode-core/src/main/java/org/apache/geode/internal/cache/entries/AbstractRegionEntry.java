@@ -1462,7 +1462,7 @@ public abstract class AbstractRegionEntry implements RegionEntry, HashEntry<Obje
   }
 
   @Override
-  public synchronized void decRefCount(NewLRUClockHand lruList, InternalRegion region) {
+  public synchronized void decRefCount(LRUList lruList, InternalRegion region) {
     if (TXManagerImpl.decRefCount(this)) {
       if (isInUseByTransaction()) {
         setInUseByTransaction(false);
@@ -1478,7 +1478,7 @@ public abstract class AbstractRegionEntry implements RegionEntry, HashEntry<Obje
   }
 
   @Override
-  public synchronized void resetRefCount(NewLRUClockHand lruList) {
+  public synchronized void resetRefCount(LRUList lruList) {
     if (isInUseByTransaction()) {
       setInUseByTransaction(false);
       if (lruList != null) {

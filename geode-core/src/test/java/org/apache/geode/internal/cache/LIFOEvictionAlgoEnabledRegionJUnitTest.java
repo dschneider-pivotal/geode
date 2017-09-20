@@ -17,7 +17,7 @@ package org.apache.geode.internal.cache;
 import org.apache.geode.cache.*;
 import org.apache.geode.distributed.DistributedSystem;
 import org.apache.geode.internal.cache.eviction.EvictionStatistics;
-import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
+import org.apache.geode.internal.cache.eviction.LRUList;
 import org.apache.geode.test.junit.categories.IntegrationTest;
 import org.junit.After;
 import org.junit.Before;
@@ -53,7 +53,7 @@ public class LIFOEvictionAlgoEnabledRegionJUnitTest {
 
   private static int capacity = 5;
 
-  private static NewLRUClockHand lifoClockHand = null;
+  private static LRUList lifoClockHand = null;
 
   @Before
   public void setUp() throws Exception {

@@ -1549,7 +1549,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
     }
 
     assertFalse(this.failureCause, this.exceptionOccurred);
-    NewLRUClockHand lruList = ((VMLRURegionMap) ((LocalRegion) region).entries)._getLruList();
+    LRUList lruList = ((VMLRURegionMap) ((LocalRegion) region).entries)._getLruList();
     assertEquals(region.size(), 0);
     lruList.audit();
     assertNull("The LRU List should have been empty instead it contained a cleared entry",

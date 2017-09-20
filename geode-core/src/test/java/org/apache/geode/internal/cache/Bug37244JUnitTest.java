@@ -132,7 +132,7 @@ public class Bug37244JUnitTest {
    * 
    */
 
-  static public class TestLRUClockHand extends NewLRUClockHand {
+  static public class TestLRUClockHand extends LRUListWithAsyncSorting {
 
     protected static Object mutex = new Object();
 

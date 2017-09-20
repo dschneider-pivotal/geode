@@ -64,7 +64,7 @@ public class LIFOEvictionAlgoMemoryEnabledRegionJUnitTest {
 
   private int deltaSize = 20738;
 
-  private static NewLRUClockHand lifoClockHand = null;
+  private static LRUList lifoClockHand = null;
 
 
   @Before
@@ -405,6 +405,11 @@ class TestLRUNode implements LRUListNode {
 
   public boolean testEvicted() {
     return evicted;
+  }
+
+  @Override
+  public boolean isInUseByTransaction() {
+    return false;
   }
 }
 

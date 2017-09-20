@@ -42,7 +42,7 @@ import org.apache.geode.internal.cache.RegionClearedException;
 import org.apache.geode.internal.cache.RegionEntry;
 import org.apache.geode.internal.cache.RegionEntryContext;
 import org.apache.geode.internal.cache.Token;
-import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
+import org.apache.geode.internal.cache.eviction.LRUList;
 import org.apache.geode.internal.cache.versions.VersionSource;
 import org.apache.geode.internal.cache.versions.VersionStamp;
 import org.apache.geode.internal.cache.versions.VersionTag;
@@ -606,12 +606,12 @@ public class NonLocalRegionEntry implements RegionEntry, VersionStamp {
   }
 
   @Override
-  public void decRefCount(NewLRUClockHand lruList, InternalRegion region) {
+  public void decRefCount(LRUList lruList, InternalRegion region) {
     // nothing
   }
 
   @Override
-  public void resetRefCount(NewLRUClockHand lruList) {
+  public void resetRefCount(LRUList lruList) {
     // nothing
   }
 

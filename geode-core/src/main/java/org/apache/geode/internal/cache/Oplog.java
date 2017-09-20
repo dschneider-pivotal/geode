@@ -87,7 +87,7 @@ import org.apache.geode.internal.cache.DiskStoreImpl.OplogCompactor;
 import org.apache.geode.internal.cache.DiskStoreImpl.OplogEntryIdSet;
 import org.apache.geode.internal.cache.DistributedRegion.DiskPosition;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
-import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
+import org.apache.geode.internal.cache.eviction.LRUList;
 import org.apache.geode.internal.cache.persistence.BytesAndBits;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 import org.apache.geode.internal.cache.persistence.DiskRegionView;
@@ -7379,12 +7379,12 @@ public class Oplog implements CompactableOplog, Flushable {
     }
 
     @Override
-    public void decRefCount(NewLRUClockHand lruList, InternalRegion region) {
+    public void decRefCount(LRUList lruList, InternalRegion region) {
       // nothing
     }
 
     @Override
-    public void resetRefCount(NewLRUClockHand lruList) {
+    public void resetRefCount(LRUList lruList) {
       // nothing
     }
 
