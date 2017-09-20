@@ -868,4 +868,10 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
       return true;
     }
   }
+  
+  @Override
+  public long getEvictions() {
+    return this._getLruList().stats().getEvictions();
+  }
+
 }
