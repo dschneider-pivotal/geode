@@ -174,13 +174,21 @@ public class LRUListWithAsyncSorting implements LRUList {
     for (;;) {
       final LRUListNode aNode = getHeadEntry();
 
+      if (aNode == null) { // hit the end of the list
+        return null;
+      } // hit the end of the list
+
       if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
         logger.trace(LogMarker.LRU_CLOCK, "lru considering {}", aNode);
       }
 
-      if (aNode == null) { // hit the end of the list
-        return null;
-      } // hit the end of the list
+      if (aNode.testEvicted()) {
+        if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
+          logger.trace(LogMarker.LRU_CLOCK,
+              LocalizedMessage.create(LocalizedStrings.NewLRUClockHand_DISCARDING_EVICTED_ENTRY));
+        }
+        continue;
+      }
 
       // If this Entry is part of a transaction, skip it since
       // eviction should not cause commit conflicts
@@ -189,13 +197,6 @@ public class LRUListWithAsyncSorting implements LRUList {
           if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
             logger.trace(LogMarker.LRU_CLOCK, LocalizedMessage.create(
                 LocalizedStrings.NewLRUClockHand_REMOVING_TRANSACTIONAL_ENTRY_FROM_CONSIDERATION));
-          }
-          continue;
-        }
-        if (aNode.testEvicted()) {
-          if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
-            logger.trace(LogMarker.LRU_CLOCK,
-                LocalizedMessage.create(LocalizedStrings.NewLRUClockHand_DISCARDING_EVICTED_ENTRY));
           }
           continue;
         }
