@@ -33,10 +33,10 @@ import org.apache.geode.internal.cache.eviction.HeapLRUCapacityController;
 import org.apache.geode.internal.cache.eviction.LRUAlgorithm;
 import org.apache.geode.internal.cache.eviction.LRUEntry;
 import org.apache.geode.internal.cache.eviction.LRUList;
+import org.apache.geode.internal.cache.eviction.LRUListWithAsyncSorting;
 import org.apache.geode.internal.cache.eviction.LRUStatistics;
 import org.apache.geode.internal.cache.eviction.MemLRUCapacityController;
 import org.apache.geode.internal.cache.eviction.NewLIFOClockHand;
-import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 import org.apache.geode.internal.cache.persistence.DiskRegionView;
 import org.apache.geode.internal.cache.versions.RegionVersionVector;
 import org.apache.geode.internal.cache.versions.VersionSource;
@@ -103,7 +103,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
     if (ea == EvictionAlgorithm.LIFO_ENTRY || ea == EvictionAlgorithm.LIFO_MEMORY) {
       _setLruList(new NewLIFOClockHand(owner, _getCCHelper(), internalRegionArgs));
     } else {
-      _setLruList(new NewLRUClockHand(owner, _getCCHelper(), internalRegionArgs));
+      _setLruList(new LRUListWithAsyncSorting(owner, _getCCHelper(), internalRegionArgs));
     }
   }
 

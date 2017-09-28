@@ -20,22 +20,19 @@ import org.apache.geode.internal.cache.entries.AbstractRegionEntry;
 
 /**
  * NewLIFOClockHand holds the behavior for LIFO logic , Overwriting getLRUEntry() to return most
- * recently added Entry
+ * recently added Entry.
+ * TODO: this class has no need for the async sorting of its parent.
  * 
  * @since GemFire 5.7
  */
 
-public class NewLIFOClockHand extends NewLRUClockHand {
+public class NewLIFOClockHand extends LRUListWithAsyncSorting {
   /*
    * constructor
    */
   public NewLIFOClockHand(Object region, EnableLRU ccHelper,
       InternalRegionArguments internalRegionArgs) {
     super(region, ccHelper, internalRegionArgs);
-  }
-
-  public NewLIFOClockHand(Region region, EnableLRU ccHelper, NewLRUClockHand oldList) {
-    super(region, ccHelper, oldList);
   }
 
   /*
@@ -60,7 +57,12 @@ public class NewLIFOClockHand extends NewLRUClockHand {
   }
 
   /*
-   * return the Entry that is considered most recently used and available to be evicted to overflow
+   * Return the Entry that is considered most recently used and available to be evicted to overflow.
+   * Note that this implementation basically just returns the most recent thing added to the list.
+   * So, unlike the parent class, is does no scanning based on the recentlyUsed bit.
+   * This is a perfect implementation for our queues (gateway, client subscription) as long as they
+   * never update something already in the queue. Since updates simply set the recentlyUsed bit then
+   * the most recent node may be the one that was just updated and not moved to the tail of the list.
    */
   @Override
   public LRUListNode getLRUEntry() {
@@ -75,15 +77,8 @@ public class NewLIFOClockHand extends NewLRUClockHand {
       }
       numEvals++;
       synchronized (aNode) {
-        // look for another entry if in transaction
-        boolean inUseByTransaction = false;
-        if (aNode instanceof AbstractRegionEntry) {
-          if (((AbstractRegionEntry) aNode).isInUseByTransaction()) {
-            inUseByTransaction = true;
-          }
-        }
         // if entry NOT used by transaction and NOT evicted return entry
-        if (!inUseByTransaction && !aNode.testEvicted()) {
+        if (!aNode.isInUseByTransaction() && !aNode.testEvicted()) {
           break;
         }
       }

@@ -90,25 +90,6 @@ public class LRUListWithAsyncSorting implements LRUList {
     }
   }
 
-  public LRUListWithAsyncSorting(Region region, EnableLRU ccHelper,
-      LRUListWithAsyncSorting oldList) {
-    setBucketRegion(region);
-    initEmptyList();
-    if (oldList.stats == null) {
-      // see bug 41388
-      StatisticsFactory sf = region.getCache().getDistributedSystem();
-      this.stats = ccHelper.initStats(region, sf);
-    } else {
-      this.stats = oldList.stats;
-      if (this.bucketRegion != null) {
-        this.stats.decrementCounter(this.bucketRegion.getCounter());
-        this.bucketRegion.resetCounter();
-      } else {
-        this.stats.resetCounter();
-      }
-    }
-  }
-
   @Override
   public void closeStats() {
     LRUStatistics ls = this.stats;

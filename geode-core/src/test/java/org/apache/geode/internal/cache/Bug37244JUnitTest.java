@@ -19,7 +19,7 @@ import org.apache.geode.distributed.DistributedSystem;
 import org.apache.geode.internal.Assert;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.eviction.LRUListNode;
-import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
+import org.apache.geode.internal.cache.eviction.LRUListWithAsyncSorting;
 import org.apache.geode.test.junit.categories.IntegrationTest;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -132,7 +132,7 @@ public class Bug37244JUnitTest {
    * 
    */
 
-  static public class TestLRUClockHand extends NewLRUClockHand {
+  static public class TestLRUClockHand extends LRUListWithAsyncSorting {
 
     protected static Object mutex = new Object();
 

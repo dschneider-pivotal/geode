@@ -113,26 +113,6 @@ public class NewLRUClockHand implements LRUList {
     }
   }
 
-  public NewLRUClockHand(Region region, EnableLRU ccHelper, NewLRUClockHand oldList) {
-    setBucketRegion(region);
-    this.lock = new HeadLock();
-    // behavior relies on a single evicted node in the pipe when the pipe is empty.
-    initHeadAndTail();
-    if (oldList.stats == null) {
-      // see bug 41388
-      StatisticsFactory sf = region.getCache().getDistributedSystem();
-      this.stats = ccHelper.initStats(region, sf);
-    } else {
-      this.stats = oldList.stats;
-      if (this.bucketRegion != null) {
-        this.stats.decrementCounter(this.bucketRegion.getCounter());
-        this.bucketRegion.resetCounter();
-      } else {
-        this.stats.resetCounter();
-      }
-    }
-  }
-
   @Override
   public void closeStats() {
     LRUStatistics ls = this.stats;
@@ -206,14 +186,12 @@ public class NewLRUClockHand implements LRUList {
       // If this Entry is part of a transaction, skip it since
       // eviction should not cause commit conflicts
       synchronized (aNode) {
-        if (aNode instanceof AbstractRegionEntry) {
-          if (((AbstractRegionEntry) aNode).isInUseByTransaction()) {
-            if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
-              logger.trace(LogMarker.LRU_CLOCK, LocalizedMessage.create(
-                  LocalizedStrings.NewLRUClockHand_REMOVING_TRANSACTIONAL_ENTRY_FROM_CONSIDERATION));
-            }
-            continue;
+        if (aNode.isInUseByTransaction()) {
+          if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
+            logger.trace(LogMarker.LRU_CLOCK, LocalizedMessage.create(
+                LocalizedStrings.NewLRUClockHand_REMOVING_TRANSACTIONAL_ENTRY_FROM_CONSIDERATION));
           }
+          continue;
         }
         if (aNode.testEvicted()) {
           if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {

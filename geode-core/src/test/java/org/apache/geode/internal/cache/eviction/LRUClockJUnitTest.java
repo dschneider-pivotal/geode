@@ -499,9 +499,8 @@ public class LRUClockJUnitTest {
     }
   }
 
-  /** overridden in SharedLRUClockTest to test SharedLRUClockHand */
   private LRUList getAClockHand(Region reg, EnableLRU elru) {
-    return new NewLRUClockHand(reg, elru, new InternalRegionArguments());
+    return new LRUListWithAsyncSorting(reg, elru, new InternalRegionArguments());
   }
 
   private Region getARegion() throws Exception {
