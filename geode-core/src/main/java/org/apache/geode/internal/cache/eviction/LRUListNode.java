@@ -49,11 +49,7 @@ public interface LRUListNode {
   public void unsetEvicted();
 
   public boolean testEvicted();
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 324e4164c... added missing file
   public boolean isInUseByTransaction();
 
 }
