@@ -349,5 +349,9 @@ public class NewLRUClockHand implements LRUList {
   /** Marker class name to identify the lock more easily in thread dumps */
   protected static class HeadLock extends Object {
   }
+
+  @Override
+  public void scan() {
+  }
 }
 

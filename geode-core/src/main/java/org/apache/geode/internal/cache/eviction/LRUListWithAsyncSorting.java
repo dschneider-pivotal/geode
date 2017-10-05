@@ -15,13 +15,11 @@
 package org.apache.geode.internal.cache.eviction;
 
 import org.apache.geode.StatisticsFactory;
-import org.apache.geode.cache.Region;
 import org.apache.geode.internal.cache.BucketRegion;
 import org.apache.geode.internal.cache.GemFireCacheImpl;
 import org.apache.geode.internal.cache.InternalRegionArguments;
 import org.apache.geode.internal.cache.PartitionedRegion;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
-import org.apache.geode.internal.cache.entries.AbstractRegionEntry;
 import org.apache.geode.internal.cache.versions.RegionVersionVector;
 import org.apache.geode.internal.i18n.LocalizedStrings;
 import org.apache.geode.internal.logging.LogService;
@@ -257,6 +255,7 @@ public class LRUListWithAsyncSorting implements LRUList {
     return true;
   }
 
+  @Override
   public void scan() {
     LRUListNode aNode;
     do {

@@ -61,6 +61,7 @@ public interface LRUList {
    * @return size
    */
   int size();
+
   /**
    * Moves recently used entries to end of list.
    */
