@@ -165,6 +165,7 @@ public class LRUClockJUnitTest {
       }
     }
 
+    clock.scan();
     // getLRUEntry until empty... verify order of results.
 
     // should find 1, 3, etc... as 0, 2, 4 etc... were marked recently used..
