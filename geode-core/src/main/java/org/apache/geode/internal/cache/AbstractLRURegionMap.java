@@ -280,6 +280,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
     if (action.isLocalDestroy()) {
       int size = entry.getEntrySize();
       if (region.evictDestroy(entry)) {
+        stats.incDestroys();
         return size;
       } else {
         return 0;
