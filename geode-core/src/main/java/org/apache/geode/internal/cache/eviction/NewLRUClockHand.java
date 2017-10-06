@@ -351,7 +351,6 @@ public class NewLRUClockHand implements LRUList {
   }
 
   @Override
-  public void scan() {
-  }
+  public void scan() {}
 }
 
