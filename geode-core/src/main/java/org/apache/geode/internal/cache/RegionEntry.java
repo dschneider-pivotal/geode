@@ -98,7 +98,7 @@ public interface RegionEntry {
   /**
    * Used to mark an LRU entry as having been recently used.
    */
-  void setRecentlyUsed();
+  void setRecentlyUsed(); // same method as on LRUListNode interface
 
   void updateStatsForGet(boolean hit, long time);
 

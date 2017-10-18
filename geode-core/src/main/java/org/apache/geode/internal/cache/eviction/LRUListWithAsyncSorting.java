@@ -20,6 +20,7 @@ import org.apache.geode.internal.cache.GemFireCacheImpl;
 import org.apache.geode.internal.cache.InternalRegionArguments;
 import org.apache.geode.internal.cache.PartitionedRegion;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
+import org.apache.geode.internal.cache.RegionEntry;
 import org.apache.geode.internal.cache.versions.RegionVersionVector;
 import org.apache.geode.internal.i18n.LocalizedStrings;
 import org.apache.geode.internal.logging.LogService;
@@ -255,6 +256,11 @@ public class LRUListWithAsyncSorting implements LRUList {
     return true;
   }
 
+  /**
+   * Determine who/when should invoke scan. Maybe when 10% of the RegionEntries have been dirtied by {@link RegionEntry#setRecentlyUsed()}
+   *
+   * Determine when to stop scanning.
+   */
   @Override
   public void scan() {
     LRUListNode aNode;
@@ -263,7 +269,7 @@ public class LRUListWithAsyncSorting implements LRUList {
         aNode = this.head.nextLRUNode();
       }
       while (aNode != null && aNode != this.tail) {
-        // TODO add testAndSetRecentlyUsed instead of having two methods.
+        // TODO add testAndUnsetRecentlyUsed instead of having two methods.
         // No need to sync on aNode here. If the bit is set the only one to clear
         // it is us (i.e. the scan) or evict/remove code. If either of these
         // happen then this will be detected by next and prev being null.
@@ -283,6 +289,7 @@ public class LRUListWithAsyncSorting implements LRUList {
             }
           }
           aNode = next;
+          // how hot is this thread?
         } else {
           synchronized (lock) {
             aNode = aNode.nextLRUNode();
