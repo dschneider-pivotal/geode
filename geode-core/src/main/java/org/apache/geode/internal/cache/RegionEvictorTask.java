@@ -16,13 +16,12 @@ package org.apache.geode.internal.cache;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.cache.RegionDestroyedException;
 import org.apache.geode.distributed.internal.DistributionConfig;
-import org.apache.geode.internal.cache.lru.HeapEvictor;
+import org.apache.geode.internal.cache.eviction.HeapEvictor;
 import org.apache.geode.internal.i18n.LocalizedStrings;
 import org.apache.geode.internal.logging.LogService;
 import org.apache.geode.internal.logging.log4j.LocalizedMessage;

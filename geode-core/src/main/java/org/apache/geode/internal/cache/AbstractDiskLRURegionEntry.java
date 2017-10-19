@@ -17,7 +17,7 @@ package org.apache.geode.internal.cache;
 
 
 import org.apache.geode.internal.cache.entries.AbstractOplogDiskRegionEntry;
-import org.apache.geode.internal.cache.lru.LRUEntry;
+import org.apache.geode.internal.cache.eviction.LRUEntry;
 
 /**
  * Abstract implementation class of RegionEntry interface. This adds LRU support behavior to entries

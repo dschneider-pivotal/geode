@@ -39,7 +39,8 @@ import org.apache.geode.cache30.ClientServerTestCase;
 import org.apache.geode.distributed.DistributedSystem;
 import org.apache.geode.distributed.internal.InternalLocator;
 import org.apache.geode.internal.AvailablePort;
-import org.apache.geode.internal.cache.lru.EnableLRU;
+import org.apache.geode.internal.cache.eviction.EnableLRU;
+import org.apache.geode.internal.cache.eviction.MemLRUCapacityController;
 import org.apache.geode.internal.cache.tier.sockets.ClientUpdateMessageImpl;
 import org.apache.geode.internal.cache.tier.sockets.ConflationDUnitTest;
 import org.apache.geode.test.dunit.Host;
@@ -50,7 +51,7 @@ import org.apache.geode.test.junit.categories.DistributedTest;
 
 /**
  * Tests the size of clientUpdateMessageImpl with the size calculated by
- * {@link org.apache.geode.internal.cache.lru.MemLRUCapacityController} for HA overFlow
+ * {@link MemLRUCapacityController} for HA overFlow
  * 
  * @since GemFire 5.7
  */

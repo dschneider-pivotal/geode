@@ -15,51 +15,111 @@
 package org.apache.geode.internal.cache.entries;
 
 // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
+
+
+
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+
+
+
+
 import org.apache.geode.internal.cache.RegionEntryContext;
-import org.apache.geode.internal.cache.lru.EnableLRU;
+
+import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
+
 import org.apache.geode.internal.cache.InternalRegion;
-import org.apache.geode.internal.cache.lru.LRUClockNode;
-import org.apache.geode.internal.cache.lru.NewLRUClockHand;
+import org.apache.geode.internal.cache.eviction.LRUClockNode;
+import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
+
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
+ * disk: DISK
+ * lru: LRU
+ * stats: STATS
+ * versioned: VERSIONED
+ * offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
- * KEY_STRING1 key string2: KEY_STRING2
+ * key object: KEY_OBJECT
+ * key int: KEY_INT
+ * key long: KEY_LONG
+ * key uuid: KEY_UUID
+ * key string1: KEY_STRING1
+ * key string2: KEY_STRING2
  */
+
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VMThinLRURegionEntryHeapIntKey extends VMThinLRURegionEntryHeap {
+
   // --------------------------------------- common fields ----------------------------------------
-  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryHeapIntKey> LAST_MODIFIED_UPDATER =
-      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryHeapIntKey.class, "lastModified");
+
+  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryHeapIntKey> LAST_MODIFIED_UPDATER
+    = AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryHeapIntKey.class, "lastModified");
+
   protected int hash;
+
   private HashEntry<Object, Object> nextEntry;
+
   @SuppressWarnings("unused")
   private volatile long lastModified;
+
+
+
   private volatile Object value;
+
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
+
   private final int key;
 
-  public VMThinLRURegionEntryHeapIntKey(final RegionEntryContext context, final int key,
-      final Object value) {
-    super(context, value);
+
+  public VMThinLRURegionEntryHeapIntKey (final RegionEntryContext context, final int key,
+
+
+
+      final Object value
+
+
+
+      ) {
+    super(context, 
+
+
+
+          value
+
+        );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
+
+
+
     this.key = key;
+
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   @Override
   protected Object getValueField() {
     return this.value;
@@ -69,6 +129,7 @@ public class VMThinLRURegionEntryHeapIntKey extends VMThinLRURegionEntryHeap {
   protected void setValueField(final Object value) {
     this.value = value;
   }
+
 
   @Override
   protected long getLastModifiedField() {
@@ -100,11 +161,20 @@ public class VMThinLRURegionEntryHeapIntKey extends VMThinLRURegionEntryHeap {
     this.nextEntry = nextEntry;
   }
 
+  
+
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
+
+
+
+
+
     // nothing needed for LRUs with no disk
+
   }
 
   @Override
@@ -112,8 +182,9 @@ public class VMThinLRURegionEntryHeapIntKey extends VMThinLRURegionEntryHeap {
     // OFFHEAP: getValue ok w/o incing refcount because we are synced and only getting the size
     return updateEntrySize(capacityController, getValue());
   }
-
+  
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+  
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -154,6 +225,7 @@ public class VMThinLRURegionEntryHeapIntKey extends VMThinLRURegionEntryHeap {
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   private LRUClockNode nextLRU;
   private LRUClockNode previousLRU;
   private int size;
@@ -188,14 +260,33 @@ public class VMThinLRURegionEntryHeapIntKey extends VMThinLRURegionEntryHeap {
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+  
   @Override
   public Object getKeyForSizing() {
+
+
+
+
     // inline keys always report null for sizing since the size comes from the entry size
     return null;
+
   }
 
+
+
+  
+
+  
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
+
+
+
+
+
   @Override
   public Object getKey() {
     return this.key;
@@ -208,5 +299,9 @@ public class VMThinLRURegionEntryHeapIntKey extends VMThinLRURegionEntryHeap {
     }
     return false;
   }
+  
+
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 }
+

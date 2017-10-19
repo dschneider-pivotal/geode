@@ -12,20 +12,25 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.apache.geode.internal.cache.lru;
+package org.apache.geode.internal.cache.eviction;
 
-import org.apache.geode.internal.cache.RegionEntry;
-import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-/**
- * Represents an entry in an LRU map
- */
-public interface LRUEntry extends LRUClockNode, RegionEntry {
-  /**
-   * If the key is stored as an Object then returns that object; but if the key is stored as
-   * primitives then returns null.
-   */
-  Object getKeyForSizing();
+import org.apache.geode.internal.cache.eviction.EnableLRU;
+import org.apache.geode.internal.cache.eviction.LRUAlgorithm;
+import org.apache.geode.test.junit.categories.UnitTest;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
-  void setDelayedDiskId(DiskRecoveryStore diskRecoveryStore);
+@Category(UnitTest.class)
+public class LRUAlgorithmTest {
+
+  @Test
+  public void shouldBeMockable() throws Exception {
+    LRUAlgorithm mockLRUAlgorithm = mock(LRUAlgorithm.class);
+    EnableLRU mockEnableLRU = mock(EnableLRU.class);
+    when(mockLRUAlgorithm.getLRUHelper()).thenReturn(mockEnableLRU);
+    assertThat(mockLRUAlgorithm.getLRUHelper()).isEqualTo(mockEnableLRU);
+  }
 }

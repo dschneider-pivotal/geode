@@ -15,58 +15,103 @@
 package org.apache.geode.internal.cache.entries;
 
 // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
+
+
+
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+
+
+
+
 import org.apache.geode.internal.cache.RegionEntryContext;
-import org.apache.geode.internal.cache.lru.EnableLRU;
+
+import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
+
+
 import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DiskStoreImpl;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
+
+
 import org.apache.geode.internal.InternalStatisticsDisabledException;
+
+
 import org.apache.geode.internal.cache.InternalRegion;
-import org.apache.geode.internal.cache.lru.LRUClockNode;
-import org.apache.geode.internal.cache.lru.NewLRUClockHand;
+import org.apache.geode.internal.cache.eviction.LRUClockNode;
+import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
+
+
+
+
+
+
+
+
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.offheap.OffHeapRegionEntryHelper;
 import org.apache.geode.internal.offheap.annotations.Released;
 import org.apache.geode.internal.offheap.annotations.Retained;
 import org.apache.geode.internal.offheap.annotations.Unretained;
+
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
+ * disk: DISK
+ * lru: LRU
+ * stats: STATS
+ * versioned: VERSIONED
+ * offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
- * KEY_STRING1 key string2: KEY_STRING2
+ * key object: KEY_OBJECT
+ * key int: KEY_INT
+ * key long: KEY_LONG
+ * key uuid: KEY_UUID
+ * key string1: KEY_STRING1
+ * key string2: KEY_STRING2
  */
+
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURegionEntryOffHeap {
+
   // --------------------------------------- common fields ----------------------------------------
-  private static final AtomicLongFieldUpdater<VMStatsDiskLRURegionEntryOffHeapStringKey1> LAST_MODIFIED_UPDATER =
-      AtomicLongFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryOffHeapStringKey1.class,
-          "lastModified");
+
+  private static final AtomicLongFieldUpdater<VMStatsDiskLRURegionEntryOffHeapStringKey1> LAST_MODIFIED_UPDATER
+    = AtomicLongFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryOffHeapStringKey1.class, "lastModified");
+
   protected int hash;
+
   private HashEntry<Object, Object> nextEntry;
+
   @SuppressWarnings("unused")
   private volatile long lastModified;
+
+
+
+
+
+
   // --------------------------------------- offheap fields ---------------------------------------
+
   /**
    * All access done using OFF_HEAP_ADDRESS_UPDATER so it is used even though the compiler can not
    * tell it is.
    */
   @SuppressWarnings("unused")
-  @Retained
-  @Released
-  private volatile long offHeapAddress;
+  @Retained @Released private volatile long offHeapAddress;
   /**
    * I needed to add this because I wanted clear to call setValue which normally can only be called
    * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
@@ -77,32 +122,59 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
    * regions.
    */
   private static final AtomicLongFieldUpdater<VMStatsDiskLRURegionEntryOffHeapStringKey1> OFF_HEAP_ADDRESS_UPDATER =
-      AtomicLongFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryOffHeapStringKey1.class,
-          "offHeapAddress");
+      AtomicLongFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryOffHeapStringKey1.class, "offHeapAddress");
+
+
+
   // ---------------------------------------- disk fields -----------------------------------------
+
   /**
    * @since GemFire 5.1
    */
   protected DiskId id;
+
+
+
   // --------------------------------------- stats fields -----------------------------------------
+
   private volatile long lastAccessed;
   private volatile int hitCount;
   private volatile int missCount;
-  private static final AtomicIntegerFieldUpdater<VMStatsDiskLRURegionEntryOffHeapStringKey1> HIT_COUNT_UPDATER =
-      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryOffHeapStringKey1.class,
-          "hitCount");
-  private static final AtomicIntegerFieldUpdater<VMStatsDiskLRURegionEntryOffHeapStringKey1> MISS_COUNT_UPDATER =
-      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryOffHeapStringKey1.class,
-          "missCount");
+
+  private static final AtomicIntegerFieldUpdater<VMStatsDiskLRURegionEntryOffHeapStringKey1> HIT_COUNT_UPDATER
+    = AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryOffHeapStringKey1.class, "hitCount");
+
+  private static final AtomicIntegerFieldUpdater<VMStatsDiskLRURegionEntryOffHeapStringKey1> MISS_COUNT_UPDATER
+    = AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryOffHeapStringKey1.class, "missCount");
+
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   private final long bits1;
 
-  public VMStatsDiskLRURegionEntryOffHeapStringKey1(final RegionEntryContext context,
-      final String key, @Retained final Object value, final boolean byteEncode) {
-    super(context, (value instanceof RecoveredEntry ? null : value));
+
+  public VMStatsDiskLRURegionEntryOffHeapStringKey1 (final RegionEntryContext context, final String key,
+
+      @Retained
+
+      final Object value
+
+      , final boolean byteEncode
+
+      ) {
+    super(context, 
+
+          (value instanceof RecoveredEntry ? null : value)
+
+
+
+        );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
     initialize(context, value);
+
     // caller has already confirmed that key.length <= MAX_INLINE_STRING_KEY
     long tempBits1 = 0L;
     if (byteEncode) {
@@ -112,7 +184,7 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
         tempBits1 |= (byte) key.charAt(i) & 0xff;
         tempBits1 <<= 8;
       }
-      tempBits1 |= 1 << 6;
+      tempBits1 |= 1<<6;
     } else {
       for (int i = key.length() - 1; i >= 0; i--) {
         tempBits1 |= key.charAt(i);
@@ -121,28 +193,38 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
     }
     tempBits1 |= key.length();
     this.bits1 = tempBits1;
+
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   @Override
   public Token getValueAsToken() {
     return OffHeapRegionEntryHelper.getValueAsToken(this);
   }
-
+  
   @Override
   protected Object getValueField() {
     return OffHeapRegionEntryHelper._getValue(this);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
+
   @Unretained
   protected void setValueField(@Unretained final Object value) {
+
+
+
     OffHeapRegionEntryHelper.setValue(this, value);
   }
 
   @Override
+
   @Retained
+
   public Object getValueRetain(final RegionEntryContext context, final boolean decompress) {
     return OffHeapRegionEntryHelper._getValueRetain(this, decompress, context);
   }
@@ -156,17 +238,20 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
   public boolean setAddress(final long expectedAddress, long newAddress) {
     return OFF_HEAP_ADDRESS_UPDATER.compareAndSet(this, expectedAddress, newAddress);
   }
-
+  
   @Override
+
   @Released
+
   public void release() {
     OffHeapRegionEntryHelper.releaseEntry(this);
   }
-
+  
   @Override
   public void returnToPool() {
     // never implemented
   }
+
 
   @Override
   protected long getLastModifiedField() {
@@ -198,8 +283,11 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
     this.nextEntry = nextEntry;
   }
 
+
   // ----------------------------------------- disk code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   protected void initialize(final RegionEntryContext context, final Object value) {
     boolean isBackup;
     if (context instanceof InternalRegion) {
@@ -224,7 +312,9 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
     return delta;
   }
 
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+  
   @Override
   public DiskId getDiskId() {
     return this.id;
@@ -244,22 +334,30 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
     Helper.initialize(this, diskRecoveryStore, value);
   }
 
+  
+
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
+
     DiskStoreImpl diskStore = diskRecoveryStore.getDiskStore();
     long maxOplogSize = diskStore.getMaxOplogSize();
     this.id = DiskId.createDiskId(maxOplogSize, false, diskStore.needsLinkedList());
+
+
+
   }
 
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController) {
-    // OFFHEAP: getValue ok w/o incing refcount because we are synced and only getting the size
+    // 1: getValue ok w/o incing refcount because we are synced and only getting the size
     return updateEntrySize(capacityController, getValue());
   }
-
+  
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+  
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -300,6 +398,7 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   private LRUClockNode nextLRU;
   private LRUClockNode previousLRU;
   private int size;
@@ -334,14 +433,23 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+  
   @Override
   public Object getKeyForSizing() {
+
+
+
+
     // inline keys always report null for sizing since the size comes from the entry size
     return null;
+
   }
+
+
 
   // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
     setLastAccessed(time);
@@ -355,11 +463,13 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
   @Override
   protected void setLastModifiedAndAccessedTimes(final long lastModified, final long lastAccessed) {
     setLastModified(lastModified);
-    if (!DISABLE_ACCESS_TIME_UPDATE_ON_PUT) {
+    if (!DISABLE_ACCESS_TIME_UPDATE_ON_PUT) { 
       setLastAccessed(lastAccessed);
     }
   }
+  
 
+  
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
     return this.lastAccessed;
@@ -389,11 +499,12 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
 
   @Override
   public void resetCounts() throws InternalStatisticsDisabledException {
-    HIT_COUNT_UPDATER.set(this, 0);
-    MISS_COUNT_UPDATER.set(this, 0);
+    HIT_COUNT_UPDATER.set(this,0);
+    MISS_COUNT_UPDATER.set(this,0);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+  
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -407,8 +518,13 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
     return true;
   }
 
+  
+
+  
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   private int getKeyLength() {
     return (int) (this.bits1 & 0x003fL);
   }
@@ -424,21 +540,24 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
     int keyLength = getKeyLength();
     char[] chars = new char[keyLength];
     long tempBits1 = this.bits1;
+
     if (getEncoding() == 1) {
-      for (int i = 0; i < keyLength; i++) {
+      for (int i=0; i < keyLength; i++) {
         tempBits1 >>= 8;
-        chars[i] = (char) (tempBits1 & 0x00ff);
+      chars[i] = (char) (tempBits1 & 0x00ff);
       }
     } else {
-      for (int i = 0; i < keyLength; i++) {
+      for (int i=0; i < keyLength; i++) {
         tempBits1 >>= 16;
         chars[i] = (char) (tempBits1 & 0x00FFff);
       }
     }
+
     return new String(chars);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+  
   @Override
   public boolean isKeyEqual(final Object key) {
     if (key instanceof String) {
@@ -446,6 +565,7 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
       int keyLength = getKeyLength();
       if (stringKey.length() == keyLength) {
         long tempBits1 = this.bits1;
+
         if (getEncoding() == 1) {
           for (int i = 0; i < keyLength; i++) {
             tempBits1 >>= 8;
@@ -454,6 +574,7 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
               return false;
             }
           }
+
         } else {
           for (int i = 0; i < keyLength; i++) {
             tempBits1 >>= 16;
@@ -463,10 +584,15 @@ public class VMStatsDiskLRURegionEntryOffHeapStringKey1 extends VMStatsDiskLRURe
             }
           }
         }
+
         return true;
       }
     }
     return false;
   }
+  
+
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 }
+

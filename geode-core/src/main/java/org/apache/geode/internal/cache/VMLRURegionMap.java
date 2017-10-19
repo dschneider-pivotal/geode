@@ -15,7 +15,8 @@
 
 package org.apache.geode.internal.cache;
 
-import org.apache.geode.internal.cache.lru.*;
+import org.apache.geode.internal.cache.eviction.EnableLRU;
+import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 // import org.apache.geode.internal.util.Sizeof;
 
 /**
