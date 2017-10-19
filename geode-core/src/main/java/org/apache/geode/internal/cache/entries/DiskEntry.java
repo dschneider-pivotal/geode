@@ -440,8 +440,7 @@ public interface DiskEntry extends RegionEntry {
     /**
      * Used to initialize a new disk entry
      */
-    public static void initialize(DiskEntry entry, DiskRecoveryStore diskRecoveryStore,
-        Object newValue) {
+    publicstatic void initialize(DiskEntry entry, DiskRecoveryStore diskRecoveryStore, Object newValue) {
       DiskRegionView drv = null;
       if (diskRecoveryStore instanceof InternalRegion) {
         drv = ((InternalRegion) diskRecoveryStore).getDiskRegion();

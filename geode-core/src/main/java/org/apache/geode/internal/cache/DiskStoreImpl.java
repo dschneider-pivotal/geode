@@ -15,7 +15,6 @@
 package org.apache.geode.internal.cache;
 
 import static org.apache.geode.distributed.ConfigurationProperties.*;
-import static org.apache.geode.internal.cache.entries.DiskEntry.Helper.readRawValue;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -80,6 +79,7 @@ import org.apache.geode.distributed.internal.membership.InternalDistributedMembe
 import org.apache.geode.i18n.StringId;
 import org.apache.geode.internal.Version;
 import org.apache.geode.internal.cache.entries.DiskEntry;
+import org.apache.geode.internal.cache.entries.DiskEntry.Helper;
 import org.apache.geode.internal.cache.entries.DiskEntry.Helper.ValueWrapper;
 import org.apache.geode.internal.cache.entries.DiskEntry.RecoveredEntry;
 import org.apache.geode.internal.cache.ExportDiskRegion.ExportWriter;
@@ -883,7 +883,7 @@ public class DiskStoreImpl implements DiskStore {
     } else if (EntryBits.isTombstone(bb.getBits())) {
       value = Token.TOMBSTONE;
     } else {
-      value = readRawValue(bytes, bb.getVersion(), null);
+      value = Helper.readRawValue(bytes, bb.getVersion(), null);
     }
     return value;
   }
@@ -905,7 +905,7 @@ public class DiskStoreImpl implements DiskStore {
     } else if (EntryBits.isTombstone(bb.getBits())) {
       value = Token.TOMBSTONE;
     } else {
-      value = readRawValue(bytes, bb.getVersion(), null);
+      value = Helper.readRawValue(bytes, bb.getVersion(), null);
     }
     return value;
   }
