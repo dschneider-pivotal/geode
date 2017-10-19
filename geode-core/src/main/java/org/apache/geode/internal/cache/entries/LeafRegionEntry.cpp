@@ -42,7 +42,7 @@ import org.apache.geode.internal.cache.InternalRegion;
 #endif
 import org.apache.geode.internal.cache.RegionEntryContext;
 #if defined(DISK) || defined(LRU)
-import org.apache.geode.internal.cache.lru.EnableLRU;
+import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 #endif
 #ifdef DISK
@@ -56,8 +56,8 @@ import org.apache.geode.internal.InternalStatisticsDisabledException;
 #endif
 #ifdef LRU
 import org.apache.geode.internal.cache.InternalRegion;
-import org.apache.geode.internal.cache.lru.LRUClockNode;
-import org.apache.geode.internal.cache.lru.NewLRUClockHand;
+import org.apache.geode.internal.cache.eviction.LRUClockNode;
+import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 #endif
 #ifdef VERSIONED
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;

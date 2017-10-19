@@ -26,10 +26,10 @@ import org.apache.geode.cache.EvictionAttributesMutator;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.util.ObjectSizer;
 import org.apache.geode.internal.InternalDataSerializer;
-import org.apache.geode.internal.cache.lru.HeapLRUCapacityController;
-import org.apache.geode.internal.cache.lru.LRUAlgorithm;
-import org.apache.geode.internal.cache.lru.LRUCapacityController;
-import org.apache.geode.internal.cache.lru.MemLRUCapacityController;
+import org.apache.geode.internal.cache.eviction.HeapLRUCapacityController;
+import org.apache.geode.internal.cache.eviction.LRUAlgorithm;
+import org.apache.geode.internal.cache.eviction.LRUCapacityController;
+import org.apache.geode.internal.cache.eviction.MemLRUCapacityController;
 
 /**
  * Defines the attributes for configuring the eviction controller associated with a

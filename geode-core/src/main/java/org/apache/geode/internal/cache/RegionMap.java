@@ -26,7 +26,7 @@ import org.apache.geode.cache.TimeoutException;
 import org.apache.geode.cache.TransactionId;
 import org.apache.geode.internal.cache.AbstractRegionMap.ARMLockTestHook;
 import org.apache.geode.internal.cache.entries.DiskEntry;
-import org.apache.geode.internal.cache.lru.LRUMapCallbacks;
+import org.apache.geode.internal.cache.eviction.LRUMapCallbacks;
 import org.apache.geode.internal.cache.tier.sockets.ClientProxyMembershipID;
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.cache.versions.RegionVersionVector;
@@ -111,7 +111,7 @@ public interface RegionMap extends LRUMapCallbacks {
 
   /**
    * fetches the entry from the backing ConcurrentHashMap
-   * 
+   *
    * @return the RegionEntry from memory or disk
    */
   RegionEntry getEntry(Object key);
@@ -120,7 +120,7 @@ public interface RegionMap extends LRUMapCallbacks {
 
   /**
    * fetches the entry from the backing ConcurrentHashMap.
-   * 
+   *
    * @return the RegionEntry from memory
    */
   RegionEntry getEntryInVM(Object key);
@@ -128,7 +128,7 @@ public interface RegionMap extends LRUMapCallbacks {
   /**
    * fetches the entry from the backing ConcurrentHashMap only if the entry is considered to be in
    * operational data i.e. does not have isMarkedForEviction() bit set.
-   * 
+   *
    * @return the RegionEntry in operational data
    */
   RegionEntry getOperationalEntryInVM(Object key);

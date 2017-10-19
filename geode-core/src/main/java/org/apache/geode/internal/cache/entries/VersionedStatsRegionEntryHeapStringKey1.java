@@ -15,16 +15,25 @@
 package org.apache.geode.internal.cache.entries;
 
 // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+
 import org.apache.geode.cache.EntryEvent;
 import org.apache.geode.internal.cache.InternalRegion;
+
 import org.apache.geode.internal.cache.RegionEntryContext;
+
 import org.apache.geode.internal.InternalStatisticsDisabledException;
+
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.cache.versions.VersionSource;
 import org.apache.geode.internal.cache.versions.VersionStamp;
 import org.apache.geode.internal.cache.versions.VersionTag;
+
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
@@ -37,46 +46,83 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
  * KEY_STRING1 key string2: KEY_STRING2
  */
+
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegionEntryHeap {
+
   // --------------------------------------- common fields ----------------------------------------
+
   private static final AtomicLongFieldUpdater<VersionedStatsRegionEntryHeapStringKey1> LAST_MODIFIED_UPDATER =
       AtomicLongFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapStringKey1.class,
           "lastModified");
+
   protected int hash;
+
   private HashEntry<Object, Object> nextEntry;
+
   @SuppressWarnings("unused")
   private volatile long lastModified;
+
+
+
   private volatile Object value;
+
+
   // --------------------------------------- stats fields -----------------------------------------
+
   private volatile long lastAccessed;
   private volatile int hitCount;
   private volatile int missCount;
+
   private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapStringKey1> HIT_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapStringKey1.class,
           "hitCount");
+
   private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapStringKey1> MISS_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapStringKey1.class,
           "missCount");
+
+
+
   // ------------------------------------- versioned fields ---------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   private VersionSource memberId;
   private short entryVersionLowBytes;
   private short regionVersionHighBytes;
   private int regionVersionLowBytes;
   private byte entryVersionHighByte;
   private byte distributedSystemId;
+
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   private final long bits1;
 
+
   public VersionedStatsRegionEntryHeapStringKey1(final RegionEntryContext context, final String key,
-      final Object value, final boolean byteEncode) {
-    super(context, value);
+
+
+
+      final Object value
+
+      , final boolean byteEncode
+
+  ) {
+    super(context,
+
+
+
+        value
+
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
     // caller has already confirmed that key.length <= MAX_INLINE_STRING_KEY
     long tempBits1 = 0L;
     if (byteEncode) {
@@ -95,9 +141,12 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
     }
     tempBits1 |= key.length();
     this.bits1 = tempBits1;
+
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   @Override
   protected Object getValueField() {
     return this.value;
@@ -107,6 +156,7 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
   protected void setValueField(final Object value) {
     this.value = value;
   }
+
 
   @Override
   protected long getLastModifiedField() {
@@ -138,8 +188,11 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
     this.nextEntry = nextEntry;
   }
 
+
+
   // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
     setLastAccessed(time);
@@ -193,6 +246,7 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -206,8 +260,11 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
     return true;
   }
 
+
+
   // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public int getEntryVersion() {
     return ((entryVersionHighByte << 16) & 0xFF0000) | (entryVersionLowBytes & 0xFFFF);
@@ -239,6 +296,7 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public void setVersions(final VersionTag versionTag) {
     this.memberId = versionTag.getMemberID();
@@ -247,6 +305,7 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
     this.entryVersionHighByte = (byte) ((eVersion & 0xff0000) >> 16);
     this.regionVersionHighBytes = versionTag.getRegionVersionHighBytes();
     this.regionVersionLowBytes = versionTag.getRegionVersionLowBytes();
+
     if (!versionTag.isGatewayTag()
         && this.distributedSystemId == versionTag.getDistributedSystemId()) {
       if (getVersionTimeStamp() <= versionTag.getVersionTimeStamp()) {
@@ -257,6 +316,7 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
     } else {
       setVersionTimeStamp(versionTag.getVersionTimeStamp());
     }
+
     this.distributedSystemId = (byte) (versionTag.getDistributedSystemId() & 0xff);
   }
 
@@ -271,6 +331,7 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public VersionTag asVersionTag() {
     VersionTag tag = VersionTag.create(memberId);
@@ -307,8 +368,11 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
     return this.regionVersionLowBytes;
   }
 
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   private int getKeyLength() {
     return (int) (this.bits1 & 0x003fL);
   }
@@ -324,6 +388,7 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
     int keyLength = getKeyLength();
     char[] chars = new char[keyLength];
     long tempBits1 = this.bits1;
+
     if (getEncoding() == 1) {
       for (int i = 0; i < keyLength; i++) {
         tempBits1 >>= 8;
@@ -335,10 +400,12 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
         chars[i] = (char) (tempBits1 & 0x00FFff);
       }
     }
+
     return new String(chars);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public boolean isKeyEqual(final Object key) {
     if (key instanceof String) {
@@ -346,6 +413,7 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
       int keyLength = getKeyLength();
       if (stringKey.length() == keyLength) {
         long tempBits1 = this.bits1;
+
         if (getEncoding() == 1) {
           for (int i = 0; i < keyLength; i++) {
             tempBits1 >>= 8;
@@ -354,6 +422,7 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
               return false;
             }
           }
+
         } else {
           for (int i = 0; i < keyLength; i++) {
             tempBits1 >>= 16;
@@ -363,10 +432,15 @@ public class VersionedStatsRegionEntryHeapStringKey1 extends VersionedStatsRegio
             }
           }
         }
+
         return true;
       }
     }
     return false;
   }
+
+
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 }
+

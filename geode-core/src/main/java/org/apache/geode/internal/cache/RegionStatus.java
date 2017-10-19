@@ -18,7 +18,7 @@ package org.apache.geode.internal.cache;
 import org.apache.geode.cache.EvictionAttributes;
 import org.apache.geode.cache.Region;
 
-import org.apache.geode.internal.cache.lru.LRUStatistics;
+import org.apache.geode.internal.cache.eviction.LRUStatistics;
 
 import java.io.Serializable;
 

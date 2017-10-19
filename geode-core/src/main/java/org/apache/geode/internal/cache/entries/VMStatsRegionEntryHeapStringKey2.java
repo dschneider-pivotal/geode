@@ -15,10 +15,17 @@
 package org.apache.geode.internal.cache.entries;
 
 // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+
 import org.apache.geode.internal.cache.RegionEntryContext;
+
 import org.apache.geode.internal.InternalStatisticsDisabledException;
+
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
@@ -31,44 +38,78 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
  * KEY_STRING1 key string2: KEY_STRING2
  */
+
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
+
   // --------------------------------------- common fields ----------------------------------------
+
   private static final AtomicLongFieldUpdater<VMStatsRegionEntryHeapStringKey2> LAST_MODIFIED_UPDATER =
       AtomicLongFieldUpdater.newUpdater(VMStatsRegionEntryHeapStringKey2.class, "lastModified");
+
   protected int hash;
+
   private HashEntry<Object, Object> nextEntry;
+
   @SuppressWarnings("unused")
   private volatile long lastModified;
+
+
+
   private volatile Object value;
+
+
   // --------------------------------------- stats fields -----------------------------------------
+
   private volatile long lastAccessed;
   private volatile int hitCount;
   private volatile int missCount;
+
   private static final AtomicIntegerFieldUpdater<VMStatsRegionEntryHeapStringKey2> HIT_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VMStatsRegionEntryHeapStringKey2.class, "hitCount");
+
   private static final AtomicIntegerFieldUpdater<VMStatsRegionEntryHeapStringKey2> MISS_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VMStatsRegionEntryHeapStringKey2.class, "missCount");
+
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   /**
    * strlen is encoded in lowest 6 bits (max strlen is 63)<br>
    * character encoding info is in bits 7 and 8<br>
    * The other bits are used to encoded character data.
    */
   private final long bits1;
+
   /**
    * bits2 encodes character data
    */
   private final long bits2;
 
+
   public VMStatsRegionEntryHeapStringKey2(final RegionEntryContext context, final String key,
-      final Object value, final boolean byteEncode) {
-    super(context, value);
+
+
+
+      final Object value
+
+      , final boolean byteEncode
+
+  ) {
+    super(context,
+
+
+
+        value
+
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
     // caller has already confirmed that key.length <= MAX_INLINE_STRING_KEY
     long tempBits1 = 0L;
     long tempBits2 = 0L;
@@ -99,9 +140,12 @@ public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
     tempBits1 |= key.length();
     this.bits1 = tempBits1;
     this.bits2 = tempBits2;
+
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   @Override
   protected Object getValueField() {
     return this.value;
@@ -111,6 +155,7 @@ public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
   protected void setValueField(final Object value) {
     this.value = value;
   }
+
 
   @Override
   protected long getLastModifiedField() {
@@ -142,8 +187,11 @@ public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
     this.nextEntry = nextEntry;
   }
 
+
+
   // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
     setLastAccessed(time);
@@ -197,6 +245,7 @@ public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -210,8 +259,12 @@ public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
     return true;
   }
 
+
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   private int getKeyLength() {
     return (int) (this.bits1 & 0x003fL);
   }
@@ -228,6 +281,7 @@ public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
     char[] chars = new char[keyLength];
     long tempBits1 = this.bits1;
     long tempBits2 = this.bits2;
+
     if (getEncoding() == 1) {
       for (int i = 0; i < keyLength; i++) {
         if (i < 7) {
@@ -238,6 +292,7 @@ public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
           tempBits2 >>= 8;
         }
       }
+
     } else {
       for (int i = 0; i < keyLength; i++) {
         if (i < 3) {
@@ -253,6 +308,7 @@ public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public boolean isKeyEqual(final Object key) {
     if (key instanceof String) {
@@ -261,6 +317,7 @@ public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
       if (stringKey.length() == keyLength) {
         long tempBits1 = this.bits1;
         long tempBits2 = this.bits2;
+
         if (getEncoding() == 1) {
           for (int i = 0; i < keyLength; i++) {
             char character;
@@ -275,6 +332,7 @@ public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
               return false;
             }
           }
+
         } else {
           for (int i = 0; i < keyLength; i++) {
             char character;
@@ -290,10 +348,14 @@ public class VMStatsRegionEntryHeapStringKey2 extends VMStatsRegionEntryHeap {
             }
           }
         }
+
         return true;
       }
     }
     return false;
   }
+
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 }
+

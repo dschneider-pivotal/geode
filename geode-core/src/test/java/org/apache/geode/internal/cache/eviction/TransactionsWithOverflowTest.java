@@ -13,7 +13,7 @@
  * the License.
  */
 
-package org.apache.geode.internal.cache.lru;
+package org.apache.geode.internal.cache.eviction;
 
 import org.apache.geode.cache.*;
 import org.apache.geode.test.junit.categories.IntegrationTest;

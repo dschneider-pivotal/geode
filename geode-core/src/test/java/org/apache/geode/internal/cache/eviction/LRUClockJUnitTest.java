@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.apache.geode.internal.cache.lru;
+package org.apache.geode.internal.cache.eviction;
 
 import static org.apache.geode.distributed.ConfigurationProperties.*;
 import static org.junit.Assert.*;
@@ -37,6 +37,10 @@ import org.apache.geode.cache.EvictionAction;
 import org.apache.geode.cache.EvictionAlgorithm;
 import org.apache.geode.cache.Region;
 import org.apache.geode.distributed.DistributedSystem;
+import org.apache.geode.internal.cache.eviction.EnableLRU;
+import org.apache.geode.internal.cache.eviction.LRUClockNode;
+import org.apache.geode.internal.cache.eviction.LRUStatistics;
+import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 import org.apache.geode.internal.statistics.StatisticsTypeFactoryImpl;
 import org.apache.geode.internal.cache.InternalRegionArguments;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;

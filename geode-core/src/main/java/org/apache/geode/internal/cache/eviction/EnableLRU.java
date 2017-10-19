@@ -13,7 +13,7 @@
  * the License.
  */
 
-package org.apache.geode.internal.cache.lru;
+package org.apache.geode.internal.cache.eviction;
 
 import org.apache.geode.StatisticsFactory;
 import org.apache.geode.StatisticsType;

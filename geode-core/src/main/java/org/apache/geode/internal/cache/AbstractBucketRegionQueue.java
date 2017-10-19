@@ -16,7 +16,7 @@ package org.apache.geode.internal.cache;
 
 import org.apache.geode.cache.*;
 import org.apache.geode.distributed.internal.DistributionConfig;
-import org.apache.geode.internal.cache.lru.LRUStatistics;
+import org.apache.geode.internal.cache.eviction.LRUStatistics;
 import org.apache.geode.internal.cache.versions.RegionVersionVector;
 import org.apache.geode.internal.cache.versions.VersionSource;
 import org.apache.geode.internal.cache.wan.AbstractGatewaySender;

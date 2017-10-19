@@ -13,7 +13,7 @@
  * the License.
  */
 
-package org.apache.geode.internal.cache.lru;
+package org.apache.geode.internal.cache.eviction;
 
 import java.util.concurrent.atomic.AtomicLong;
 
