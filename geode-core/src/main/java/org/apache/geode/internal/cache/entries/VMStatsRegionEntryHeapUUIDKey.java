@@ -30,30 +30,28 @@ import org.apache.geode.internal.InternalStatisticsDisabledException;
 
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
-// macros whose definition changes this class:
-// disk: DISK
-// lru: LRU
-// stats: 1
-// versioned: VERSIONED
-// offheap: OFFHEAP
-// One of the following key macros must be defined:
-// key object: KEY_OBJECT
-// key int: KEY_INT
-// key long: KEY_LONG
-// key uuid: 1
-// key string1: KEY_STRING1
-// key string2: KEY_STRING2
+/*
+ * macros whose definition changes this class:
+ *
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
+ *
+ * One of the following key macros must be defined:
+ *
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
+ */
 
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VMStatsRegionEntryHeapUUIDKey extends VMStatsRegionEntryHeap {
-  public VMStatsRegionEntryHeapUUIDKey(RegionEntryContext context, UUID key,
+
+  public VMStatsRegionEntryHeapUUIDKey(final RegionEntryContext context, final UUID key,
 
 
 
-      Object value
+      final Object value
 
 
 
@@ -90,41 +88,36 @@ public class VMStatsRegionEntryHeapUUIDKey extends VMStatsRegionEntryHeap {
   }
 
   @Override
-  protected void setValueField(Object v) {
-    this.value = v;
+  protected void setValueField(final Object value) {
+    this.value = value;
   }
+
 
   protected long getLastModifiedField() {
     return lastModifiedUpdater.get(this);
   }
 
-  protected boolean compareAndSetLastModifiedField(long expectedValue, long newValue) {
+  protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
     return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
   }
 
-  /**
-   * @see HashEntry#getEntryHash()
-   */
+  @Override
   public int getEntryHash() {
     return this.hash;
   }
 
-  protected void setEntryHash(int v) {
-    this.hash = v;
+  protected void setEntryHash(final int hash) {
+    this.hash = hash;
   }
 
-  /**
-   * @see HashEntry#getNextEntry()
-   */
+  @Override
   public HashEntry<Object, Object> getNextEntry() {
     return this.next;
   }
 
-  /**
-   * @see HashEntry#setNextEntry
-   */
-  public void setNextEntry(final HashEntry<Object, Object> n) {
-    this.next = n;
+  @Override
+  public void setNextEntry(final HashEntry<Object, Object> next) {
+    this.next = next;
   }
 
 
@@ -132,10 +125,11 @@ public class VMStatsRegionEntryHeapUUIDKey extends VMStatsRegionEntryHeap {
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
   // stats code
+
   @Override
-  public void updateStatsForGet(boolean hit, long time) {
+  public void updateStatsForGet(final boolean isHit, final long time) {
     setLastAccessed(time);
-    if (hit) {
+    if (isHit) {
       incrementHitCount();
     } else {
       incrementMissCount();
@@ -143,8 +137,8 @@ public class VMStatsRegionEntryHeapUUIDKey extends VMStatsRegionEntryHeap {
   }
 
   @Override
-  protected void setLastModifiedAndAccessedTimes(long lastModified, long lastAccessed) {
-    _setLastModified(lastModified);
+  protected void setLastModifiedAndAccessedTimes(final long lastModified, final long lastAccessed) {
+    setLastModified(lastModified);
     if (!DISABLE_ACCESS_TIME_UPDATE_ON_PUT) {
       setLastAccessed(lastAccessed);
     }
@@ -156,6 +150,7 @@ public class VMStatsRegionEntryHeapUUIDKey extends VMStatsRegionEntryHeap {
 
   private static final AtomicIntegerFieldUpdater<VMStatsRegionEntryHeapUUIDKey> hitCountUpdater =
       AtomicIntegerFieldUpdater.newUpdater(VMStatsRegionEntryHeapUUIDKey.class, "hitCount");
+
   private static final AtomicIntegerFieldUpdater<VMStatsRegionEntryHeapUUIDKey> missCountUpdater =
       AtomicIntegerFieldUpdater.newUpdater(VMStatsRegionEntryHeapUUIDKey.class, "missCount");
 
@@ -165,7 +160,7 @@ public class VMStatsRegionEntryHeapUUIDKey extends VMStatsRegionEntryHeap {
   }
 
   @Override
-  public void setLastAccessed(long lastAccessed) {
+  public void setLastAccessed(finallong lastAccessed) {
     this.lastAccessed = lastAccessed;
   }
 
@@ -196,9 +191,9 @@ public class VMStatsRegionEntryHeapUUIDKey extends VMStatsRegionEntryHeap {
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
   @Override
-  public void txDidDestroy(long currTime) {
-    setLastModified(currTime);
-    setLastAccessed(currTime);
+  public void txDidDestroy(long timeStamp) {
+    setLastModified(timeStamp);
+    setLastAccessed(timeStamp);
     this.hitCount = 0;
     this.missCount = 0;
   }
@@ -214,6 +209,7 @@ public class VMStatsRegionEntryHeapUUIDKey extends VMStatsRegionEntryHeap {
 
   // key code
 
+
   private final long keyMostSigBits;
   private final long keyLeastSigBits;
 
@@ -223,14 +219,15 @@ public class VMStatsRegionEntryHeapUUIDKey extends VMStatsRegionEntryHeap {
   }
 
   @Override
-  public boolean isKeyEqual(Object k) {
-    if (k instanceof UUID) {
-      UUID uuid = (UUID) k;
+  public boolean isKeyEqual(final Object key) {
+    if (key instanceof UUID) {
+      UUID uuid = (UUID) key;
       return uuid.getLeastSignificantBits() == this.keyLeastSigBits
           && uuid.getMostSignificantBits() == this.keyMostSigBits;
     }
     return false;
   }
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

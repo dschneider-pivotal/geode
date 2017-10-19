@@ -14,8 +14,18 @@
  */
 package org.apache.geode.internal.cache;
 
+import org.apache.geode.CancelCriterion;
+import org.apache.geode.cache.CacheWriterException;
+import org.apache.geode.cache.EntryNotFoundException;
 import org.apache.geode.cache.Region;
+import org.apache.geode.cache.RegionAttributes;
+import org.apache.geode.cache.TimeoutException;
+import org.apache.geode.cache.client.internal.ServerRegionProxy;
+import org.apache.geode.cache.query.internal.index.IndexManager;
 import org.apache.geode.distributed.internal.DM;
+import org.apache.geode.internal.cache.versions.RegionVersionVector;
+import org.apache.geode.internal.cache.versions.VersionSource;
+import org.apache.geode.internal.cache.versions.VersionTag;
 
 /**
  * Interface to be used instead of type-casting to LocalRegion.
@@ -33,7 +43,65 @@ import org.apache.geode.distributed.internal.DM;
  * </pre>
  * </ul>
  */
-public interface InternalRegion<K, V> extends Region<K, V>, HasCachePerfStats {
+public interface InternalRegion<K, V>
+    extends Region<K, V>, HasCachePerfStats, RegionEntryContext, RegionAttributes {
 
   RegionEntry getRegionEntry(K key);
+
+  RegionVersionVector getVersionVector();
+
+  long cacheTimeMillis();
+
+  Object getValueInVM(Object key) throws EntryNotFoundException;
+
+  Object getValueOnDisk(Object key) throws EntryNotFoundException;
+
+  void dispatchListenerEvent(EnumListenerEvent op, InternalCacheEvent event);
+
+  boolean isUsedForPartitionedRegionAdmin();
+
+  ImageState getImageState();
+
+  VersionSource getVersionMember();
+
+  long updateStatsForPut(RegionEntry entry, long lastModified, boolean lruRecentUse);
+
+  FilterProfile getFilterProfile();
+
+  ServerRegionProxy getServerProxy();
+
+  void unscheduleTombstone(RegionEntry entry);
+
+  void scheduleTombstone(RegionEntry entry, VersionTag destroyedVersion);
+
+  boolean isEntryExpiryPossible();
+
+  void addExpiryTaskIfAbsent(RegionEntry entry);
+
+  DM getDistributionManager();
+
+  void generateAndSetVersionTag(InternalCacheEvent event, RegionEntry entry);
+
+  boolean cacheWriteBeforeDestroy(EntryEventImpl event, Object expectedOldValue)
+      throws CacheWriterException, EntryNotFoundException, TimeoutException;
+
+  void recordEvent(InternalCacheEvent event);
+
+  boolean isProxy();
+
+  IndexManager getIndexManager();
+
+  boolean isConcurrencyChecksEnabled();
+
+  boolean isThisRegionBeingClosedOrDestroyed();
+
+  DiskRegion getDiskRegion();
+
+  CancelCriterion getCancelCriterion();
+
+  boolean isIndexCreationThread();
+
+  int updateSizeOnEvict(Object key, int oldSize);
+
+  RegionEntry basicGetEntry(Object key);
 }
