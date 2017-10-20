@@ -135,10 +135,12 @@ public class VMThinDiskRegionEntryOffHeapLongKey extends VMThinDiskRegionEntryOf
     // never implemented
   }
 
+  @Override
   protected long getLastModifiedField() {
     return LAST_MODIFIED_UPDATER.get(this);
   }
 
+  @Override
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
     return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
@@ -148,6 +150,7 @@ public class VMThinDiskRegionEntryOffHeapLongKey extends VMThinDiskRegionEntryOf
     return this.hash;
   }
 
+  @Override
   protected void setEntryHash(final int hash) {
     this.hash = hash;
   }
@@ -181,7 +184,7 @@ public class VMThinDiskRegionEntryOffHeapLongKey extends VMThinDiskRegionEntryOf
 
   @Override
   public void setDiskId(final RegionEntry oldEntry) {
-    this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
+    this.id = ((DiskEntry) oldEntry).getDiskId();
   }
 
   private void diskInitialize(final RegionEntryContext context, final Object value) {

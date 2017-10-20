@@ -141,10 +141,12 @@ public class VMStatsLRURegionEntryOffHeapUUIDKey extends VMStatsLRURegionEntryOf
     // never implemented
   }
 
+  @Override
   protected long getLastModifiedField() {
     return LAST_MODIFIED_UPDATER.get(this);
   }
 
+  @Override
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
     return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
@@ -154,6 +156,7 @@ public class VMStatsLRURegionEntryOffHeapUUIDKey extends VMStatsLRURegionEntryOf
     return this.hash;
   }
 
+  @Override
   protected void setEntryHash(final int hash) {
     this.hash = hash;
   }
