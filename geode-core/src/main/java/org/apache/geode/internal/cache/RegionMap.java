@@ -353,6 +353,7 @@ public interface RegionMap extends LRUMapCallbacks {
   default void unlockRegionForAtomicTX(LocalRegion r) {}
 
   ARMLockTestHook getARMLockTestHook();
+
   public default long getEvictions() {
     return 0;
   }
