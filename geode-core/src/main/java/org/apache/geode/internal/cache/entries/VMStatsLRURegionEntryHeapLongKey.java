@@ -15,24 +15,15 @@
 package org.apache.geode.internal.cache.entries;
 
 // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
 import org.apache.geode.internal.cache.RegionEntryContext;
-
 import org.apache.geode.internal.cache.lru.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
-
 import org.apache.geode.internal.InternalStatisticsDisabledException;
-
 import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.lru.LRUClockNode;
 import org.apache.geode.internal.cache.lru.NewLRUClockHand;
-
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
@@ -45,78 +36,39 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
  * KEY_STRING1 key string2: KEY_STRING2
  */
-
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VMStatsLRURegionEntryHeapLongKey extends VMStatsLRURegionEntryHeap {
-
   // --------------------------------------- common fields ----------------------------------------
-
   private static final AtomicLongFieldUpdater<VMStatsLRURegionEntryHeapLongKey> LAST_MODIFIED_UPDATER =
       AtomicLongFieldUpdater.newUpdater(VMStatsLRURegionEntryHeapLongKey.class, "lastModified");
-
   protected int hash;
-
   private HashEntry<Object, Object> nextEntry;
-
   @SuppressWarnings("unused")
   private volatile long lastModified;
-
-
-
   private volatile Object value;
-
-
   // --------------------------------------- stats fields -----------------------------------------
-
   private volatile long lastAccessed;
   private volatile int hitCount;
   private volatile int missCount;
-
   private static final AtomicIntegerFieldUpdater<VMStatsLRURegionEntryHeapLongKey> HIT_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VMStatsLRURegionEntryHeapLongKey.class, "hitCount");
-
   private static final AtomicIntegerFieldUpdater<VMStatsLRURegionEntryHeapLongKey> MISS_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VMStatsLRURegionEntryHeapLongKey.class, "missCount");
-
-
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
   private final long key;
 
-
   public VMStatsLRURegionEntryHeapLongKey(final RegionEntryContext context, final long key,
-
-
-
-      final Object value
-
-
-
-  ) {
-    super(context,
-
-
-
-        value
-
-    );
+      final Object value) {
+    super(context, value);
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
     this.key = key;
-
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
   @Override
   protected Object getValueField() {
     return this.value;
@@ -126,7 +78,6 @@ public class VMStatsLRURegionEntryHeapLongKey extends VMStatsLRURegionEntryHeap 
   protected void setValueField(final Object value) {
     this.value = value;
   }
-
 
   protected long getLastModifiedField() {
     return LAST_MODIFIED_UPDATER.get(this);
@@ -155,18 +106,11 @@ public class VMStatsLRURegionEntryHeapLongKey extends VMStatsLRURegionEntryHeap 
     this.nextEntry = nextEntry;
   }
 
-
-
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
-
-
-
     // nothing needed for LRUs with no disk
-
   }
 
   @Override
@@ -176,7 +120,6 @@ public class VMStatsLRURegionEntryHeapLongKey extends VMStatsLRURegionEntryHeap 
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -217,7 +160,6 @@ public class VMStatsLRURegionEntryHeapLongKey extends VMStatsLRURegionEntryHeap 
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   private LRUClockNode nextLRU;
   private LRUClockNode previousLRU;
   private int size;
@@ -252,22 +194,14 @@ public class VMStatsLRURegionEntryHeapLongKey extends VMStatsLRURegionEntryHeap 
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public Object getKeyForSizing() {
-
-
-
     // inline keys always report null for sizing since the size comes from the entry size
     return null;
-
   }
-
-
 
   // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
     setLastAccessed(time);
@@ -285,8 +219,6 @@ public class VMStatsLRURegionEntryHeapLongKey extends VMStatsLRURegionEntryHeap 
       setLastAccessed(lastAccessed);
     }
   }
-
-
 
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
@@ -323,7 +255,6 @@ public class VMStatsLRURegionEntryHeapLongKey extends VMStatsLRURegionEntryHeap 
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -337,12 +268,8 @@ public class VMStatsLRURegionEntryHeapLongKey extends VMStatsLRURegionEntryHeap 
     return true;
   }
 
-
-
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
   @Override
   public Object getKey() {
     return this.key;
@@ -355,9 +282,5 @@ public class VMStatsLRURegionEntryHeapLongKey extends VMStatsLRURegionEntryHeap 
     }
     return false;
   }
-
-
-
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 }
-

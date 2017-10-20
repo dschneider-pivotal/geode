@@ -15,32 +15,21 @@
 package org.apache.geode.internal.cache.entries;
 
 // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
 import org.apache.geode.cache.EntryEvent;
 import org.apache.geode.internal.cache.InternalRegion;
-
 import org.apache.geode.internal.cache.RegionEntryContext;
-
 import org.apache.geode.internal.cache.lru.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
-
 import org.apache.geode.internal.InternalStatisticsDisabledException;
-
 import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.lru.LRUClockNode;
 import org.apache.geode.internal.cache.lru.NewLRUClockHand;
-
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.cache.versions.VersionSource;
 import org.apache.geode.internal.cache.versions.VersionStamp;
 import org.apache.geode.internal.cache.versions.VersionTag;
-
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
@@ -53,93 +42,50 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
  * KEY_STRING1 key string2: KEY_STRING2
  */
-
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRURegionEntryHeap {
-
   // --------------------------------------- common fields ----------------------------------------
-
   private static final AtomicLongFieldUpdater<VersionedStatsLRURegionEntryHeapIntKey> LAST_MODIFIED_UPDATER =
       AtomicLongFieldUpdater.newUpdater(VersionedStatsLRURegionEntryHeapIntKey.class,
           "lastModified");
-
   protected int hash;
-
   private HashEntry<Object, Object> nextEntry;
-
   @SuppressWarnings("unused")
   private volatile long lastModified;
-
-
-
   private volatile Object value;
-
-
   // --------------------------------------- stats fields -----------------------------------------
-
   private volatile long lastAccessed;
   private volatile int hitCount;
   private volatile int missCount;
-
   private static final AtomicIntegerFieldUpdater<VersionedStatsLRURegionEntryHeapIntKey> HIT_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VersionedStatsLRURegionEntryHeapIntKey.class,
           "hitCount");
-
   private static final AtomicIntegerFieldUpdater<VersionedStatsLRURegionEntryHeapIntKey> MISS_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VersionedStatsLRURegionEntryHeapIntKey.class,
           "missCount");
-
-
-
   // ------------------------------------- versioned fields ---------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   private VersionSource memberId;
   private short entryVersionLowBytes;
   private short regionVersionHighBytes;
   private int regionVersionLowBytes;
   private byte entryVersionHighByte;
   private byte distributedSystemId;
-
-
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
   private final int key;
 
-
   public VersionedStatsLRURegionEntryHeapIntKey(final RegionEntryContext context, final int key,
-
-
-
-      final Object value
-
-
-
-  ) {
-    super(context,
-
-
-
-        value
-
-    );
+      final Object value) {
+    super(context, value);
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
     this.key = key;
-
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
   @Override
   protected Object getValueField() {
     return this.value;
@@ -149,7 +95,6 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
   protected void setValueField(final Object value) {
     this.value = value;
   }
-
 
   protected long getLastModifiedField() {
     return LAST_MODIFIED_UPDATER.get(this);
@@ -178,18 +123,11 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
     this.nextEntry = nextEntry;
   }
 
-
-
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
-
-
-
     // nothing needed for LRUs with no disk
-
   }
 
   @Override
@@ -199,7 +137,6 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -240,7 +177,6 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   private LRUClockNode nextLRU;
   private LRUClockNode previousLRU;
   private int size;
@@ -275,22 +211,14 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public Object getKeyForSizing() {
-
-
-
     // inline keys always report null for sizing since the size comes from the entry size
     return null;
-
   }
-
-
 
   // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
     setLastAccessed(time);
@@ -308,8 +236,6 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
       setLastAccessed(lastAccessed);
     }
   }
-
-
 
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
@@ -346,7 +272,6 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -360,11 +285,8 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
     return true;
   }
 
-
-
   // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public int getEntryVersion() {
     return ((entryVersionHighByte << 16) & 0xFF0000) | (entryVersionLowBytes & 0xFFFF);
@@ -396,7 +318,6 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void setVersions(final VersionTag versionTag) {
     this.memberId = versionTag.getMemberID();
@@ -405,7 +326,6 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
     this.entryVersionHighByte = (byte) ((eVersion & 0xff0000) >> 16);
     this.regionVersionHighBytes = versionTag.getRegionVersionHighBytes();
     this.regionVersionLowBytes = versionTag.getRegionVersionLowBytes();
-
     if (!versionTag.isGatewayTag()
         && this.distributedSystemId == versionTag.getDistributedSystemId()) {
       if (getVersionTimeStamp() <= versionTag.getVersionTimeStamp()) {
@@ -416,7 +336,6 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
     } else {
       setVersionTimeStamp(versionTag.getVersionTimeStamp());
     }
-
     this.distributedSystemId = (byte) (versionTag.getDistributedSystemId() & 0xff);
   }
 
@@ -431,7 +350,6 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public VersionTag asVersionTag() {
     VersionTag tag = VersionTag.create(memberId);
@@ -468,12 +386,8 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
     return this.regionVersionLowBytes;
   }
 
-
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
   @Override
   public Object getKey() {
     return this.key;
@@ -486,9 +400,5 @@ public class VersionedStatsLRURegionEntryHeapIntKey extends VersionedStatsLRUReg
     }
     return false;
   }
-
-
-
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 }
-
