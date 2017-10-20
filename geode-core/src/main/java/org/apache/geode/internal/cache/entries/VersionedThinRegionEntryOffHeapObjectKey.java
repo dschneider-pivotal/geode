@@ -138,10 +138,12 @@ public class VersionedThinRegionEntryOffHeapObjectKey extends VersionedThinRegio
     // never implemented
   }
 
+  @Override
   protected long getLastModifiedField() {
     return LAST_MODIFIED_UPDATER.get(this);
   }
 
+  @Override
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
     return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
@@ -151,6 +153,7 @@ public class VersionedThinRegionEntryOffHeapObjectKey extends VersionedThinRegio
     return this.hash;
   }
 
+  @Override
   protected void setEntryHash(final int hash) {
     this.hash = hash;
   }

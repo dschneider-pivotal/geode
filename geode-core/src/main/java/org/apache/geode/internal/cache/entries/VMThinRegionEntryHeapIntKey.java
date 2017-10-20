@@ -64,10 +64,12 @@ public class VMThinRegionEntryHeapIntKey extends VMThinRegionEntryHeap {
     this.value = value;
   }
 
+  @Override
   protected long getLastModifiedField() {
     return LAST_MODIFIED_UPDATER.get(this);
   }
 
+  @Override
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
     return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
@@ -77,6 +79,7 @@ public class VMThinRegionEntryHeapIntKey extends VMThinRegionEntryHeap {
     return this.hash;
   }
 
+  @Override
   protected void setEntryHash(final int hash) {
     this.hash = hash;
   }
