@@ -49,6 +49,42 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VersionedThinRegionEntryHeapObjectKey extends VersionedThinRegionEntryHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VersionedThinRegionEntryHeapObjectKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VersionedThinRegionEntryHeapObjectKey.class,
+          "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  private volatile Object value;
+
+
+  // ------------------------------------- versioned fields ---------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+  private VersionSource memberId;
+  private short entryVersionLowBytes;
+  private short regionVersionHighBytes;
+  private int regionVersionLowBytes;
+  private byte entryVersionHighByte;
+  private byte distributedSystemId;
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+  private final Object key;
+
+
   public VersionedThinRegionEntryHeapObjectKey(final RegionEntryContext context, final Object key,
 
 
@@ -75,16 +111,6 @@ public class VersionedThinRegionEntryHeapObjectKey extends VersionedThinRegionEn
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VersionedThinRegionEntryHeapObjectKey> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VersionedThinRegionEntryHeapObjectKey.class,
-          "lastModified");
-
-  private volatile Object value;
 
   @Override
   protected Object getValueField() {
@@ -98,11 +124,11 @@ public class VersionedThinRegionEntryHeapObjectKey extends VersionedThinRegionEn
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -116,26 +142,18 @@ public class VersionedThinRegionEntryHeapObjectKey extends VersionedThinRegionEn
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
 
+  // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // versioned code
-
-  private VersionSource memberId;
-  private short entryVersionLowBytes;
-  private short regionVersionHighBytes;
-  private int regionVersionLowBytes;
-  private byte entryVersionHighByte;
-  private byte distributedSystemId;
 
   @Override
   public int getEntryVersion() {
@@ -241,12 +259,9 @@ public class VersionedThinRegionEntryHeapObjectKey extends VersionedThinRegionEn
   }
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
-
-
-  private final Object key;
 
   @Override
   public Object getKey() {

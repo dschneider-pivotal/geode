@@ -51,6 +51,31 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryHeapUUIDKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryHeapUUIDKey.class, "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  private volatile Object value;
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+  private final long keyMostSigBits;
+  private final long keyLeastSigBits;
+
+
   public VMThinLRURegionEntryHeapUUIDKey(final RegionEntryContext context, final UUID key,
 
 
@@ -76,15 +101,6 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryHeapUUIDKey> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryHeapUUIDKey.class, "lastModified");
-
-  private volatile Object value;
 
   @Override
   protected Object getValueField() {
@@ -98,11 +114,11 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -116,19 +132,18 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
 
+  // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // lru code
 
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
@@ -235,13 +250,9 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
 
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
-
-
-  private final long keyMostSigBits;
-  private final long keyLeastSigBits;
 
   @Override
   public Object getKey() {

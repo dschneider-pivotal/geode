@@ -55,6 +55,56 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VersionedStatsRegionEntryHeapUUIDKey extends VersionedStatsRegionEntryHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VersionedStatsRegionEntryHeapUUIDKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapUUIDKey.class, "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  private volatile Object value;
+
+
+  // --------------------------------------- stats fields -----------------------------------------
+
+  private volatile long lastAccessed;
+  private volatile int hitCount;
+  private volatile int missCount;
+
+  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapUUIDKey> HIT_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapUUIDKey.class, "hitCount");
+
+  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapUUIDKey> MISS_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapUUIDKey.class, "missCount");
+
+
+
+  // ------------------------------------- versioned fields ---------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+  private VersionSource memberId;
+  private short entryVersionLowBytes;
+  private short regionVersionHighBytes;
+  private int regionVersionLowBytes;
+  private byte entryVersionHighByte;
+  private byte distributedSystemId;
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+  private final long keyMostSigBits;
+  private final long keyLeastSigBits;
+
+
   public VersionedStatsRegionEntryHeapUUIDKey(final RegionEntryContext context, final UUID key,
 
 
@@ -80,15 +130,6 @@ public class VersionedStatsRegionEntryHeapUUIDKey extends VersionedStatsRegionEn
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VersionedStatsRegionEntryHeapUUIDKey> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapUUIDKey.class, "lastModified");
-
-  private volatile Object value;
 
   @Override
   protected Object getValueField() {
@@ -102,11 +143,11 @@ public class VersionedStatsRegionEntryHeapUUIDKey extends VersionedStatsRegionEn
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -120,19 +161,18 @@ public class VersionedStatsRegionEntryHeapUUIDKey extends VersionedStatsRegionEn
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
 
+  // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // stats code
 
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
@@ -152,15 +192,7 @@ public class VersionedStatsRegionEntryHeapUUIDKey extends VersionedStatsRegionEn
     }
   }
 
-  private volatile long lastAccessed;
-  private volatile int hitCount;
-  private volatile int missCount;
 
-  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapUUIDKey> hitCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapUUIDKey.class, "hitCount");
-
-  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapUUIDKey> missCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapUUIDKey.class, "missCount");
 
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
@@ -183,17 +215,17 @@ public class VersionedStatsRegionEntryHeapUUIDKey extends VersionedStatsRegionEn
   }
 
   private void incrementHitCount() {
-    hitCountUpdater.incrementAndGet(this);
+    HIT_COUNT_UPDATER.incrementAndGet(this);
   }
 
   private void incrementMissCount() {
-    missCountUpdater.incrementAndGet(this);
+    MISS_COUNT_UPDATER.incrementAndGet(this);
   }
 
   @Override
   public void resetCounts() throws InternalStatisticsDisabledException {
-    hitCountUpdater.set(this, 0);
-    missCountUpdater.set(this, 0);
+    HIT_COUNT_UPDATER.set(this, 0);
+    MISS_COUNT_UPDATER.set(this, 0);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
@@ -213,16 +245,8 @@ public class VersionedStatsRegionEntryHeapUUIDKey extends VersionedStatsRegionEn
 
 
 
+  // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // versioned code
-
-  private VersionSource memberId;
-  private short entryVersionLowBytes;
-  private short regionVersionHighBytes;
-  private int regionVersionLowBytes;
-  private byte entryVersionHighByte;
-  private byte distributedSystemId;
 
   @Override
   public int getEntryVersion() {
@@ -328,13 +352,9 @@ public class VersionedStatsRegionEntryHeapUUIDKey extends VersionedStatsRegionEn
   }
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
-
-
-  private final long keyMostSigBits;
-  private final long keyLeastSigBits;
 
   @Override
   public Object getKey() {

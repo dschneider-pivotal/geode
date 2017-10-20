@@ -61,6 +61,77 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VersionedStatsDiskRegionEntryHeapStringKey2 extends VersionedStatsDiskRegionEntryHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VersionedStatsDiskRegionEntryHeapStringKey2> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VersionedStatsDiskRegionEntryHeapStringKey2.class,
+          "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  private volatile Object value;
+
+
+  // ---------------------------------------- disk fields -----------------------------------------
+
+  /**
+   * @since GemFire 5.1
+   */
+  protected DiskId id;
+
+
+
+  // --------------------------------------- stats fields -----------------------------------------
+
+  private volatile long lastAccessed;
+  private volatile int hitCount;
+  private volatile int missCount;
+
+  private static final AtomicIntegerFieldUpdater<VersionedStatsDiskRegionEntryHeapStringKey2> HIT_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsDiskRegionEntryHeapStringKey2.class,
+          "hitCount");
+
+  private static final AtomicIntegerFieldUpdater<VersionedStatsDiskRegionEntryHeapStringKey2> MISS_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsDiskRegionEntryHeapStringKey2.class,
+          "missCount");
+
+
+
+  // ------------------------------------- versioned fields ---------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+  private VersionSource memberId;
+  private short entryVersionLowBytes;
+  private short regionVersionHighBytes;
+  private int regionVersionLowBytes;
+  private byte entryVersionHighByte;
+  private byte distributedSystemId;
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+  /**
+   * strlen is encoded in lowest 6 bits (max strlen is 63)<br>
+   * character encoding info is in bits 7 and 8<br>
+   * The other bits are used to encoded character data.
+   */
+  private final long bits1;
+
+  /**
+   * bits2 encodes character data
+   */
+  private final long bits2;
+
+
   public VersionedStatsDiskRegionEntryHeapStringKey2(final RegionEntryContext context,
       final String key,
 
@@ -117,16 +188,6 @@ public class VersionedStatsDiskRegionEntryHeapStringKey2 extends VersionedStatsD
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VersionedStatsDiskRegionEntryHeapStringKey2> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VersionedStatsDiskRegionEntryHeapStringKey2.class,
-          "lastModified");
-
-  private volatile Object value;
 
   @Override
   protected Object getValueField() {
@@ -140,11 +201,11 @@ public class VersionedStatsDiskRegionEntryHeapStringKey2 extends VersionedStatsD
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -158,18 +219,17 @@ public class VersionedStatsDiskRegionEntryHeapStringKey2 extends VersionedStatsD
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
+  // ----------------------------------------- disk code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // disk code
 
 
   protected void initialize(final RegionEntryContext context, final Object value) {
@@ -184,6 +244,16 @@ public class VersionedStatsDiskRegionEntryHeapStringKey2 extends VersionedStatsD
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
+  @Override
+  public DiskId getDiskId() {
+    return this.id;
+  }
+
+  @Override
+  void setDiskId(final RegionEntry oldEntry) {
+    this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
+  }
+
   private void diskInitialize(final RegionEntryContext context, final Object value) {
     DiskRecoveryStore diskRecoveryStore = (DiskRecoveryStore) context;
     DiskStoreImpl diskStore = diskRecoveryStore.getDiskStore();
@@ -192,11 +262,6 @@ public class VersionedStatsDiskRegionEntryHeapStringKey2 extends VersionedStatsD
     this.id = DiskId.createDiskId(maxOplogSize, true, diskStore.needsLinkedList());
     Helper.initialize(this, diskRecoveryStore, value);
   }
-
-  /**
-   * @since GemFire 5.1
-   */
-  protected DiskId id;
 
   @Override
   public DiskId getDiskId() {
@@ -211,9 +276,8 @@ public class VersionedStatsDiskRegionEntryHeapStringKey2 extends VersionedStatsD
 
 
 
+  // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
-  // stats code
 
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
@@ -233,17 +297,7 @@ public class VersionedStatsDiskRegionEntryHeapStringKey2 extends VersionedStatsD
     }
   }
 
-  private volatile long lastAccessed;
-  private volatile int hitCount;
-  private volatile int missCount;
 
-  private static final AtomicIntegerFieldUpdater<VersionedStatsDiskRegionEntryHeapStringKey2> hitCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsDiskRegionEntryHeapStringKey2.class,
-          "hitCount");
-
-  private static final AtomicIntegerFieldUpdater<VersionedStatsDiskRegionEntryHeapStringKey2> missCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsDiskRegionEntryHeapStringKey2.class,
-          "missCount");
 
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
@@ -266,17 +320,17 @@ public class VersionedStatsDiskRegionEntryHeapStringKey2 extends VersionedStatsD
   }
 
   private void incrementHitCount() {
-    hitCountUpdater.incrementAndGet(this);
+    HIT_COUNT_UPDATER.incrementAndGet(this);
   }
 
   private void incrementMissCount() {
-    missCountUpdater.incrementAndGet(this);
+    MISS_COUNT_UPDATER.incrementAndGet(this);
   }
 
   @Override
   public void resetCounts() throws InternalStatisticsDisabledException {
-    hitCountUpdater.set(this, 0);
-    missCountUpdater.set(this, 0);
+    HIT_COUNT_UPDATER.set(this, 0);
+    MISS_COUNT_UPDATER.set(this, 0);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
@@ -296,16 +350,8 @@ public class VersionedStatsDiskRegionEntryHeapStringKey2 extends VersionedStatsD
 
 
 
+  // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // versioned code
-
-  private VersionSource memberId;
-  private short entryVersionLowBytes;
-  private short regionVersionHighBytes;
-  private int regionVersionLowBytes;
-  private byte entryVersionHighByte;
-  private byte distributedSystemId;
 
   @Override
   public int getEntryVersion() {
@@ -411,22 +457,9 @@ public class VersionedStatsDiskRegionEntryHeapStringKey2 extends VersionedStatsD
   }
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
-
-
-  /**
-   * strlen is encoded in lowest 6 bits (max strlen is 63)<br>
-   * character encoding info is in bits 7 and 8<br>
-   * The other bits are used to encoded character data.
-   */
-  private final long bits1;
-
-  /**
-   * bits2 encodes character data
-   */
-  private final long bits2;
 
   private int getKeyLength() {
     return (int) (this.bits1 & 0x003fL);

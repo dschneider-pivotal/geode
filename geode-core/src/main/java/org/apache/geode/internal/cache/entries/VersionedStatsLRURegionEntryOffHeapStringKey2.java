@@ -66,6 +66,89 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 public class VersionedStatsLRURegionEntryOffHeapStringKey2
     extends VersionedStatsLRURegionEntryOffHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VersionedStatsLRURegionEntryOffHeapStringKey2> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VersionedStatsLRURegionEntryOffHeapStringKey2.class,
+          "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  // --------------------------------------- offheap fields ---------------------------------------
+
+  /**
+   * All access done using OFF_HEAP_ADDRESS_UPDATER so it is used even though the compiler can not
+   * tell it is.
+   */
+  @SuppressWarnings("unused")
+  @Retained
+  @Released
+  private volatile long offHeapAddress;
+  /**
+   * I needed to add this because I wanted clear to call setValue which normally can only be called
+   * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
+   * disk regions because they also get a rw lock in clear. Some hardware platforms do not support
+   * CAS on a long. If gemfire is run on one of those the AtomicLongFieldUpdater does a sync on the
+   * RegionEntry and we will once again be deadlocked. I don't know if we support any of the
+   * hardware platforms that do not have a 64bit CAS. If we do then we can expect deadlocks on disk
+   * regions.
+   */
+  private static final AtomicLongFieldUpdater<VersionedStatsLRURegionEntryOffHeapStringKey2> OFF_HEAP_ADDRESS_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VersionedStatsLRURegionEntryOffHeapStringKey2.class,
+          "offHeapAddress");
+
+
+  // --------------------------------------- stats fields -----------------------------------------
+
+  private volatile long lastAccessed;
+  private volatile int hitCount;
+  private volatile int missCount;
+
+  private static final AtomicIntegerFieldUpdater<VersionedStatsLRURegionEntryOffHeapStringKey2> HIT_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsLRURegionEntryOffHeapStringKey2.class,
+          "hitCount");
+
+  private static final AtomicIntegerFieldUpdater<VersionedStatsLRURegionEntryOffHeapStringKey2> MISS_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsLRURegionEntryOffHeapStringKey2.class,
+          "missCount");
+
+
+
+  // ------------------------------------- versioned fields ---------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+  private VersionSource memberId;
+  private short entryVersionLowBytes;
+  private short regionVersionHighBytes;
+  private int regionVersionLowBytes;
+  private byte entryVersionHighByte;
+  private byte distributedSystemId;
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+  /**
+   * strlen is encoded in lowest 6 bits (max strlen is 63)<br>
+   * character encoding info is in bits 7 and 8<br>
+   * The other bits are used to encoded character data.
+   */
+  private final long bits1;
+
+  /**
+   * bits2 encodes character data
+   */
+  private final long bits2;
+
+
   public VersionedStatsLRURegionEntryOffHeapStringKey2(final RegionEntryContext context,
       final String key,
 
@@ -120,34 +203,6 @@ public class VersionedStatsLRURegionEntryOffHeapStringKey2
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VersionedStatsLRURegionEntryOffHeapStringKey2> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VersionedStatsLRURegionEntryOffHeapStringKey2.class,
-          "lastModified");
-
-  /**
-   * All access done using offHeapAddressUpdater so it is used even though the compiler can not tell
-   * it is.
-   */
-  @SuppressWarnings("unused")
-  @Retained
-  @Released
-  private volatile long offHeapAddress;
-  /**
-   * I needed to add this because I wanted clear to call setValue which normally can only be called
-   * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
-   * disk regions because they also get a rw lock in clear. Some hardware platforms do not support
-   * CAS on a long. If gemfire is run on one of those the AtomicLongFieldUpdater does a sync on the
-   * re and we will once again be deadlocked. I don't know if we support any of the hardware
-   * platforms that do not have a 64bit CAS. If we do then we can expect deadlocks on disk regions.
-   */
-  private final static AtomicLongFieldUpdater<VersionedStatsLRURegionEntryOffHeapStringKey2> offHeapAddressUpdater =
-      AtomicLongFieldUpdater.newUpdater(VersionedStatsLRURegionEntryOffHeapStringKey2.class,
-          "offHeapAddress");
 
   @Override
   public Token getValueAsToken() {
@@ -181,12 +236,12 @@ public class VersionedStatsLRURegionEntryOffHeapStringKey2
 
   @Override
   public long getAddress() {
-    return offHeapAddressUpdater.get(this);
+    return OFF_HEAP_ADDRESS_UPDATER.get(this);
   }
 
   @Override
   public boolean setAddress(final long expectedAddress, long newAddress) {
-    return offHeapAddressUpdater.compareAndSet(this, expectedAddress, newAddress);
+    return OFF_HEAP_ADDRESS_UPDATER.compareAndSet(this, expectedAddress, newAddress);
   }
 
   @Override
@@ -204,11 +259,11 @@ public class VersionedStatsLRURegionEntryOffHeapStringKey2
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -222,19 +277,18 @@ public class VersionedStatsLRURegionEntryOffHeapStringKey2
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
 
+  // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // lru code
 
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
@@ -341,9 +395,8 @@ public class VersionedStatsLRURegionEntryOffHeapStringKey2
 
 
 
+  // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // stats code
 
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
@@ -363,17 +416,7 @@ public class VersionedStatsLRURegionEntryOffHeapStringKey2
     }
   }
 
-  private volatile long lastAccessed;
-  private volatile int hitCount;
-  private volatile int missCount;
 
-  private static final AtomicIntegerFieldUpdater<VersionedStatsLRURegionEntryOffHeapStringKey2> hitCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsLRURegionEntryOffHeapStringKey2.class,
-          "hitCount");
-
-  private static final AtomicIntegerFieldUpdater<VersionedStatsLRURegionEntryOffHeapStringKey2> missCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsLRURegionEntryOffHeapStringKey2.class,
-          "missCount");
 
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
@@ -396,17 +439,17 @@ public class VersionedStatsLRURegionEntryOffHeapStringKey2
   }
 
   private void incrementHitCount() {
-    hitCountUpdater.incrementAndGet(this);
+    HIT_COUNT_UPDATER.incrementAndGet(this);
   }
 
   private void incrementMissCount() {
-    missCountUpdater.incrementAndGet(this);
+    MISS_COUNT_UPDATER.incrementAndGet(this);
   }
 
   @Override
   public void resetCounts() throws InternalStatisticsDisabledException {
-    hitCountUpdater.set(this, 0);
-    missCountUpdater.set(this, 0);
+    HIT_COUNT_UPDATER.set(this, 0);
+    MISS_COUNT_UPDATER.set(this, 0);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
@@ -426,16 +469,8 @@ public class VersionedStatsLRURegionEntryOffHeapStringKey2
 
 
 
+  // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // versioned code
-
-  private VersionSource memberId;
-  private short entryVersionLowBytes;
-  private short regionVersionHighBytes;
-  private int regionVersionLowBytes;
-  private byte entryVersionHighByte;
-  private byte distributedSystemId;
 
   @Override
   public int getEntryVersion() {
@@ -541,22 +576,9 @@ public class VersionedStatsLRURegionEntryOffHeapStringKey2
   }
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
-
-
-  /**
-   * strlen is encoded in lowest 6 bits (max strlen is 63)<br>
-   * character encoding info is in bits 7 and 8<br>
-   * The other bits are used to encoded character data.
-   */
-  private final long bits1;
-
-  /**
-   * bits2 encodes character data
-   */
-  private final long bits2;
 
   private int getKeyLength() {
     return (int) (this.bits1 & 0x003fL);

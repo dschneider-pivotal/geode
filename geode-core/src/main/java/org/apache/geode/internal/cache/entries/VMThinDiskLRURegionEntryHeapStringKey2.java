@@ -55,6 +55,49 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VMThinDiskLRURegionEntryHeapStringKey2 extends VMThinDiskLRURegionEntryHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VMThinDiskLRURegionEntryHeapStringKey2> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinDiskLRURegionEntryHeapStringKey2.class,
+          "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  private volatile Object value;
+
+
+  // ---------------------------------------- disk fields -----------------------------------------
+
+  /**
+   * @since GemFire 5.1
+   */
+  protected DiskId id;
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+  /**
+   * strlen is encoded in lowest 6 bits (max strlen is 63)<br>
+   * character encoding info is in bits 7 and 8<br>
+   * The other bits are used to encoded character data.
+   */
+  private final long bits1;
+
+  /**
+   * bits2 encodes character data
+   */
+  private final long bits2;
+
+
   public VMThinDiskLRURegionEntryHeapStringKey2(final RegionEntryContext context, final String key,
 
 
@@ -110,16 +153,6 @@ public class VMThinDiskLRURegionEntryHeapStringKey2 extends VMThinDiskLRURegionE
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VMThinDiskLRURegionEntryHeapStringKey2> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VMThinDiskLRURegionEntryHeapStringKey2.class,
-          "lastModified");
-
-  private volatile Object value;
 
   @Override
   protected Object getValueField() {
@@ -133,11 +166,11 @@ public class VMThinDiskLRURegionEntryHeapStringKey2 extends VMThinDiskLRURegionE
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -151,18 +184,17 @@ public class VMThinDiskLRURegionEntryHeapStringKey2 extends VMThinDiskLRURegionE
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
+  // ----------------------------------------- disk code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // disk code
 
 
   protected void initialize(final RegionEntryContext context, final Object value) {
@@ -192,6 +224,16 @@ public class VMThinDiskLRURegionEntryHeapStringKey2 extends VMThinDiskLRURegionE
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
+  @Override
+  public DiskId getDiskId() {
+    return this.id;
+  }
+
+  @Override
+  void setDiskId(final RegionEntry oldEntry) {
+    this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
+  }
+
   private void diskInitialize(final RegionEntryContext context, final Object value) {
     DiskRecoveryStore diskRecoveryStore = (DiskRecoveryStore) context;
     DiskStoreImpl diskStore = diskRecoveryStore.getDiskStore();
@@ -200,11 +242,6 @@ public class VMThinDiskLRURegionEntryHeapStringKey2 extends VMThinDiskLRURegionE
     this.id = DiskId.createDiskId(maxOplogSize, true, diskStore.needsLinkedList());
     Helper.initialize(this, diskRecoveryStore, value);
   }
-
-  /**
-   * @since GemFire 5.1
-   */
-  protected DiskId id;
 
   @Override
   public DiskId getDiskId() {
@@ -217,9 +254,8 @@ public class VMThinDiskLRURegionEntryHeapStringKey2 extends VMThinDiskLRURegionE
 
   
 
+  // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
-  // lru code
 
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
@@ -328,22 +364,9 @@ public class VMThinDiskLRURegionEntryHeapStringKey2 extends VMThinDiskLRURegionE
 
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
-
-
-  /**
-   * strlen is encoded in lowest 6 bits (max strlen is 63)<br>
-   * character encoding info is in bits 7 and 8<br>
-   * The other bits are used to encoded character data.
-   */
-  private final long bits1;
-
-  /**
-   * bits2 encodes character data
-   */
-  private final long bits2;
 
   private int getKeyLength() {
     return (int) (this.bits1 & 0x003fL);

@@ -57,6 +57,67 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VMStatsLRURegionEntryOffHeapStringKey1 extends VMStatsLRURegionEntryOffHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VMStatsLRURegionEntryOffHeapStringKey1> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMStatsLRURegionEntryOffHeapStringKey1.class,
+          "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  // --------------------------------------- offheap fields ---------------------------------------
+
+  /**
+   * All access done using OFF_HEAP_ADDRESS_UPDATER so it is used even though the compiler can not
+   * tell it is.
+   */
+  @SuppressWarnings("unused")
+  @Retained
+  @Released
+  private volatile long offHeapAddress;
+  /**
+   * I needed to add this because I wanted clear to call setValue which normally can only be called
+   * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
+   * disk regions because they also get a rw lock in clear. Some hardware platforms do not support
+   * CAS on a long. If gemfire is run on one of those the AtomicLongFieldUpdater does a sync on the
+   * RegionEntry and we will once again be deadlocked. I don't know if we support any of the
+   * hardware platforms that do not have a 64bit CAS. If we do then we can expect deadlocks on disk
+   * regions.
+   */
+  private static final AtomicLongFieldUpdater<VMStatsLRURegionEntryOffHeapStringKey1> OFF_HEAP_ADDRESS_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMStatsLRURegionEntryOffHeapStringKey1.class,
+          "offHeapAddress");
+
+
+  // --------------------------------------- stats fields -----------------------------------------
+
+  private volatile long lastAccessed;
+  private volatile int hitCount;
+  private volatile int missCount;
+
+  private static final AtomicIntegerFieldUpdater<VMStatsLRURegionEntryOffHeapStringKey1> HIT_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VMStatsLRURegionEntryOffHeapStringKey1.class,
+          "hitCount");
+
+  private static final AtomicIntegerFieldUpdater<VMStatsLRURegionEntryOffHeapStringKey1> MISS_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VMStatsLRURegionEntryOffHeapStringKey1.class,
+          "missCount");
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+  private final long bits1;
+
+
   public VMStatsLRURegionEntryOffHeapStringKey1(final RegionEntryContext context, final String key,
 
       @Retained
@@ -98,34 +159,6 @@ public class VMStatsLRURegionEntryOffHeapStringKey1 extends VMStatsLRURegionEntr
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VMStatsLRURegionEntryOffHeapStringKey1> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VMStatsLRURegionEntryOffHeapStringKey1.class,
-          "lastModified");
-
-  /**
-   * All access done using offHeapAddressUpdater so it is used even though the compiler can not tell
-   * it is.
-   */
-  @SuppressWarnings("unused")
-  @Retained
-  @Released
-  private volatile long offHeapAddress;
-  /**
-   * I needed to add this because I wanted clear to call setValue which normally can only be called
-   * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
-   * disk regions because they also get a rw lock in clear. Some hardware platforms do not support
-   * CAS on a long. If gemfire is run on one of those the AtomicLongFieldUpdater does a sync on the
-   * re and we will once again be deadlocked. I don't know if we support any of the hardware
-   * platforms that do not have a 64bit CAS. If we do then we can expect deadlocks on disk regions.
-   */
-  private final static AtomicLongFieldUpdater<VMStatsLRURegionEntryOffHeapStringKey1> offHeapAddressUpdater =
-      AtomicLongFieldUpdater.newUpdater(VMStatsLRURegionEntryOffHeapStringKey1.class,
-          "offHeapAddress");
 
   @Override
   public Token getValueAsToken() {
@@ -159,12 +192,12 @@ public class VMStatsLRURegionEntryOffHeapStringKey1 extends VMStatsLRURegionEntr
 
   @Override
   public long getAddress() {
-    return offHeapAddressUpdater.get(this);
+    return OFF_HEAP_ADDRESS_UPDATER.get(this);
   }
 
   @Override
   public boolean setAddress(final long expectedAddress, long newAddress) {
-    return offHeapAddressUpdater.compareAndSet(this, expectedAddress, newAddress);
+    return OFF_HEAP_ADDRESS_UPDATER.compareAndSet(this, expectedAddress, newAddress);
   }
 
   @Override
@@ -182,11 +215,11 @@ public class VMStatsLRURegionEntryOffHeapStringKey1 extends VMStatsLRURegionEntr
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -200,19 +233,18 @@ public class VMStatsLRURegionEntryOffHeapStringKey1 extends VMStatsLRURegionEntr
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
 
+  // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // lru code
 
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
@@ -319,9 +351,8 @@ public class VMStatsLRURegionEntryOffHeapStringKey1 extends VMStatsLRURegionEntr
 
 
 
+  // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // stats code
 
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
@@ -341,17 +372,7 @@ public class VMStatsLRURegionEntryOffHeapStringKey1 extends VMStatsLRURegionEntr
     }
   }
 
-  private volatile long lastAccessed;
-  private volatile int hitCount;
-  private volatile int missCount;
 
-  private static final AtomicIntegerFieldUpdater<VMStatsLRURegionEntryOffHeapStringKey1> hitCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VMStatsLRURegionEntryOffHeapStringKey1.class,
-          "hitCount");
-
-  private static final AtomicIntegerFieldUpdater<VMStatsLRURegionEntryOffHeapStringKey1> missCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VMStatsLRURegionEntryOffHeapStringKey1.class,
-          "missCount");
 
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
@@ -374,17 +395,17 @@ public class VMStatsLRURegionEntryOffHeapStringKey1 extends VMStatsLRURegionEntr
   }
 
   private void incrementHitCount() {
-    hitCountUpdater.incrementAndGet(this);
+    HIT_COUNT_UPDATER.incrementAndGet(this);
   }
 
   private void incrementMissCount() {
-    missCountUpdater.incrementAndGet(this);
+    MISS_COUNT_UPDATER.incrementAndGet(this);
   }
 
   @Override
   public void resetCounts() throws InternalStatisticsDisabledException {
-    hitCountUpdater.set(this, 0);
-    missCountUpdater.set(this, 0);
+    HIT_COUNT_UPDATER.set(this, 0);
+    MISS_COUNT_UPDATER.set(this, 0);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
@@ -404,12 +425,9 @@ public class VMStatsLRURegionEntryOffHeapStringKey1 extends VMStatsLRURegionEntr
 
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
-
-
-  private final long bits1;
 
   private int getKeyLength() {
     return (int) (this.bits1 & 0x003fL);

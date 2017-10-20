@@ -57,6 +57,50 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VersionedThinDiskRegionEntryHeapStringKey1 extends VersionedThinDiskRegionEntryHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VersionedThinDiskRegionEntryHeapStringKey1> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VersionedThinDiskRegionEntryHeapStringKey1.class,
+          "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  private volatile Object value;
+
+
+  // ---------------------------------------- disk fields -----------------------------------------
+
+  /**
+   * @since GemFire 5.1
+   */
+  protected DiskId id;
+
+
+  // ------------------------------------- versioned fields ---------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+  private VersionSource memberId;
+  private short entryVersionLowBytes;
+  private short regionVersionHighBytes;
+  private int regionVersionLowBytes;
+  private byte entryVersionHighByte;
+  private byte distributedSystemId;
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+  private final long bits1;
+
+
   public VersionedThinDiskRegionEntryHeapStringKey1(final RegionEntryContext context,
       final String key,
 
@@ -101,16 +145,6 @@ public class VersionedThinDiskRegionEntryHeapStringKey1 extends VersionedThinDis
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VersionedThinDiskRegionEntryHeapStringKey1> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VersionedThinDiskRegionEntryHeapStringKey1.class,
-          "lastModified");
-
-  private volatile Object value;
 
   @Override
   protected Object getValueField() {
@@ -124,11 +158,11 @@ public class VersionedThinDiskRegionEntryHeapStringKey1 extends VersionedThinDis
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -142,18 +176,17 @@ public class VersionedThinDiskRegionEntryHeapStringKey1 extends VersionedThinDis
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
+  // ----------------------------------------- disk code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // disk code
 
 
   protected void initialize(final RegionEntryContext context, final Object value) {
@@ -168,6 +201,16 @@ public class VersionedThinDiskRegionEntryHeapStringKey1 extends VersionedThinDis
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
+  @Override
+  public DiskId getDiskId() {
+    return this.id;
+  }
+
+  @Override
+  void setDiskId(final RegionEntry oldEntry) {
+    this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
+  }
+
   private void diskInitialize(final RegionEntryContext context, final Object value) {
     DiskRecoveryStore diskRecoveryStore = (DiskRecoveryStore) context;
     DiskStoreImpl diskStore = diskRecoveryStore.getDiskStore();
@@ -176,11 +219,6 @@ public class VersionedThinDiskRegionEntryHeapStringKey1 extends VersionedThinDis
     this.id = DiskId.createDiskId(maxOplogSize, true, diskStore.needsLinkedList());
     Helper.initialize(this, diskRecoveryStore, value);
   }
-
-  /**
-   * @since GemFire 5.1
-   */
-  protected DiskId id;
 
   @Override
   public DiskId getDiskId() {
@@ -197,16 +235,8 @@ public class VersionedThinDiskRegionEntryHeapStringKey1 extends VersionedThinDis
 
   
 
+  // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
-  // versioned code
-
-  private VersionSource memberId;
-  private short entryVersionLowBytes;
-  private short regionVersionHighBytes;
-  private int regionVersionLowBytes;
-  private byte entryVersionHighByte;
-  private byte distributedSystemId;
 
   @Override
   public int getEntryVersion() {
@@ -312,12 +342,9 @@ public class VersionedThinDiskRegionEntryHeapStringKey1 extends VersionedThinDis
   }
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
-
-
-  private final long bits1;
 
   private int getKeyLength() {
     return (int) (this.bits1 & 0x003fL);
