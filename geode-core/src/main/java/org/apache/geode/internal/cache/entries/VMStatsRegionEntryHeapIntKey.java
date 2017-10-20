@@ -15,17 +15,10 @@
 package org.apache.geode.internal.cache.entries;
 
 // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
 import org.apache.geode.internal.cache.RegionEntryContext;
-
 import org.apache.geode.internal.InternalStatisticsDisabledException;
-
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
@@ -38,78 +31,39 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
  * KEY_STRING1 key string2: KEY_STRING2
  */
-
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VMStatsRegionEntryHeapIntKey extends VMStatsRegionEntryHeap {
-
   // --------------------------------------- common fields ----------------------------------------
-
   private static final AtomicLongFieldUpdater<VMStatsRegionEntryHeapIntKey> LAST_MODIFIED_UPDATER =
       AtomicLongFieldUpdater.newUpdater(VMStatsRegionEntryHeapIntKey.class, "lastModified");
-
   protected int hash;
-
   private HashEntry<Object, Object> nextEntry;
-
   @SuppressWarnings("unused")
   private volatile long lastModified;
-
-
-
   private volatile Object value;
-
-
   // --------------------------------------- stats fields -----------------------------------------
-
   private volatile long lastAccessed;
   private volatile int hitCount;
   private volatile int missCount;
-
   private static final AtomicIntegerFieldUpdater<VMStatsRegionEntryHeapIntKey> HIT_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VMStatsRegionEntryHeapIntKey.class, "hitCount");
-
   private static final AtomicIntegerFieldUpdater<VMStatsRegionEntryHeapIntKey> MISS_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VMStatsRegionEntryHeapIntKey.class, "missCount");
-
-
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
   private final int key;
 
-
   public VMStatsRegionEntryHeapIntKey(final RegionEntryContext context, final int key,
-
-
-
-      final Object value
-
-
-
-  ) {
-    super(context,
-
-
-
-        value
-
-    );
+      final Object value) {
+    super(context, value);
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
     this.key = key;
-
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
   @Override
   protected Object getValueField() {
     return this.value;
@@ -119,7 +73,6 @@ public class VMStatsRegionEntryHeapIntKey extends VMStatsRegionEntryHeap {
   protected void setValueField(final Object value) {
     this.value = value;
   }
-
 
   protected long getLastModifiedField() {
     return LAST_MODIFIED_UPDATER.get(this);
@@ -148,11 +101,8 @@ public class VMStatsRegionEntryHeapIntKey extends VMStatsRegionEntryHeap {
     this.nextEntry = nextEntry;
   }
 
-
-
   // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
     setLastAccessed(time);
@@ -170,8 +120,6 @@ public class VMStatsRegionEntryHeapIntKey extends VMStatsRegionEntryHeap {
       setLastAccessed(lastAccessed);
     }
   }
-
-
 
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
@@ -207,7 +155,6 @@ public class VMStatsRegionEntryHeapIntKey extends VMStatsRegionEntryHeap {
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -221,13 +168,8 @@ public class VMStatsRegionEntryHeapIntKey extends VMStatsRegionEntryHeap {
     return true;
   }
 
-
-
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
   @Override
   public Object getKey() {
     return this.key;
@@ -240,9 +182,5 @@ public class VMStatsRegionEntryHeapIntKey extends VMStatsRegionEntryHeap {
     }
     return false;
   }
-
-
-
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 }
-

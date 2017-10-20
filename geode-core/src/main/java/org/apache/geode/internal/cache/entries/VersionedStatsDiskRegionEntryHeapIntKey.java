@@ -15,33 +15,22 @@
 package org.apache.geode.internal.cache.entries;
 
 // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
 import org.apache.geode.cache.EntryEvent;
 import org.apache.geode.internal.cache.InternalRegion;
-
 import org.apache.geode.internal.cache.RegionEntryContext;
-
 import org.apache.geode.internal.cache.lru.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
-
 import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DiskStoreImpl;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
-
 import org.apache.geode.internal.InternalStatisticsDisabledException;
-
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.cache.versions.VersionSource;
 import org.apache.geode.internal.cache.versions.VersionStamp;
 import org.apache.geode.internal.cache.versions.VersionTag;
-
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
@@ -54,104 +43,56 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
  * KEY_STRING1 key string2: KEY_STRING2
  */
-
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskRegionEntryHeap {
-
   // --------------------------------------- common fields ----------------------------------------
-
   private static final AtomicLongFieldUpdater<VersionedStatsDiskRegionEntryHeapIntKey> LAST_MODIFIED_UPDATER =
       AtomicLongFieldUpdater.newUpdater(VersionedStatsDiskRegionEntryHeapIntKey.class,
           "lastModified");
-
   protected int hash;
-
   private HashEntry<Object, Object> nextEntry;
-
   @SuppressWarnings("unused")
   private volatile long lastModified;
-
-
-
   private volatile Object value;
-
-
   // ---------------------------------------- disk fields -----------------------------------------
-
   /**
    * @since GemFire 5.1
    */
   protected DiskId id;
-
-
-
   // --------------------------------------- stats fields -----------------------------------------
-
   private volatile long lastAccessed;
   private volatile int hitCount;
   private volatile int missCount;
-
   private static final AtomicIntegerFieldUpdater<VersionedStatsDiskRegionEntryHeapIntKey> HIT_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VersionedStatsDiskRegionEntryHeapIntKey.class,
           "hitCount");
-
   private static final AtomicIntegerFieldUpdater<VersionedStatsDiskRegionEntryHeapIntKey> MISS_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VersionedStatsDiskRegionEntryHeapIntKey.class,
           "missCount");
-
-
-
   // ------------------------------------- versioned fields ---------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   private VersionSource memberId;
   private short entryVersionLowBytes;
   private short regionVersionHighBytes;
   private int regionVersionLowBytes;
   private byte entryVersionHighByte;
   private byte distributedSystemId;
-
-
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
   private final int key;
 
-
   public VersionedStatsDiskRegionEntryHeapIntKey(final RegionEntryContext context, final int key,
-
-
-
-      final Object value
-
-
-
-  ) {
-    super(context,
-
-        (value instanceof RecoveredEntry ? null : value)
-
-
-
-    );
+      final Object value) {
+    super(context, (value instanceof RecoveredEntry ? null : value));
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
     initialize(context, value);
-
-
-
     this.key = key;
-
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
   @Override
   protected Object getValueField() {
     return this.value;
@@ -161,7 +102,6 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
   protected void setValueField(final Object value) {
     this.value = value;
   }
-
 
   protected long getLastModifiedField() {
     return LAST_MODIFIED_UPDATER.get(this);
@@ -190,11 +130,8 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
     this.nextEntry = nextEntry;
   }
 
-
   // ----------------------------------------- disk code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
   protected void initialize(final RegionEntryContext context, final Object value) {
     diskInitialize(context, value);
   }
@@ -204,9 +141,7 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
     throw new IllegalStateException("should never be called");
   }
 
-
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public DiskId getDiskId() {
     return this.id;
@@ -226,11 +161,8 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
     Helper.initialize(this, diskRecoveryStore, value);
   }
 
-
-
   // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
     setLastAccessed(time);
@@ -248,8 +180,6 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
       setLastAccessed(lastAccessed);
     }
   }
-
-
 
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
@@ -285,7 +215,6 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -299,11 +228,8 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
     return true;
   }
 
-
-
   // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public int getEntryVersion() {
     return ((entryVersionHighByte << 16) & 0xFF0000) | (entryVersionLowBytes & 0xFFFF);
@@ -335,7 +261,6 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void setVersions(final VersionTag versionTag) {
     this.memberId = versionTag.getMemberID();
@@ -344,7 +269,6 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
     this.entryVersionHighByte = (byte) ((eVersion & 0xff0000) >> 16);
     this.regionVersionHighBytes = versionTag.getRegionVersionHighBytes();
     this.regionVersionLowBytes = versionTag.getRegionVersionLowBytes();
-
     if (!versionTag.isGatewayTag()
         && this.distributedSystemId == versionTag.getDistributedSystemId()) {
       if (getVersionTimeStamp() <= versionTag.getVersionTimeStamp()) {
@@ -355,7 +279,6 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
     } else {
       setVersionTimeStamp(versionTag.getVersionTimeStamp());
     }
-
     this.distributedSystemId = (byte) (versionTag.getDistributedSystemId() & 0xff);
   }
 
@@ -370,7 +293,6 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public VersionTag asVersionTag() {
     VersionTag tag = VersionTag.create(memberId);
@@ -407,12 +329,8 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
     return this.regionVersionLowBytes;
   }
 
-
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
   @Override
   public Object getKey() {
     return this.key;
@@ -425,9 +343,5 @@ public class VersionedStatsDiskRegionEntryHeapIntKey extends VersionedStatsDiskR
     }
     return false;
   }
-
-
-
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 }
-

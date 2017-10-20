@@ -15,25 +15,16 @@
 package org.apache.geode.internal.cache.entries;
 
 // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
 import org.apache.geode.cache.EntryEvent;
 import org.apache.geode.internal.cache.InternalRegion;
-
 import org.apache.geode.internal.cache.RegionEntryContext;
-
 import org.apache.geode.internal.InternalStatisticsDisabledException;
-
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.cache.versions.VersionSource;
 import org.apache.geode.internal.cache.versions.VersionStamp;
 import org.apache.geode.internal.cache.versions.VersionTag;
-
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
@@ -46,92 +37,50 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
  * KEY_STRING1 key string2: KEY_STRING2
  */
-
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VersionedStatsRegionEntryHeapObjectKey extends VersionedStatsRegionEntryHeap {
-
   // --------------------------------------- common fields ----------------------------------------
-
   private static final AtomicLongFieldUpdater<VersionedStatsRegionEntryHeapObjectKey> LAST_MODIFIED_UPDATER =
       AtomicLongFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapObjectKey.class,
           "lastModified");
-
   protected int hash;
-
   private HashEntry<Object, Object> nextEntry;
-
   @SuppressWarnings("unused")
   private volatile long lastModified;
-
-
-
   private volatile Object value;
-
-
   // --------------------------------------- stats fields -----------------------------------------
-
   private volatile long lastAccessed;
   private volatile int hitCount;
   private volatile int missCount;
-
   private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapObjectKey> HIT_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapObjectKey.class,
           "hitCount");
-
   private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapObjectKey> MISS_COUNT_UPDATER =
       AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapObjectKey.class,
           "missCount");
-
-
-
   // ------------------------------------- versioned fields ---------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   private VersionSource memberId;
   private short entryVersionLowBytes;
   private short regionVersionHighBytes;
   private int regionVersionLowBytes;
   private byte entryVersionHighByte;
   private byte distributedSystemId;
-
-
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
   private final Object key;
 
-
   public VersionedStatsRegionEntryHeapObjectKey(final RegionEntryContext context, final Object key,
-
-
-
-      final Object value
-
-
-
-  ) {
-    super(context,
-
-
-
-        value
-
-    );
+      final Object value) {
+    super(context, value);
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
     this.key = key;
-
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
   @Override
   protected Object getValueField() {
     return this.value;
@@ -141,7 +90,6 @@ public class VersionedStatsRegionEntryHeapObjectKey extends VersionedStatsRegion
   protected void setValueField(final Object value) {
     this.value = value;
   }
-
 
   protected long getLastModifiedField() {
     return LAST_MODIFIED_UPDATER.get(this);
@@ -170,11 +118,8 @@ public class VersionedStatsRegionEntryHeapObjectKey extends VersionedStatsRegion
     this.nextEntry = nextEntry;
   }
 
-
-
   // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
     setLastAccessed(time);
@@ -192,8 +137,6 @@ public class VersionedStatsRegionEntryHeapObjectKey extends VersionedStatsRegion
       setLastAccessed(lastAccessed);
     }
   }
-
-
 
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
@@ -229,7 +172,6 @@ public class VersionedStatsRegionEntryHeapObjectKey extends VersionedStatsRegion
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -243,11 +185,8 @@ public class VersionedStatsRegionEntryHeapObjectKey extends VersionedStatsRegion
     return true;
   }
 
-
-
   // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public int getEntryVersion() {
     return ((entryVersionHighByte << 16) & 0xFF0000) | (entryVersionLowBytes & 0xFFFF);
@@ -279,7 +218,6 @@ public class VersionedStatsRegionEntryHeapObjectKey extends VersionedStatsRegion
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public void setVersions(final VersionTag versionTag) {
     this.memberId = versionTag.getMemberID();
@@ -288,7 +226,6 @@ public class VersionedStatsRegionEntryHeapObjectKey extends VersionedStatsRegion
     this.entryVersionHighByte = (byte) ((eVersion & 0xff0000) >> 16);
     this.regionVersionHighBytes = versionTag.getRegionVersionHighBytes();
     this.regionVersionLowBytes = versionTag.getRegionVersionLowBytes();
-
     if (!versionTag.isGatewayTag()
         && this.distributedSystemId == versionTag.getDistributedSystemId()) {
       if (getVersionTimeStamp() <= versionTag.getVersionTimeStamp()) {
@@ -299,7 +236,6 @@ public class VersionedStatsRegionEntryHeapObjectKey extends VersionedStatsRegion
     } else {
       setVersionTimeStamp(versionTag.getVersionTimeStamp());
     }
-
     this.distributedSystemId = (byte) (versionTag.getDistributedSystemId() & 0xff);
   }
 
@@ -314,7 +250,6 @@ public class VersionedStatsRegionEntryHeapObjectKey extends VersionedStatsRegion
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
   @Override
   public VersionTag asVersionTag() {
     VersionTag tag = VersionTag.create(memberId);
@@ -351,18 +286,11 @@ public class VersionedStatsRegionEntryHeapObjectKey extends VersionedStatsRegion
     return this.regionVersionLowBytes;
   }
 
-
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
   @Override
   public Object getKey() {
     return this.key;
   }
-
-
-
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 }
-
