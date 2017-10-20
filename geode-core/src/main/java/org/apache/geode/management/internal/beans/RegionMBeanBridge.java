@@ -166,7 +166,7 @@ public class RegionMBeanBridge<K, V> {
 
     LocalRegion l = (LocalRegion) region;
     if (l.getEvictionController() != null) {
-      LRUStatistics stats = l.getEvictionController().getLRUHelper().getStats();
+      LRUStatistics stats = l.getEvictionController().getStatistics();
       if (stats != null) {
         regionMonitor.addStatisticsToMonitor(stats.getStats());
         EvictionAttributes ea = region.getAttributes().getEvictionAttributes();

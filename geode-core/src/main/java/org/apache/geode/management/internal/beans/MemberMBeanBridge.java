@@ -513,7 +513,7 @@ public class MemberMBeanBridge {
 
     LocalRegion l = (LocalRegion) region;
     if (l.getEvictionController() != null) {
-      LRUStatistics stats = l.getEvictionController().getLRUHelper().getStats();
+      LRUStatistics stats = l.getEvictionController().getStatistics();
       if (stats != null) {
         addLRUStats(stats);
       }
@@ -546,7 +546,7 @@ public class MemberMBeanBridge {
 
     LocalRegion l = (LocalRegion) region;
     if (l.getEvictionController() != null) {
-      LRUStatistics stats = l.getEvictionController().getLRUHelper().getStats();
+      LRUStatistics stats = l.getEvictionController().getStatistics();
       if (stats != null) {
         removeLRUStats(stats);
       }

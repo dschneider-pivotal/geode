@@ -88,8 +88,7 @@ public class EvictionObjectSizerDUnitTest extends JUnit4CacheTestCase {
         + ((HeapLRUCapacityController) ((PartitionedRegion) region).getEvictionController())
             .getPerEntryOverhead();
     verifySize("PR1", 2, entrySize);
-    assertEquals(2 * entrySize, ((PartitionedRegion) region).getEvictionController().getLRUHelper()
-        .getStats().getCounter());
+    assertEquals(2 * entrySize, ((PartitionedRegion) region).getEvictionController().getStatistics().getCounter());
   }
 
   /**
@@ -197,8 +196,7 @@ public class EvictionObjectSizerDUnitTest extends JUnit4CacheTestCase {
     LogWriterUtils.getLogWriter()
         .info("testObjectSizerForHeapLRU_CustomizedSizerObject expected= " + expected);
     assertEquals(expected, getSizeOfCustomizedData(1));
-    assertEquals(expected, ((PartitionedRegion) region).getEvictionController().getLRUHelper()
-        .getStats().getCounter());
+    assertEquals(expected, ((PartitionedRegion) region).getEvictionController().getStatistics().getCounter());
   }
 
   /**

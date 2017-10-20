@@ -78,7 +78,7 @@ public class LRUEvictionControllerDUnitTest extends JUnit4CacheTestCase {
    */
   private LRUStatistics getLRUStats(Region region) {
     final LocalRegion l = (LocalRegion) region;
-    return l.getEvictionController().getLRUHelper().getStats();
+    return l.getEvictionController().getStatistics();
   }
 
   //////// Test Methods
@@ -433,9 +433,9 @@ public class LRUEvictionControllerDUnitTest extends JUnit4CacheTestCase {
           {
             LocalRegion lr = (LocalRegion) r[i];
             assertEquals(maxEntries,
-                lr.getEvictionController().getLRUHelper().getStats().getLimit());
+                lr.getEvictionController().getStatistics().getLimit());
             assertEquals(maxEntries,
-                lr.getEvictionController().getLRUHelper().getStats().getCounter());
+                lr.getEvictionController().getStatistics().getCounter());
           }
         }
       }
@@ -455,9 +455,9 @@ public class LRUEvictionControllerDUnitTest extends JUnit4CacheTestCase {
           {
             LocalRegion lr = (LocalRegion) r[i];
             assertEquals(maxEntries,
-                lr.getEvictionController().getLRUHelper().getStats().getLimit());
+                lr.getEvictionController().getStatistics().getLimit());
             assertEquals(maxEntries,
-                lr.getEvictionController().getLRUHelper().getStats().getCounter());
+                lr.getEvictionController().getStatistics().getCounter());
           }
         }
 

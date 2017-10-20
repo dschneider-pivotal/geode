@@ -187,6 +187,7 @@ public class LRUCapacityController extends LRUAlgorithm implements Declarable {
    * @throws IllegalArgumentException The value of the <code>eviction-action</code> property is not
    *         recoginzed.
    */
+  @Override
   public void init(Properties props) throws NumberFormatException {
     String prop = null;
     if ((prop = props.getProperty(MAXIMUM_ENTRIES)) != null) {
@@ -224,6 +225,7 @@ public class LRUCapacityController extends LRUAlgorithm implements Declarable {
       /**
        * Indicate what kind of <code>EvictionAlgorithm</code> this helper implements
        */
+      @Override
       public EvictionAlgorithm getEvictionAlgorithm() {
         return EvictionAlgorithm.LRU_ENTRY;
       }
@@ -231,6 +233,7 @@ public class LRUCapacityController extends LRUAlgorithm implements Declarable {
       /**
        * All entries for the LRUCapacityController are considered to be of size 1.
        */
+      @Override
       public int entrySize(Object key, Object value) throws IllegalArgumentException {
 
         if (Token.isRemoved(value) /* && (value != Token.TOMBSTONE) */) { // un-comment to make
@@ -249,42 +252,52 @@ public class LRUCapacityController extends LRUAlgorithm implements Declarable {
         }
       }
 
+      @Override
       public StatisticsType getStatisticsType() {
         return statType;
       }
 
+      @Override
       public String getStatisticsName() {
         return "LRUStatistics";
       }
 
+      @Override
       public int getLimitStatId() {
         return statType.nameToId("entriesAllowed");
       }
 
+      @Override
       public int getCountStatId() {
         return statType.nameToId("entryCount");
       }
 
+      @Override
       public int getEvictionsStatId() {
         return statType.nameToId("lruEvictions");
       }
 
+      @Override
       public int getDestroysStatId() {
         return statType.nameToId("lruDestroys");
       }
 
+      @Override
       public int getDestroysLimitStatId() {
         return statType.nameToId("lruDestroysLimit");
       }
 
+      @Override
       public int getEvaluationsStatId() {
         return statType.nameToId("lruEvaluations");
       }
 
+      @Override
       public int getGreedyReturnsStatId() {
         return statType.nameToId("lruGreedyReturns");
       }
 
+      @Override
       public boolean mustEvict(LRUStatistics stats, Region region, int delta) {
         return stats.getCounter() + delta > stats.getLimit();
       }

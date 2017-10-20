@@ -49,7 +49,7 @@ public class TestDiskRegion {
    */
   private static LRUStatistics getLRUStats(Region region) {
     final LocalRegion l = (LocalRegion) region;
-    return l.getEvictionController().getLRUHelper().getStats();
+    return l.getEvictionController().getStatistics();
   }
 
   public static void main(String[] args) throws Exception {

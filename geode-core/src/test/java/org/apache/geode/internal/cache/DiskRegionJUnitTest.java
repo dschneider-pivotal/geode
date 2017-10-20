@@ -177,7 +177,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
 
     DiskRegionStats diskStats = dr.getStats();
     LRUStatistics lruStats =
-        ((LocalRegion) region).getEvictionController().getLRUHelper().getStats();
+        ((LocalRegion) region).getEvictionController().getStatistics();
     assertNotNull(diskStats);
     assertNotNull(lruStats);
 

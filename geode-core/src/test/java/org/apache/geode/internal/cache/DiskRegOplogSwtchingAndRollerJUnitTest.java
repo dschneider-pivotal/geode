@@ -618,7 +618,7 @@ public class DiskRegOplogSwtchingAndRollerJUnitTest extends DiskRegionTestingBas
   }// end of testEntryDeletedinCurrentOplog
 
   private LRUStatistics getLRUStats(Region region) {
-    return ((LocalRegion) region).getEvictionController().getLRUHelper().getStats();
+    return ((LocalRegion) region).getEvictionController().getStatistics();
   }
 
   /**

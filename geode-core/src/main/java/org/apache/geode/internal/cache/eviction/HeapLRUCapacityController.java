@@ -189,6 +189,7 @@ public class HeapLRUCapacityController extends LRUAlgorithm {
       /**
        * Indicate what kind of <code>EvictionAlgorithm</code> this helper implements
        */
+      @Override
       public EvictionAlgorithm getEvictionAlgorithm() {
         return EvictionAlgorithm.LRU_HEAP;
       }
@@ -196,6 +197,7 @@ public class HeapLRUCapacityController extends LRUAlgorithm {
       /**
        * As far as we're concerned all entries have the same size
        */
+      @Override
       public int entrySize(Object key, Object value) throws IllegalArgumentException {
         // value is null only after eviction occurs. A change in size is
         // required for eviction stats, bug 30974
@@ -224,38 +226,47 @@ public class HeapLRUCapacityController extends LRUAlgorithm {
         return stats;
       }
 
+      @Override
       public StatisticsType getStatisticsType() {
         return statType;
       }
 
+      @Override
       public String getStatisticsName() {
         return "HeapLRUStatistics";
       }
 
+      @Override
       public int getLimitStatId() {
         throw new UnsupportedOperationException("Limit not used with this LRU type");
       }
 
+      @Override
       public int getCountStatId() {
         return statType.nameToId("entryBytes");
       }
 
+      @Override
       public int getEvictionsStatId() {
         return statType.nameToId("lruEvictions");
       }
 
+      @Override
       public int getDestroysStatId() {
         return statType.nameToId("lruDestroys");
       }
 
+      @Override
       public int getDestroysLimitStatId() {
         return statType.nameToId("lruDestroysLimit");
       }
 
+      @Override
       public int getEvaluationsStatId() {
         return statType.nameToId("lruEvaluations");
       }
 
+      @Override
       public int getGreedyReturnsStatId() {
         return statType.nameToId("lruGreedyReturns");
       }
@@ -267,6 +278,7 @@ public class HeapLRUCapacityController extends LRUAlgorithm {
        * {@linkplain Runtime#maxMemory max memory} - {@linkplain Runtime#freeMemory free memory} is
        * greater than the overflow threshold, then we evict the LRU entry.
        */
+      @Override
       public boolean mustEvict(LRUStatistics stats, Region region, int delta) {
         final InternalCache cache = (InternalCache) region.getRegionService();
         InternalResourceManager resourceManager = cache.getInternalResourceManager();

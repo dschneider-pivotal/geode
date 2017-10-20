@@ -98,7 +98,7 @@ public class DiskRegionDUnitTest extends JUnit4CacheTestCase {
    */
   protected LRUStatistics getLRUStats(Region region) {
     final LocalRegion l = (LocalRegion) region;
-    return l.getEvictionController().getLRUHelper().getStats();
+    return l.getEvictionController().getStatistics();
   }
 
   //////// Test Methods

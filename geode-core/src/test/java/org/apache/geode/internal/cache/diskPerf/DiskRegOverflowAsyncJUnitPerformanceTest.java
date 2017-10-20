@@ -134,6 +134,6 @@ public class DiskRegOverflowAsyncJUnitPerformanceTest extends DiskRegionTestingB
   }
 
   private LRUStatistics getLRUStats(Region region) {
-    return ((LocalRegion) region).getEvictionController().getLRUHelper().getStats();
+    return ((LocalRegion) region).getEvictionController().getStatistics();
   }
 }
