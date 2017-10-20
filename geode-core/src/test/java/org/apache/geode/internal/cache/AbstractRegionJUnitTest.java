@@ -616,6 +616,18 @@ public class AbstractRegionJUnitTest {
     }
 
     @Override
+    public long getEvictions() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Region createSubregion(String subregionName, RegionAttributes attrs,
+                                  InternalRegionArguments internalRegionArgs)
+        throws RegionExistsException, TimeoutException, IOException, ClassNotFoundException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void invokePutCallbacks(EnumListenerEvent eventType, EntryEventImpl event,
         boolean callDispatchListenerEvent, boolean notifyGateways) {
       throw new UnsupportedOperationException();
