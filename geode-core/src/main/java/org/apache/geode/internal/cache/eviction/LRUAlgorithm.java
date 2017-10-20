@@ -125,6 +125,14 @@ public abstract class LRUAlgorithm implements CacheCallback, Serializable, Clone
     return this.evictionAction;
   }
 
+  public LRUStatistics getStatistics() {
+    synchronized (this) {
+      // Synchronize with readObject/writeObject to avoid race
+      // conditions with copy sharing. See bug 31047.
+      return this.helper.getStats();
+    }
+  }
+
   /**
    * For internal use only. Returns a helper object used internally by the GemFire cache
    * implementation.

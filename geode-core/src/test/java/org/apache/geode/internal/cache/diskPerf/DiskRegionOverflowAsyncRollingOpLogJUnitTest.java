@@ -195,7 +195,7 @@ public class DiskRegionOverflowAsyncRollingOpLogJUnitTest extends DiskRegionTest
    * @return
    */
   protected LRUStatistics getLRUStats(Region region1) {
-    return ((LocalRegion) region1).getEvictionController().getLRUHelper().getStats();
+    return ((LocalRegion) region1).getEvictionController().getStatistics();
 
   }
 

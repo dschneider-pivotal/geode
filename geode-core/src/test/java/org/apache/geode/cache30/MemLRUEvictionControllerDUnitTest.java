@@ -64,7 +64,7 @@ public class MemLRUEvictionControllerDUnitTest extends JUnit4CacheTestCase {
    */
   private LRUStatistics getLRUStats(Region region) {
     final LocalRegion l = (LocalRegion) region;
-    return l.getEvictionController().getLRUHelper().getStats();
+    return l.getEvictionController().getStatistics();
   }
 
   private int getEntryOverhead(Region region) {
