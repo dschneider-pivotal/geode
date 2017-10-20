@@ -38,7 +38,7 @@ import org.apache.geode.internal.cache.DistributedRegion;
 import org.apache.geode.internal.cache.EntryBits;
 import org.apache.geode.internal.cache.EntryEventImpl;
 import org.apache.geode.internal.cache.InitialImageOperation;
-import org.apache.geode.internal.cache.LocalRegion;
+import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionClearedException;
 import org.apache.geode.internal.cache.RegionEntry;
@@ -830,7 +830,7 @@ public interface DiskEntry extends RegionEntry {
       region.getDiskRegion().put(entry, region, vw, async);
     }
 
-    public static void update(DiskEntry entry, LocalRegion region, Object newValue)
+    public static void update(DiskEntry entry, InternalRegion region, Object newValue)
         throws RegionClearedException {
       update(entry, region, newValue, null);
     }
@@ -839,7 +839,7 @@ public interface DiskEntry extends RegionEntry {
      * Updates the value of the disk entry with a new value. This allows us to free up disk space in
      * the non-backup case.
      */
-    public static void update(DiskEntry entry, LocalRegion region, Object newValue,
+    public static void update(DiskEntry entry, InternalRegion region, Object newValue,
         EntryEventImpl event) throws RegionClearedException {
       if (newValue == null) {
         throw new NullPointerException(
@@ -871,8 +871,8 @@ public interface DiskEntry extends RegionEntry {
       }
     }
 
-    private static AsyncDiskEntry basicUpdate(DiskEntry entry, LocalRegion region, Object newValue,
-        EntryEventImpl event) throws RegionClearedException {
+    private static AsyncDiskEntry basicUpdate(DiskEntry entry, InternalRegion region,
+        Object newValue, EntryEventImpl event) throws RegionClearedException {
       AsyncDiskEntry result = null;
       DiskRegion dr = region.getDiskRegion();
       DiskId did = entry.getDiskId();
@@ -1032,12 +1032,12 @@ public interface DiskEntry extends RegionEntry {
       return v;
     }
 
-    public static Object faultInValue(DiskEntry entry, LocalRegion region) {
+    public static Object faultInValue(DiskEntry entry, InternalRegion region) {
       return faultInValue(entry, region, false);
     }
 
     @Retained
-    public static Object faultInValueRetain(DiskEntry entry, LocalRegion region) {
+    public static Object faultInValueRetain(DiskEntry entry, InternalRegion region) {
       return faultInValue(entry, region, true);
     }
 
@@ -1045,7 +1045,8 @@ public interface DiskEntry extends RegionEntry {
      * @param retainResult if true then the result may be a retained off-heap reference
      */
     @Retained
-    private static Object faultInValue(DiskEntry entry, LocalRegion region, boolean retainResult) {
+    private static Object faultInValue(DiskEntry entry, InternalRegion region,
+        boolean retainResult) {
       DiskRegion dr = region.getDiskRegion();
       @Retained
       Object v = entry.getValueRetain(region, true);
@@ -1069,7 +1070,7 @@ public interface DiskEntry extends RegionEntry {
                   did.setPendingAsync(false);
                 }
               }
-              lruEntryFaultIn((LRUEntry) entry, region);
+              lruEntryFaultIn((LRUEntry) entry, (DiskRecoveryStore) region);
               lruFaultedIn = true;
             }
           }
@@ -1079,10 +1080,10 @@ public interface DiskEntry extends RegionEntry {
             v = entry.getValueRetain(region, true);
 
             if (v == null) {
-              v = readValueFromDisk(entry, region);
+              v = readValueFromDisk(entry, (DiskRecoveryStore) region);
               if (entry instanceof LRUEntry) {
                 if (v != null && !Token.isInvalid(v)) {
-                  lruEntryFaultIn((LRUEntry) entry, region);
+                  lruEntryFaultIn((LRUEntry) entry, (DiskRecoveryStore) region);
 
                   lruFaultedIn = true;
                 }
@@ -1103,7 +1104,7 @@ public interface DiskEntry extends RegionEntry {
         ((RegionEntry) entry).setRecentlyUsed();
       }
       if (lruFaultedIn) {
-        lruUpdateCallback(region);
+        lruUpdateCallback((DiskRecoveryStore) region);
       }
       return v; // OFFHEAP: the value ends up being returned by RegionEntry.getValue
     }
@@ -1297,7 +1298,7 @@ public interface DiskEntry extends RegionEntry {
       // Note: we used to call owner.incNumOverflowBytesOnDisk()
       // if owner was a DiskRegionView.
       // But since we also call drv.incNumOverflowBytesOnDisk()
-      // and since drv is == owner when owner is not a LocalRegion
+      // and since drv is == owner when owner is not a InternalRegion
       // (see PlaceHolderDiskRegion.getDiskRegionView())
       // this resulted in incNumOverflowBytesOnDisk being called twice.
     }
@@ -1310,14 +1311,14 @@ public interface DiskEntry extends RegionEntry {
      * <p>
      * Caller must synchronize on entry and it is assumed the entry is evicted
      */
-    public static int overflowToDisk(DiskEntry entry, LocalRegion region, EnableLRU ccHelper)
+    public static int overflowToDisk(DiskEntry entry, InternalRegion region, EnableLRU ccHelper)
         throws RegionClearedException {
       DiskRegion dr = region.getDiskRegion();
-      final int oldSize = region.calculateRegionEntryValueSize(entry);
+      final int oldSize = ((DiskRecoveryStore) region).calculateRegionEntryValueSize(entry);
       // Get diskID . If it is null, it implies it is overflow only mode.
       DiskId did = entry.getDiskId();
       if (did == null) {
-        ((LRUEntry) entry).setDelayedDiskId(region);
+        ((LRUEntry) entry).setDelayedDiskId((DiskRecoveryStore) region);
         did = entry.getDiskId();
       }
 

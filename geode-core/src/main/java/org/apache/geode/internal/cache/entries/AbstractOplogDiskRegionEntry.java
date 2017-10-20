@@ -23,7 +23,7 @@ import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DistributedRegion;
 import org.apache.geode.internal.cache.EntryBits;
 import org.apache.geode.internal.cache.InitialImageOperation.Entry;
-import org.apache.geode.internal.cache.LocalRegion;
+import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.RegionClearedException;
 import org.apache.geode.internal.cache.RegionEntry;
 import org.apache.geode.internal.cache.RegionEntryContext;
@@ -77,13 +77,13 @@ public abstract class AbstractOplogDiskRegionEntry extends AbstractDiskRegionEnt
 
   @Override
   public Object getValue(RegionEntryContext context) {
-    return Helper.faultInValue(this, (LocalRegion) context); // OFFHEAP returned to callers
+    return Helper.faultInValue(this, (InternalRegion) context); // OFFHEAP returned to callers
   }
 
   @Override
   @Retained
   public Object getValueRetain(RegionEntryContext context) {
-    return Helper.faultInValueRetain(this, (LocalRegion) context);
+    return Helper.faultInValueRetain(this, (InternalRegion) context);
   }
 
   @Override
@@ -154,7 +154,7 @@ public abstract class AbstractOplogDiskRegionEntry extends AbstractDiskRegionEnt
     DiskId did = getDiskId();
     boolean checkConflicts = true;
     if (did != null) {
-      LocalRegion lr = (LocalRegion) cacheEvent.getRegion();
+      InternalRegion lr = (InternalRegion) cacheEvent.getRegion();
       if (lr != null && lr.getDiskRegion().isReadyForRecovery()) {
         synchronized (did) {
           checkConflicts = !EntryBits.isRecoveredFromDisk(did.getUserBits());

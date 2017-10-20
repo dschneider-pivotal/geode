@@ -40,7 +40,6 @@ import org.apache.geode.internal.cache.versions.VersionTag;
  * <li>DataSerializableFixedID
  * <li>RegionEntryContext
  * <li>Extensible
- * </pre>
  * </ul>
  */
 public interface InternalRegion
@@ -104,4 +103,13 @@ public interface InternalRegion
   int updateSizeOnEvict(Object key, int oldSize);
 
   RegionEntry basicGetEntry(Object key);
+
+  void invokePutCallbacks(final EnumListenerEvent eventType, final EntryEventImpl event,
+      final boolean callDispatchListenerEvent, boolean notifyGateways);
+
+  void invokeDestroyCallbacks(final EnumListenerEvent eventType, final EntryEventImpl event,
+      final boolean callDispatchListenerEvent, boolean notifyGateways);
+
+  void invokeInvalidateCallbacks(final EnumListenerEvent eventType, final EntryEventImpl event,
+      final boolean callDispatchListenerEvent);
 }

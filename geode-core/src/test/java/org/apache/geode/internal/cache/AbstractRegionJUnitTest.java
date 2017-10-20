@@ -616,6 +616,24 @@ public class AbstractRegionJUnitTest {
     }
 
     @Override
+    public void invokePutCallbacks(EnumListenerEvent eventType, EntryEventImpl event,
+        boolean callDispatchListenerEvent, boolean notifyGateways) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void invokeDestroyCallbacks(EnumListenerEvent eventType, EntryEventImpl event,
+        boolean callDispatchListenerEvent, boolean notifyGateways) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void invokeInvalidateCallbacks(EnumListenerEvent eventType, EntryEventImpl event,
+        boolean callDispatchListenerEvent) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     protected boolean isCurrentlyLockGrantor() {
       throw new UnsupportedOperationException();
     }

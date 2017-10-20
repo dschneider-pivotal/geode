@@ -54,7 +54,7 @@ import org.apache.geode.internal.InternalStatisticsDisabledException;
 import org.apache.geode.internal.Version;
 import org.apache.geode.internal.cache.InternalCache;
 import org.apache.geode.internal.cache.InternalCacheEvent;
-import org.apache.geode.internal.cache.LocalRegion;
+import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.RegionClearedException;
 import org.apache.geode.internal.cache.RegionEntry;
 import org.apache.geode.internal.cache.RegionEntryContext;
@@ -149,7 +149,7 @@ public abstract class AbstractRegionEntry implements RegionEntry, HashEntry<Obje
   @Override
   @SuppressWarnings("IMSE_DONT_CATCH_IMSE")
   public boolean dispatchListenerEvents(final EntryEventImpl event) throws InterruptedException {
-    final LocalRegion rgn = event.getRegion();
+    final InternalRegion rgn = event.getRegion();
 
     if (event.callbacksInvoked()) {
       return true;
@@ -178,7 +178,8 @@ public abstract class AbstractRegionEntry implements RegionEntry, HashEntry<Obje
         // by the RegionMap. It is unclear why this code is needed. ARM destroy
         // does this also and we are now doing it as phase3 of the ARM destroy.
         removePhase2();
-        rgn.getRegionMap().removeEntry(event.getKey(), this, true, event, rgn);
+        ((DiskRecoveryStore) rgn).getRegionMap().removeEntry(event.getKey(), this, true, event,
+            rgn);
       }
     }
   }
@@ -304,7 +305,7 @@ public abstract class AbstractRegionEntry implements RegionEntry, HashEntry<Obje
   public void setValueWithTombstoneCheck(@Unretained Object v, EntryEvent e)
       throws RegionClearedException {
     if (v == Token.TOMBSTONE) {
-      makeTombstone((LocalRegion) e.getRegion(), ((InternalCacheEvent) e).getVersionTag());
+      makeTombstone((InternalRegion) e.getRegion(), ((InternalCacheEvent) e).getVersionTag());
     } else {
       setValue((RegionEntryContext) e.getRegion(), v, (EntryEventImpl) e);
     }
@@ -513,8 +514,8 @@ public abstract class AbstractRegionEntry implements RegionEntry, HashEntry<Obje
   }
 
   private boolean isThisRegionBeingClosedOrDestroyed(RegionEntryContext context) {
-    return context instanceof LocalRegion
-        && ((LocalRegion) context).isThisRegionBeingClosedOrDestroyed();
+    return context instanceof InternalRegion
+        && ((InternalRegion) context).isThisRegionBeingClosedOrDestroyed();
   }
 
   private boolean isOffHeapReference(Object ref) {
@@ -1714,7 +1715,7 @@ public abstract class AbstractRegionEntry implements RegionEntry, HashEntry<Obje
       final InternalDistributedMember originator =
           (InternalDistributedMember) event.getDistributedMember();
       final VersionSource dmId = event.getRegion().getVersionMember();
-      LocalRegion r = event.getLocalRegion();
+      InternalRegion r = event.getLocalRegion();
       boolean eventHasDelta = event.getDeltaBytes() != null && event.getRawNewValue() == null;
 
       VersionStamp stamp = getVersionStamp();
@@ -2049,7 +2050,7 @@ public abstract class AbstractRegionEntry implements RegionEntry, HashEntry<Obje
   }
 
   private boolean processGatewayTag(EntryEvent cacheEvent) {
-    // Gateway tags are installed in the server-side LocalRegion cache
+    // Gateway tags are installed in the server-side InternalRegion cache
     // modification methods. They do not have version numbers or distributed
     // member IDs. Instead they only have timestamps and distributed system IDs.
 

@@ -2292,7 +2292,7 @@ public class EntryEventImpl
    * 
    * @param notifyGateways pass the event on to WAN queues
    */
-  public void invokeCallbacks(LocalRegion rgn, boolean skipListeners, boolean notifyGateways) {
+  public void invokeCallbacks(InternalRegion rgn, boolean skipListeners, boolean notifyGateways) {
     if (!callbacksInvoked()) {
       callbacksInvoked(true);
       if (this.op.isUpdate()) {
