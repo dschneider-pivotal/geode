@@ -55,6 +55,62 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryOffHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryOffHeapStringKey2> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryOffHeapStringKey2.class,
+          "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  // --------------------------------------- offheap fields ---------------------------------------
+
+  /**
+   * All access done using OFF_HEAP_ADDRESS_UPDATER so it is used even though the compiler can not
+   * tell it is.
+   */
+  @SuppressWarnings("unused")
+  @Retained
+  @Released
+  private volatile long offHeapAddress;
+  /**
+   * I needed to add this because I wanted clear to call setValue which normally can only be called
+   * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
+   * disk regions because they also get a rw lock in clear. Some hardware platforms do not support
+   * CAS on a long. If gemfire is run on one of those the AtomicLongFieldUpdater does a sync on the
+   * RegionEntry and we will once again be deadlocked. I don't know if we support any of the
+   * hardware platforms that do not have a 64bit CAS. If we do then we can expect deadlocks on disk
+   * regions.
+   */
+  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryOffHeapStringKey2> OFF_HEAP_ADDRESS_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryOffHeapStringKey2.class,
+          "offHeapAddress");
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+  /**
+   * strlen is encoded in lowest 6 bits (max strlen is 63)<br>
+   * character encoding info is in bits 7 and 8<br>
+   * The other bits are used to encoded character data.
+   */
+  private final long bits1;
+
+  /**
+   * bits2 encodes character data
+   */
+  private final long bits2;
+
+
   public VMThinLRURegionEntryOffHeapStringKey2(final RegionEntryContext context, final String key,
 
       @Retained
@@ -108,34 +164,6 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryOffHeapStringKey2> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryOffHeapStringKey2.class,
-          "lastModified");
-
-  /**
-   * All access done using offHeapAddressUpdater so it is used even though the compiler can not tell
-   * it is.
-   */
-  @SuppressWarnings("unused")
-  @Retained
-  @Released
-  private volatile long offHeapAddress;
-  /**
-   * I needed to add this because I wanted clear to call setValue which normally can only be called
-   * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
-   * disk regions because they also get a rw lock in clear. Some hardware platforms do not support
-   * CAS on a long. If gemfire is run on one of those the AtomicLongFieldUpdater does a sync on the
-   * re and we will once again be deadlocked. I don't know if we support any of the hardware
-   * platforms that do not have a 64bit CAS. If we do then we can expect deadlocks on disk regions.
-   */
-  private final static AtomicLongFieldUpdater<VMThinLRURegionEntryOffHeapStringKey2> offHeapAddressUpdater =
-      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryOffHeapStringKey2.class,
-          "offHeapAddress");
 
   @Override
   public Token getValueAsToken() {
@@ -169,12 +197,12 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
 
   @Override
   public long getAddress() {
-    return offHeapAddressUpdater.get(this);
+    return OFF_HEAP_ADDRESS_UPDATER.get(this);
   }
 
   @Override
   public boolean setAddress(final long expectedAddress, long newAddress) {
-    return offHeapAddressUpdater.compareAndSet(this, expectedAddress, newAddress);
+    return OFF_HEAP_ADDRESS_UPDATER.compareAndSet(this, expectedAddress, newAddress);
   }
 
   @Override
@@ -192,11 +220,11 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -210,19 +238,18 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
 
+  // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // lru code
 
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
@@ -329,22 +356,9 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
 
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
-
-
-  /**
-   * strlen is encoded in lowest 6 bits (max strlen is 63)<br>
-   * character encoding info is in bits 7 and 8<br>
-   * The other bits are used to encoded character data.
-   */
-  private final long bits1;
-
-  /**
-   * bits2 encodes character data
-   */
-  private final long bits2;
 
   private int getKeyLength() {
     return (int) (this.bits1 & 0x003fL);

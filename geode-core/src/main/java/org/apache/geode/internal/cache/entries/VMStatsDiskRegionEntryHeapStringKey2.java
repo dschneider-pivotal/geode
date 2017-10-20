@@ -53,6 +53,62 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VMStatsDiskRegionEntryHeapStringKey2 extends VMStatsDiskRegionEntryHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VMStatsDiskRegionEntryHeapStringKey2> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapStringKey2.class, "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  private volatile Object value;
+
+
+  // ---------------------------------------- disk fields -----------------------------------------
+
+  /**
+   * @since GemFire 5.1
+   */
+  protected DiskId id;
+
+
+
+  // --------------------------------------- stats fields -----------------------------------------
+
+  private volatile long lastAccessed;
+  private volatile int hitCount;
+  private volatile int missCount;
+
+  private static final AtomicIntegerFieldUpdater<VMStatsDiskRegionEntryHeapStringKey2> HIT_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapStringKey2.class, "hitCount");
+
+  private static final AtomicIntegerFieldUpdater<VMStatsDiskRegionEntryHeapStringKey2> MISS_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapStringKey2.class, "missCount");
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+  /**
+   * strlen is encoded in lowest 6 bits (max strlen is 63)<br>
+   * character encoding info is in bits 7 and 8<br>
+   * The other bits are used to encoded character data.
+   */
+  private final long bits1;
+
+  /**
+   * bits2 encodes character data
+   */
+  private final long bits2;
+
+
   public VMStatsDiskRegionEntryHeapStringKey2(final RegionEntryContext context, final String key,
 
 
@@ -108,15 +164,6 @@ public class VMStatsDiskRegionEntryHeapStringKey2 extends VMStatsDiskRegionEntry
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VMStatsDiskRegionEntryHeapStringKey2> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapStringKey2.class, "lastModified");
-
-  private volatile Object value;
 
   @Override
   protected Object getValueField() {
@@ -130,11 +177,11 @@ public class VMStatsDiskRegionEntryHeapStringKey2 extends VMStatsDiskRegionEntry
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -148,18 +195,17 @@ public class VMStatsDiskRegionEntryHeapStringKey2 extends VMStatsDiskRegionEntry
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
+  // ----------------------------------------- disk code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // disk code
 
 
   protected void initialize(final RegionEntryContext context, final Object value) {
@@ -174,6 +220,16 @@ public class VMStatsDiskRegionEntryHeapStringKey2 extends VMStatsDiskRegionEntry
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
+  @Override
+  public DiskId getDiskId() {
+    return this.id;
+  }
+
+  @Override
+  void setDiskId(final RegionEntry oldEntry) {
+    this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
+  }
+
   private void diskInitialize(final RegionEntryContext context, final Object value) {
     DiskRecoveryStore diskRecoveryStore = (DiskRecoveryStore) context;
     DiskStoreImpl diskStore = diskRecoveryStore.getDiskStore();
@@ -182,11 +238,6 @@ public class VMStatsDiskRegionEntryHeapStringKey2 extends VMStatsDiskRegionEntry
     this.id = DiskId.createDiskId(maxOplogSize, true, diskStore.needsLinkedList());
     Helper.initialize(this, diskRecoveryStore, value);
   }
-
-  /**
-   * @since GemFire 5.1
-   */
-  protected DiskId id;
 
   @Override
   public DiskId getDiskId() {
@@ -201,9 +252,8 @@ public class VMStatsDiskRegionEntryHeapStringKey2 extends VMStatsDiskRegionEntry
 
 
 
+  // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
-  // stats code
 
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
@@ -223,15 +273,7 @@ public class VMStatsDiskRegionEntryHeapStringKey2 extends VMStatsDiskRegionEntry
     }
   }
 
-  private volatile long lastAccessed;
-  private volatile int hitCount;
-  private volatile int missCount;
 
-  private static final AtomicIntegerFieldUpdater<VMStatsDiskRegionEntryHeapStringKey2> hitCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapStringKey2.class, "hitCount");
-
-  private static final AtomicIntegerFieldUpdater<VMStatsDiskRegionEntryHeapStringKey2> missCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapStringKey2.class, "missCount");
 
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
@@ -253,17 +295,17 @@ public class VMStatsDiskRegionEntryHeapStringKey2 extends VMStatsDiskRegionEntry
   }
 
   private void incrementHitCount() {
-    hitCountUpdater.incrementAndGet(this);
+    HIT_COUNT_UPDATER.incrementAndGet(this);
   }
 
   private void incrementMissCount() {
-    missCountUpdater.incrementAndGet(this);
+    MISS_COUNT_UPDATER.incrementAndGet(this);
   }
 
   @Override
   public void resetCounts() throws InternalStatisticsDisabledException {
-    hitCountUpdater.set(this, 0);
-    missCountUpdater.set(this, 0);
+    HIT_COUNT_UPDATER.set(this, 0);
+    MISS_COUNT_UPDATER.set(this, 0);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
@@ -283,22 +325,9 @@ public class VMStatsDiskRegionEntryHeapStringKey2 extends VMStatsDiskRegionEntry
 
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
-
-
-  /**
-   * strlen is encoded in lowest 6 bits (max strlen is 63)<br>
-   * character encoding info is in bits 7 and 8<br>
-   * The other bits are used to encoded character data.
-   */
-  private final long bits1;
-
-  /**
-   * bits2 encodes character data
-   */
-  private final long bits2;
 
   private int getKeyLength() {
     return (int) (this.bits1 & 0x003fL);

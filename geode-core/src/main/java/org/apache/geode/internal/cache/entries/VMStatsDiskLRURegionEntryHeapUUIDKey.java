@@ -59,6 +59,53 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VMStatsDiskLRURegionEntryHeapUUIDKey extends VMStatsDiskLRURegionEntryHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VMStatsDiskLRURegionEntryHeapUUIDKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryHeapUUIDKey.class, "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  private volatile Object value;
+
+
+  // ---------------------------------------- disk fields -----------------------------------------
+
+  /**
+   * @since GemFire 5.1
+   */
+  protected DiskId id;
+
+
+
+  // --------------------------------------- stats fields -----------------------------------------
+
+  private volatile long lastAccessed;
+  private volatile int hitCount;
+  private volatile int missCount;
+
+  private static final AtomicIntegerFieldUpdater<VMStatsDiskLRURegionEntryHeapUUIDKey> HIT_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryHeapUUIDKey.class, "hitCount");
+
+  private static final AtomicIntegerFieldUpdater<VMStatsDiskLRURegionEntryHeapUUIDKey> MISS_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryHeapUUIDKey.class, "missCount");
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+  private final long keyMostSigBits;
+  private final long keyLeastSigBits;
+
+
   public VMStatsDiskLRURegionEntryHeapUUIDKey(final RegionEntryContext context, final UUID key,
 
 
@@ -88,15 +135,6 @@ public class VMStatsDiskLRURegionEntryHeapUUIDKey extends VMStatsDiskLRURegionEn
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VMStatsDiskLRURegionEntryHeapUUIDKey> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryHeapUUIDKey.class, "lastModified");
-
-  private volatile Object value;
 
   @Override
   protected Object getValueField() {
@@ -110,11 +148,11 @@ public class VMStatsDiskLRURegionEntryHeapUUIDKey extends VMStatsDiskLRURegionEn
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -128,18 +166,17 @@ public class VMStatsDiskLRURegionEntryHeapUUIDKey extends VMStatsDiskLRURegionEn
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
+  // ----------------------------------------- disk code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // disk code
 
 
   protected void initialize(final RegionEntryContext context, final Object value) {
@@ -169,6 +206,16 @@ public class VMStatsDiskLRURegionEntryHeapUUIDKey extends VMStatsDiskLRURegionEn
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
+  @Override
+  public DiskId getDiskId() {
+    return this.id;
+  }
+
+  @Override
+  void setDiskId(final RegionEntry oldEntry) {
+    this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
+  }
+
   private void diskInitialize(final RegionEntryContext context, final Object value) {
     DiskRecoveryStore diskRecoveryStore = (DiskRecoveryStore) context;
     DiskStoreImpl diskStore = diskRecoveryStore.getDiskStore();
@@ -177,11 +224,6 @@ public class VMStatsDiskLRURegionEntryHeapUUIDKey extends VMStatsDiskLRURegionEn
     this.id = DiskId.createDiskId(maxOplogSize, true, diskStore.needsLinkedList());
     Helper.initialize(this, diskRecoveryStore, value);
   }
-
-  /**
-   * @since GemFire 5.1
-   */
-  protected DiskId id;
 
   @Override
   public DiskId getDiskId() {
@@ -194,9 +236,8 @@ public class VMStatsDiskLRURegionEntryHeapUUIDKey extends VMStatsDiskLRURegionEn
 
   
 
+  // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
-  // lru code
 
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
@@ -305,9 +346,8 @@ public class VMStatsDiskLRURegionEntryHeapUUIDKey extends VMStatsDiskLRURegionEn
 
 
 
+  // ---------------------------------------- stats code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // stats code
 
   @Override
   public void updateStatsForGet(final boolean isHit, final long time) {
@@ -327,15 +367,7 @@ public class VMStatsDiskLRURegionEntryHeapUUIDKey extends VMStatsDiskLRURegionEn
     }
   }
 
-  private volatile long lastAccessed;
-  private volatile int hitCount;
-  private volatile int missCount;
 
-  private static final AtomicIntegerFieldUpdater<VMStatsDiskLRURegionEntryHeapUUIDKey> hitCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryHeapUUIDKey.class, "hitCount");
-
-  private static final AtomicIntegerFieldUpdater<VMStatsDiskLRURegionEntryHeapUUIDKey> missCountUpdater =
-      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskLRURegionEntryHeapUUIDKey.class, "missCount");
 
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
@@ -357,17 +389,17 @@ public class VMStatsDiskLRURegionEntryHeapUUIDKey extends VMStatsDiskLRURegionEn
   }
 
   private void incrementHitCount() {
-    hitCountUpdater.incrementAndGet(this);
+    HIT_COUNT_UPDATER.incrementAndGet(this);
   }
 
   private void incrementMissCount() {
-    missCountUpdater.incrementAndGet(this);
+    MISS_COUNT_UPDATER.incrementAndGet(this);
   }
 
   @Override
   public void resetCounts() throws InternalStatisticsDisabledException {
-    hitCountUpdater.set(this, 0);
-    missCountUpdater.set(this, 0);
+    HIT_COUNT_UPDATER.set(this, 0);
+    MISS_COUNT_UPDATER.set(this, 0);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
@@ -387,13 +419,9 @@ public class VMStatsDiskLRURegionEntryHeapUUIDKey extends VMStatsDiskLRURegionEn
 
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
-
-
-  private final long keyMostSigBits;
-  private final long keyLeastSigBits;
 
   @Override
   public Object getKey() {

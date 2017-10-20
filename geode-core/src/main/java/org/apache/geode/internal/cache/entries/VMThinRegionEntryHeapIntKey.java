@@ -41,6 +41,31 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VMThinRegionEntryHeapIntKey extends VMThinRegionEntryHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VMThinRegionEntryHeapIntKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinRegionEntryHeapIntKey.class, "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  private volatile Object value;
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
+  private final int key;
+
+
   public VMThinRegionEntryHeapIntKey(final RegionEntryContext context, final int key,
 
 
@@ -67,15 +92,6 @@ public class VMThinRegionEntryHeapIntKey extends VMThinRegionEntryHeap {
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VMThinRegionEntryHeapIntKey> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VMThinRegionEntryHeapIntKey.class, "lastModified");
-
-  private volatile Object value;
 
   @Override
   protected Object getValueField() {
@@ -89,11 +105,11 @@ public class VMThinRegionEntryHeapIntKey extends VMThinRegionEntryHeap {
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -107,22 +123,20 @@ public class VMThinRegionEntryHeapIntKey extends VMThinRegionEntryHeap {
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
 
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // key code
 
-
-  private final int key;
 
   @Override
   public Object getKey() {

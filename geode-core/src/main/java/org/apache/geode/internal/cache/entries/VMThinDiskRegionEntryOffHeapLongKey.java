@@ -55,6 +55,61 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  */
 public class VMThinDiskRegionEntryOffHeapLongKey extends VMThinDiskRegionEntryOffHeap {
 
+  // --------------------------------------- common fields ----------------------------------------
+
+  private static final AtomicLongFieldUpdater<VMThinDiskRegionEntryOffHeapLongKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinDiskRegionEntryOffHeapLongKey.class, "lastModified");
+
+  protected int hash;
+
+  private HashEntry<Object, Object> nextEntry;
+
+  @SuppressWarnings("unused")
+  private volatile long lastModified;
+
+
+
+  // --------------------------------------- offheap fields ---------------------------------------
+
+  /**
+   * All access done using OFF_HEAP_ADDRESS_UPDATER so it is used even though the compiler can not
+   * tell it is.
+   */
+  @SuppressWarnings("unused")
+  @Retained
+  @Released
+  private volatile long offHeapAddress;
+  /**
+   * I needed to add this because I wanted clear to call setValue which normally can only be called
+   * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
+   * disk regions because they also get a rw lock in clear. Some hardware platforms do not support
+   * CAS on a long. If gemfire is run on one of those the AtomicLongFieldUpdater does a sync on the
+   * RegionEntry and we will once again be deadlocked. I don't know if we support any of the
+   * hardware platforms that do not have a 64bit CAS. If we do then we can expect deadlocks on disk
+   * regions.
+   */
+  private static final AtomicLongFieldUpdater<VMThinDiskRegionEntryOffHeapLongKey> OFF_HEAP_ADDRESS_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinDiskRegionEntryOffHeapLongKey.class,
+          "offHeapAddress");
+
+
+
+  // ---------------------------------------- disk fields -----------------------------------------
+
+  /**
+   * @since GemFire 5.1
+   */
+  protected DiskId id;
+
+
+  // ----------------------------------------- key code -------------------------------------------
+  // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
+  private final long key;
+
+
   public VMThinDiskRegionEntryOffHeapLongKey(final RegionEntryContext context, final long key,
 
       @Retained
@@ -83,33 +138,6 @@ public class VMThinDiskRegionEntryOffHeapLongKey extends VMThinDiskRegionEntryOf
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  // common code
-  protected int hash;
-  private HashEntry<Object, Object> next;
-  @SuppressWarnings("unused")
-  private volatile long lastModified;
-  private static final AtomicLongFieldUpdater<VMThinDiskRegionEntryOffHeapLongKey> lastModifiedUpdater =
-      AtomicLongFieldUpdater.newUpdater(VMThinDiskRegionEntryOffHeapLongKey.class, "lastModified");
-
-  /**
-   * All access done using offHeapAddressUpdater so it is used even though the compiler can not tell
-   * it is.
-   */
-  @SuppressWarnings("unused")
-  @Retained
-  @Released
-  private volatile long offHeapAddress;
-  /**
-   * I needed to add this because I wanted clear to call setValue which normally can only be called
-   * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
-   * disk regions because they also get a rw lock in clear. Some hardware platforms do not support
-   * CAS on a long. If gemfire is run on one of those the AtomicLongFieldUpdater does a sync on the
-   * re and we will once again be deadlocked. I don't know if we support any of the hardware
-   * platforms that do not have a 64bit CAS. If we do then we can expect deadlocks on disk regions.
-   */
-  private final static AtomicLongFieldUpdater<VMThinDiskRegionEntryOffHeapLongKey> offHeapAddressUpdater =
-      AtomicLongFieldUpdater.newUpdater(VMThinDiskRegionEntryOffHeapLongKey.class,
-          "offHeapAddress");
 
   @Override
   public Token getValueAsToken() {
@@ -143,12 +171,12 @@ public class VMThinDiskRegionEntryOffHeapLongKey extends VMThinDiskRegionEntryOf
 
   @Override
   public long getAddress() {
-    return offHeapAddressUpdater.get(this);
+    return OFF_HEAP_ADDRESS_UPDATER.get(this);
   }
 
   @Override
   public boolean setAddress(final long expectedAddress, long newAddress) {
-    return offHeapAddressUpdater.compareAndSet(this, expectedAddress, newAddress);
+    return OFF_HEAP_ADDRESS_UPDATER.compareAndSet(this, expectedAddress, newAddress);
   }
 
   @Override
@@ -166,11 +194,11 @@ public class VMThinDiskRegionEntryOffHeapLongKey extends VMThinDiskRegionEntryOf
 
 
   protected long getLastModifiedField() {
-    return lastModifiedUpdater.get(this);
+    return LAST_MODIFIED_UPDATER.get(this);
   }
 
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
-    return lastModifiedUpdater.compareAndSet(this, expectedValue, newValue);
+    return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
 
   @Override
@@ -184,18 +212,17 @@ public class VMThinDiskRegionEntryOffHeapLongKey extends VMThinDiskRegionEntryOf
 
   @Override
   public HashEntry<Object, Object> getNextEntry() {
-    return this.next;
+    return this.nextEntry;
   }
 
   @Override
-  public void setNextEntry(final HashEntry<Object, Object> next) {
-    this.next = next;
+  public void setNextEntry(final HashEntry<Object, Object> nextEntry) {
+    this.nextEntry = nextEntry;
   }
 
 
+  // ----------------------------------------- disk code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-  // disk code
 
 
   protected void initialize(final RegionEntryContext context, final Object value) {
@@ -210,6 +237,16 @@ public class VMThinDiskRegionEntryOffHeapLongKey extends VMThinDiskRegionEntryOf
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
+  @Override
+  public DiskId getDiskId() {
+    return this.id;
+  }
+
+  @Override
+  void setDiskId(final RegionEntry oldEntry) {
+    this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
+  }
+
   private void diskInitialize(final RegionEntryContext context, final Object value) {
     DiskRecoveryStore diskRecoveryStore = (DiskRecoveryStore) context;
     DiskStoreImpl diskStore = diskRecoveryStore.getDiskStore();
@@ -218,11 +255,6 @@ public class VMThinDiskRegionEntryOffHeapLongKey extends VMThinDiskRegionEntryOf
     this.id = DiskId.createDiskId(maxOplogSize, true, diskStore.needsLinkedList());
     Helper.initialize(this, diskRecoveryStore, value);
   }
-
-  /**
-   * @since GemFire 5.1
-   */
-  protected DiskId id;
 
   @Override
   public DiskId getDiskId() {
@@ -240,12 +272,9 @@ public class VMThinDiskRegionEntryOffHeapLongKey extends VMThinDiskRegionEntryOf
   
 
   
+  // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
-  // key code
 
-
-  private final long key;
 
   @Override
   public Object getKey() {
