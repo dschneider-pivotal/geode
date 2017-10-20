@@ -351,10 +351,12 @@ public class LEAF_CLASS extends PARENT_CLASS {
   }
 #endif
 
+  @Override
   protected long getLastModifiedField() {
     return LAST_MODIFIED_UPDATER.get(this);
   }
 
+  @Override
   protected boolean compareAndSetLastModifiedField(final long expectedValue, final long newValue) {
     return LAST_MODIFIED_UPDATER.compareAndSet(this, expectedValue, newValue);
   }
@@ -364,6 +366,7 @@ public class LEAF_CLASS extends PARENT_CLASS {
     return this.hash;
   }
 
+  @Override
   protected void setEntryHash(final int hash) {
     this.hash = hash;
   }
@@ -426,7 +429,7 @@ public class LEAF_CLASS extends PARENT_CLASS {
 
   @Override
   public void setDiskId(final RegionEntry oldEntry) {
-    this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
+    this.id = ((DiskEntry) oldEntry).getDiskId();
   }
 
   private void diskInitialize(final RegionEntryContext context, final Object value) {
