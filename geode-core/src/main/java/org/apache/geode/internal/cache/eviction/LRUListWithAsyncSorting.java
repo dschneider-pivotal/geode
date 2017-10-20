@@ -257,7 +257,8 @@ public class LRUListWithAsyncSorting implements LRUList {
   }
 
   /**
-   * Determine who/when should invoke scan. Maybe when 10% of the RegionEntries have been dirtied by {@link RegionEntry#setRecentlyUsed()}
+   * Determine who/when should invoke scan. Maybe when 10% of the RegionEntries have been dirtied by
+   * {@link RegionEntry#setRecentlyUsed()}
    *
    * Determine when to stop scanning.
    */

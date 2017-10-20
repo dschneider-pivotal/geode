@@ -622,7 +622,7 @@ public class AbstractRegionJUnitTest {
 
     @Override
     public Region createSubregion(String subregionName, RegionAttributes attrs,
-                                  InternalRegionArguments internalRegionArgs)
+        InternalRegionArguments internalRegionArgs)
         throws RegionExistsException, TimeoutException, IOException, ClassNotFoundException {
       throw new UnsupportedOperationException();
     }
