@@ -20,9 +20,6 @@ package org.apache.geode.internal.cache.entries;
 
 import java.util.UUID;
 
-
-
-
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.apache.geode.cache.EntryEvent;
@@ -35,32 +32,17 @@ import org.apache.geode.internal.cache.versions.VersionSource;
 import org.apache.geode.internal.cache.versions.VersionStamp;
 import org.apache.geode.internal.cache.versions.VersionTag;
 
-
-
-
-
-
-
-
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -71,8 +53,8 @@ public class VersionedThinRegionEntryHeapUUIDKey extends VersionedThinRegionEntr
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VersionedThinRegionEntryHeapUUIDKey> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VersionedThinRegionEntryHeapUUIDKey.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VersionedThinRegionEntryHeapUUIDKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VersionedThinRegionEntryHeapUUIDKey.class, "lastModified");
 
   protected int hash;
 
@@ -105,7 +87,7 @@ public class VersionedThinRegionEntryHeapUUIDKey extends VersionedThinRegionEntr
   private final long keyLeastSigBits;
 
 
-  public VersionedThinRegionEntryHeapUUIDKey (final RegionEntryContext context, final UUID key,
+  public VersionedThinRegionEntryHeapUUIDKey(final RegionEntryContext context, final UUID key,
 
 
 
@@ -113,14 +95,14 @@ public class VersionedThinRegionEntryHeapUUIDKey extends VersionedThinRegionEntr
 
 
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
 
 
-          value
+        value
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
     this.keyMostSigBits = key.getMostSignificantBits();
@@ -172,11 +154,7 @@ public class VersionedThinRegionEntryHeapUUIDKey extends VersionedThinRegionEntr
     this.nextEntry = nextEntry;
   }
 
-  
 
-
-
-  
 
   // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
@@ -185,17 +163,17 @@ public class VersionedThinRegionEntryHeapUUIDKey extends VersionedThinRegionEntr
   public int getEntryVersion() {
     return ((entryVersionHighByte << 16) & 0xFF0000) | (entryVersionLowBytes & 0xFFFF);
   }
-  
+
   @Override
   public long getRegionVersion() {
-    return (((long)regionVersionHighBytes) << 32) | (regionVersionLowBytes & 0x00000000FFFFFFFFL);  
+    return (((long) regionVersionHighBytes) << 32) | (regionVersionLowBytes & 0x00000000FFFFFFFFL);
   }
 
   @Override
   public long getVersionTimeStamp() {
     return getLastModified();
   }
-  
+
   @Override
   public void setVersionTimeStamp(final long timeStamp) {
     setLastModified(timeStamp);
@@ -212,7 +190,7 @@ public class VersionedThinRegionEntryHeapUUIDKey extends VersionedThinRegionEntr
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public void setVersions(final VersionTag versionTag) {
     this.memberId = versionTag.getMemberID();
@@ -222,7 +200,8 @@ public class VersionedThinRegionEntryHeapUUIDKey extends VersionedThinRegionEntr
     this.regionVersionHighBytes = versionTag.getRegionVersionHighBytes();
     this.regionVersionLowBytes = versionTag.getRegionVersionLowBytes();
 
-    if (!versionTag.isGatewayTag() && this.distributedSystemId == versionTag.getDistributedSystemId()) {
+    if (!versionTag.isGatewayTag()
+        && this.distributedSystemId == versionTag.getDistributedSystemId()) {
       if (getVersionTimeStamp() <= versionTag.getVersionTimeStamp()) {
         setVersionTimeStamp(versionTag.getVersionTimeStamp());
       } else {
@@ -246,7 +225,7 @@ public class VersionedThinRegionEntryHeapUUIDKey extends VersionedThinRegionEntr
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public VersionTag asVersionTag() {
     VersionTag tag = VersionTag.create(memberId);
@@ -261,7 +240,8 @@ public class VersionedThinRegionEntryHeapUUIDKey extends VersionedThinRegionEntr
   public void processVersionTag(final InternalRegion region, final VersionTag versionTag,
       final boolean isTombstoneFromGII, final boolean hasDelta, final VersionSource versionSource,
       final InternalDistributedMember sender, final boolean checkForConflicts) {
-    basicProcessVersionTag(region, versionTag, isTombstoneFromGII, hasDelta, versionSource, sender, checkForConflicts);
+    basicProcessVersionTag(region, versionTag, isTombstoneFromGII, hasDelta, versionSource, sender,
+        checkForConflicts);
   }
 
   @Override
@@ -275,14 +255,14 @@ public class VersionedThinRegionEntryHeapUUIDKey extends VersionedThinRegionEntr
   public short getRegionVersionHighBytes() {
     return this.regionVersionHighBytes;
   }
-  
+
   /** get rvv internal low bytes. Used by region entries for transferring to storage */
   @Override
   public int getRegionVersionLowBytes() {
     return this.regionVersionLowBytes;
   }
 
-  
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
@@ -301,7 +281,7 @@ public class VersionedThinRegionEntryHeapUUIDKey extends VersionedThinRegionEntr
     }
     return false;
   }
-  
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

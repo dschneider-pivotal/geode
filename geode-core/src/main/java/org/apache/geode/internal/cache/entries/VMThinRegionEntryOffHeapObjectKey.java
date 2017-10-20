@@ -18,15 +18,7 @@ package org.apache.geode.internal.cache.entries;
 
 
 
-
-
-
-
-
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
-
-
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
@@ -41,20 +33,12 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -65,8 +49,8 @@ public class VMThinRegionEntryOffHeapObjectKey extends VMThinRegionEntryOffHeap 
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VMThinRegionEntryOffHeapObjectKey> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VMThinRegionEntryOffHeapObjectKey.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VMThinRegionEntryOffHeapObjectKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinRegionEntryOffHeapObjectKey.class, "lastModified");
 
   protected int hash;
 
@@ -77,9 +61,6 @@ public class VMThinRegionEntryOffHeapObjectKey extends VMThinRegionEntryOffHeap 
 
 
 
-
-
-
   // --------------------------------------- offheap fields ---------------------------------------
 
   /**
@@ -87,7 +68,9 @@ public class VMThinRegionEntryOffHeapObjectKey extends VMThinRegionEntryOffHeap 
    * tell it is.
    */
   @SuppressWarnings("unused")
-  @Retained @Released private volatile long offHeapAddress;
+  @Retained
+  @Released
+  private volatile long offHeapAddress;
   /**
    * I needed to add this because I wanted clear to call setValue which normally can only be called
    * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
@@ -108,7 +91,7 @@ public class VMThinRegionEntryOffHeapObjectKey extends VMThinRegionEntryOffHeap 
   private final Object key;
 
 
-  public VMThinRegionEntryOffHeapObjectKey (final RegionEntryContext context, final Object key,
+  public VMThinRegionEntryOffHeapObjectKey(final RegionEntryContext context, final Object key,
 
       @Retained
 
@@ -116,16 +99,15 @@ public class VMThinRegionEntryOffHeapObjectKey extends VMThinRegionEntryOffHeap 
 
 
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
 
 
-          value
+        value
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
 
 
 
@@ -140,7 +122,7 @@ public class VMThinRegionEntryOffHeapObjectKey extends VMThinRegionEntryOffHeap 
   public Token getValueAsToken() {
     return OffHeapRegionEntryHelper.getValueAsToken(this);
   }
-  
+
   @Override
   protected Object getValueField() {
     return OffHeapRegionEntryHelper._getValue(this);
@@ -175,7 +157,7 @@ public class VMThinRegionEntryOffHeapObjectKey extends VMThinRegionEntryOffHeap 
   public boolean setAddress(final long expectedAddress, long newAddress) {
     return OFF_HEAP_ADDRESS_UPDATER.compareAndSet(this, expectedAddress, newAddress);
   }
-  
+
   @Override
 
   @Released
@@ -183,7 +165,7 @@ public class VMThinRegionEntryOffHeapObjectKey extends VMThinRegionEntryOffHeap 
   public void release() {
     OffHeapRegionEntryHelper.releaseEntry(this);
   }
-  
+
   @Override
   public void returnToPool() {
     // never implemented
@@ -220,13 +202,8 @@ public class VMThinRegionEntryOffHeapObjectKey extends VMThinRegionEntryOffHeap 
     this.nextEntry = nextEntry;
   }
 
-  
 
 
-
-  
-
-  
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 

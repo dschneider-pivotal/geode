@@ -20,39 +20,23 @@ package org.apache.geode.internal.cache.entries;
 
 import java.util.UUID;
 
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
-
-
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
-
 import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DiskStoreImpl;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
 
-
-
-
-
 import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.eviction.LRUClockNode;
 import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
-
-
-
-
-
-
-
 
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.offheap.OffHeapRegionEntryHelper;
@@ -65,20 +49,12 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -89,8 +65,9 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VMThinDiskLRURegionEntryOffHeapUUIDKey> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VMThinDiskLRURegionEntryOffHeapUUIDKey.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VMThinDiskLRURegionEntryOffHeapUUIDKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinDiskLRURegionEntryOffHeapUUIDKey.class,
+          "lastModified");
 
   protected int hash;
 
@@ -101,9 +78,6 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
 
 
 
-
-
-
   // --------------------------------------- offheap fields ---------------------------------------
 
   /**
@@ -111,7 +85,9 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
    * tell it is.
    */
   @SuppressWarnings("unused")
-  @Retained @Released private volatile long offHeapAddress;
+  @Retained
+  @Released
+  private volatile long offHeapAddress;
   /**
    * I needed to add this because I wanted clear to call setValue which normally can only be called
    * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
@@ -122,7 +98,8 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
    * regions.
    */
   private static final AtomicLongFieldUpdater<VMThinDiskLRURegionEntryOffHeapUUIDKey> OFF_HEAP_ADDRESS_UPDATER =
-      AtomicLongFieldUpdater.newUpdater(VMThinDiskLRURegionEntryOffHeapUUIDKey.class, "offHeapAddress");
+      AtomicLongFieldUpdater.newUpdater(VMThinDiskLRURegionEntryOffHeapUUIDKey.class,
+          "offHeapAddress");
 
 
 
@@ -142,7 +119,7 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
   private final long keyLeastSigBits;
 
 
-  public VMThinDiskLRURegionEntryOffHeapUUIDKey (final RegionEntryContext context, final UUID key,
+  public VMThinDiskLRURegionEntryOffHeapUUIDKey(final RegionEntryContext context, final UUID key,
 
       @Retained
 
@@ -150,22 +127,17 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
 
 
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
-          (value instanceof RecoveredEntry ? null : value)
+        (value instanceof RecoveredEntry ? null : value)
 
 
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
     initialize(context, value);
-
-
-
-
-
 
 
 
@@ -181,7 +153,7 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
   public Token getValueAsToken() {
     return OffHeapRegionEntryHelper.getValueAsToken(this);
   }
-  
+
   @Override
   protected Object getValueField() {
     return OffHeapRegionEntryHelper._getValue(this);
@@ -216,7 +188,7 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
   public boolean setAddress(final long expectedAddress, long newAddress) {
     return OFF_HEAP_ADDRESS_UPDATER.compareAndSet(this, expectedAddress, newAddress);
   }
-  
+
   @Override
 
   @Released
@@ -224,7 +196,7 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
   public void release() {
     OffHeapRegionEntryHelper.releaseEntry(this);
   }
-  
+
   @Override
   public void returnToPool() {
     // never implemented
@@ -292,7 +264,7 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public DiskId getDiskId() {
     return this.id;
@@ -312,7 +284,7 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
     Helper.initialize(this, diskRecoveryStore, value);
   }
 
-  
+
 
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
@@ -333,9 +305,9 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
     // 1: getValue ok w/o incing refcount because we are synced and only getting the size
     return updateEntrySize(capacityController, getValue());
   }
-  
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -411,10 +383,9 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public Object getKeyForSizing() {
-
 
 
 
@@ -425,9 +396,6 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
 
 
 
-  
-
-  
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
@@ -446,7 +414,7 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
     }
     return false;
   }
-  
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

@@ -20,13 +20,9 @@ package org.apache.geode.internal.cache.entries;
 
 import java.util.UUID;
 
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
-
-
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
@@ -42,20 +38,12 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -66,8 +54,8 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryHeapUUIDKey> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryHeapUUIDKey.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryHeapUUIDKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryHeapUUIDKey.class, "lastModified");
 
   protected int hash;
 
@@ -89,7 +77,7 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
   private final long keyLeastSigBits;
 
 
-  public VMThinLRURegionEntryHeapUUIDKey (final RegionEntryContext context, final UUID key,
+  public VMThinLRURegionEntryHeapUUIDKey(final RegionEntryContext context, final UUID key,
 
 
 
@@ -97,14 +85,14 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
 
 
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
 
 
-          value
+        value
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
     this.keyMostSigBits = key.getMostSignificantBits();
@@ -156,15 +144,13 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
     this.nextEntry = nextEntry;
   }
 
-  
+
 
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
-
-
 
 
 
@@ -177,9 +163,9 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
     // OFFHEAP: getValue ok w/o incing refcount because we are synced and only getting the size
     return updateEntrySize(capacityController, getValue());
   }
-  
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -255,10 +241,9 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public Object getKeyForSizing() {
-
 
 
 
@@ -269,9 +254,6 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
 
 
 
-  
-
-  
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
@@ -290,7 +272,7 @@ public class VMThinLRURegionEntryHeapUUIDKey extends VMThinLRURegionEntryHeap {
     }
     return false;
   }
-  
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

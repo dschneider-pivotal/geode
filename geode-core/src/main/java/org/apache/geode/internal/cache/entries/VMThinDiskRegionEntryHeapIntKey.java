@@ -18,21 +18,12 @@ package org.apache.geode.internal.cache.entries;
 
 
 
-
-
-
-
-
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
-
-
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
-
 
 import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DiskStoreImpl;
@@ -44,20 +35,12 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -68,8 +51,8 @@ public class VMThinDiskRegionEntryHeapIntKey extends VMThinDiskRegionEntryHeap {
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VMThinDiskRegionEntryHeapIntKey> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VMThinDiskRegionEntryHeapIntKey.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VMThinDiskRegionEntryHeapIntKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinDiskRegionEntryHeapIntKey.class, "lastModified");
 
   protected int hash;
 
@@ -96,11 +79,10 @@ public class VMThinDiskRegionEntryHeapIntKey extends VMThinDiskRegionEntryHeap {
 
 
 
-
   private final int key;
 
 
-  public VMThinDiskRegionEntryHeapIntKey (final RegionEntryContext context, final int key,
+  public VMThinDiskRegionEntryHeapIntKey(final RegionEntryContext context, final int key,
 
 
 
@@ -108,18 +90,17 @@ public class VMThinDiskRegionEntryHeapIntKey extends VMThinDiskRegionEntryHeap {
 
 
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
-          (value instanceof RecoveredEntry ? null : value)
+        (value instanceof RecoveredEntry ? null : value)
 
 
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
     initialize(context, value);
-
 
 
 
@@ -187,7 +168,7 @@ public class VMThinDiskRegionEntryHeapIntKey extends VMThinDiskRegionEntryHeap {
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public DiskId getDiskId() {
     return this.id;
@@ -207,20 +188,10 @@ public class VMThinDiskRegionEntryHeapIntKey extends VMThinDiskRegionEntryHeap {
     Helper.initialize(this, diskRecoveryStore, value);
   }
 
-  
 
 
-
-  
-
-  
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
-
-
 
 
 
@@ -236,7 +207,7 @@ public class VMThinDiskRegionEntryHeapIntKey extends VMThinDiskRegionEntryHeap {
     }
     return false;
   }
-  
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

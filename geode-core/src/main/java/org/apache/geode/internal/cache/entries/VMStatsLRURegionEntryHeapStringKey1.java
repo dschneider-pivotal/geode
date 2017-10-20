@@ -18,30 +18,16 @@ package org.apache.geode.internal.cache.entries;
 
 
 
-
-
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
-
-
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
-
-
-
-
-
-
-
 import org.apache.geode.internal.InternalStatisticsDisabledException;
-
 
 import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.eviction.LRUClockNode;
@@ -52,20 +38,12 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -76,8 +54,8 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VMStatsLRURegionEntryHeapStringKey1> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VMStatsLRURegionEntryHeapStringKey1.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VMStatsLRURegionEntryHeapStringKey1> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMStatsLRURegionEntryHeapStringKey1.class, "lastModified");
 
   protected int hash;
 
@@ -97,11 +75,11 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
   private volatile int hitCount;
   private volatile int missCount;
 
-  private static final AtomicIntegerFieldUpdater<VMStatsLRURegionEntryHeapStringKey1> HIT_COUNT_UPDATER
-    = AtomicIntegerFieldUpdater.newUpdater(VMStatsLRURegionEntryHeapStringKey1.class, "hitCount");
+  private static final AtomicIntegerFieldUpdater<VMStatsLRURegionEntryHeapStringKey1> HIT_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VMStatsLRURegionEntryHeapStringKey1.class, "hitCount");
 
-  private static final AtomicIntegerFieldUpdater<VMStatsLRURegionEntryHeapStringKey1> MISS_COUNT_UPDATER
-    = AtomicIntegerFieldUpdater.newUpdater(VMStatsLRURegionEntryHeapStringKey1.class, "missCount");
+  private static final AtomicIntegerFieldUpdater<VMStatsLRURegionEntryHeapStringKey1> MISS_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VMStatsLRURegionEntryHeapStringKey1.class, "missCount");
 
 
   // ----------------------------------------- key code -------------------------------------------
@@ -111,7 +89,7 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
   private final long bits1;
 
 
-  public VMStatsLRURegionEntryHeapStringKey1 (final RegionEntryContext context, final String key,
+  public VMStatsLRURegionEntryHeapStringKey1(final RegionEntryContext context, final String key,
 
 
 
@@ -119,14 +97,14 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
 
       , final boolean byteEncode
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
 
 
-          value
+        value
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
     // caller has already confirmed that key.length <= MAX_INLINE_STRING_KEY
@@ -138,7 +116,7 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
         tempBits1 |= (byte) key.charAt(i) & 0xff;
         tempBits1 <<= 8;
       }
-      tempBits1 |= 1<<6;
+      tempBits1 |= 1 << 6;
     } else {
       for (int i = key.length() - 1; i >= 0; i--) {
         tempBits1 |= key.charAt(i);
@@ -194,15 +172,13 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
     this.nextEntry = nextEntry;
   }
 
-  
+
 
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
-
-
 
 
 
@@ -215,9 +191,9 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
     // OFFHEAP: getValue ok w/o incing refcount because we are synced and only getting the size
     return updateEntrySize(capacityController, getValue());
   }
-  
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -293,10 +269,9 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public Object getKeyForSizing() {
-
 
 
 
@@ -323,13 +298,13 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
   @Override
   protected void setLastModifiedAndAccessedTimes(final long lastModified, final long lastAccessed) {
     setLastModified(lastModified);
-    if (!DISABLE_ACCESS_TIME_UPDATE_ON_PUT) { 
+    if (!DISABLE_ACCESS_TIME_UPDATE_ON_PUT) {
       setLastAccessed(lastAccessed);
     }
   }
-  
 
-  
+
+
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
     return this.lastAccessed;
@@ -359,12 +334,12 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
 
   @Override
   public void resetCounts() throws InternalStatisticsDisabledException {
-    HIT_COUNT_UPDATER.set(this,0);
-    MISS_COUNT_UPDATER.set(this,0);
+    HIT_COUNT_UPDATER.set(this, 0);
+    MISS_COUNT_UPDATER.set(this, 0);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -378,9 +353,8 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
     return true;
   }
 
-  
 
-  
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
@@ -402,12 +376,12 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
     long tempBits1 = this.bits1;
 
     if (getEncoding() == 1) {
-      for (int i=0; i < keyLength; i++) {
+      for (int i = 0; i < keyLength; i++) {
         tempBits1 >>= 8;
-      chars[i] = (char) (tempBits1 & 0x00ff);
+        chars[i] = (char) (tempBits1 & 0x00ff);
       }
     } else {
-      for (int i=0; i < keyLength; i++) {
+      for (int i = 0; i < keyLength; i++) {
         tempBits1 >>= 16;
         chars[i] = (char) (tempBits1 & 0x00FFff);
       }
@@ -417,7 +391,7 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public boolean isKeyEqual(final Object key) {
     if (key instanceof String) {
@@ -450,7 +424,7 @@ public class VMStatsLRURegionEntryHeapStringKey1 extends VMStatsLRURegionEntryHe
     }
     return false;
   }
-  
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

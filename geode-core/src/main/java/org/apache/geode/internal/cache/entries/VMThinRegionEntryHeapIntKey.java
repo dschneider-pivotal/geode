@@ -18,15 +18,7 @@ package org.apache.geode.internal.cache.entries;
 
 
 
-
-
-
-
-
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
-
-
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
@@ -35,20 +27,12 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -59,8 +43,8 @@ public class VMThinRegionEntryHeapIntKey extends VMThinRegionEntryHeap {
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VMThinRegionEntryHeapIntKey> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VMThinRegionEntryHeapIntKey.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VMThinRegionEntryHeapIntKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinRegionEntryHeapIntKey.class, "lastModified");
 
   protected int hash;
 
@@ -79,11 +63,10 @@ public class VMThinRegionEntryHeapIntKey extends VMThinRegionEntryHeap {
 
 
 
-
   private final int key;
 
 
-  public VMThinRegionEntryHeapIntKey (final RegionEntryContext context, final int key,
+  public VMThinRegionEntryHeapIntKey(final RegionEntryContext context, final int key,
 
 
 
@@ -91,18 +74,15 @@ public class VMThinRegionEntryHeapIntKey extends VMThinRegionEntryHeap {
 
 
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
 
 
-          value
+        value
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
 
 
 
@@ -154,20 +134,10 @@ public class VMThinRegionEntryHeapIntKey extends VMThinRegionEntryHeap {
     this.nextEntry = nextEntry;
   }
 
-  
 
 
-
-  
-
-  
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
-
-
 
 
 
@@ -183,7 +153,7 @@ public class VMThinRegionEntryHeapIntKey extends VMThinRegionEntryHeap {
     }
     return false;
   }
-  
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

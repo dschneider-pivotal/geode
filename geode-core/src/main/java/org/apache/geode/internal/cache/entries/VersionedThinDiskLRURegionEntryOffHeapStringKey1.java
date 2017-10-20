@@ -18,9 +18,6 @@ package org.apache.geode.internal.cache.entries;
 
 
 
-
-
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
@@ -33,26 +30,19 @@ import org.apache.geode.internal.cache.RegionEntryContext;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
-
 import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DiskStoreImpl;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
 
-
-
-
-
 import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.eviction.LRUClockNode;
 import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
-
 
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.cache.versions.VersionSource;
 import org.apache.geode.internal.cache.versions.VersionStamp;
 import org.apache.geode.internal.cache.versions.VersionTag;
-
 
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.offheap.OffHeapRegionEntryHelper;
@@ -65,32 +55,26 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
-public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedThinDiskLRURegionEntryOffHeap {
+public class VersionedThinDiskLRURegionEntryOffHeapStringKey1
+    extends VersionedThinDiskLRURegionEntryOffHeap {
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VersionedThinDiskLRURegionEntryOffHeapStringKey1> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VersionedThinDiskLRURegionEntryOffHeapStringKey1.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VersionedThinDiskLRURegionEntryOffHeapStringKey1> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VersionedThinDiskLRURegionEntryOffHeapStringKey1.class,
+          "lastModified");
 
   protected int hash;
 
@@ -101,9 +85,6 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
 
 
 
-
-
-
   // --------------------------------------- offheap fields ---------------------------------------
 
   /**
@@ -111,7 +92,9 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
    * tell it is.
    */
   @SuppressWarnings("unused")
-  @Retained @Released private volatile long offHeapAddress;
+  @Retained
+  @Released
+  private volatile long offHeapAddress;
   /**
    * I needed to add this because I wanted clear to call setValue which normally can only be called
    * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
@@ -122,7 +105,8 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
    * regions.
    */
   private static final AtomicLongFieldUpdater<VersionedThinDiskLRURegionEntryOffHeapStringKey1> OFF_HEAP_ADDRESS_UPDATER =
-      AtomicLongFieldUpdater.newUpdater(VersionedThinDiskLRURegionEntryOffHeapStringKey1.class, "offHeapAddress");
+      AtomicLongFieldUpdater.newUpdater(VersionedThinDiskLRURegionEntryOffHeapStringKey1.class,
+          "offHeapAddress");
 
 
 
@@ -152,7 +136,8 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
   private final long bits1;
 
 
-  public VersionedThinDiskLRURegionEntryOffHeapStringKey1 (final RegionEntryContext context, final String key,
+  public VersionedThinDiskLRURegionEntryOffHeapStringKey1(final RegionEntryContext context,
+      final String key,
 
       @Retained
 
@@ -160,14 +145,14 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
 
       , final boolean byteEncode
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
-          (value instanceof RecoveredEntry ? null : value)
+        (value instanceof RecoveredEntry ? null : value)
 
 
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
     initialize(context, value);
@@ -181,7 +166,7 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
         tempBits1 |= (byte) key.charAt(i) & 0xff;
         tempBits1 <<= 8;
       }
-      tempBits1 |= 1<<6;
+      tempBits1 |= 1 << 6;
     } else {
       for (int i = key.length() - 1; i >= 0; i--) {
         tempBits1 |= key.charAt(i);
@@ -200,7 +185,7 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
   public Token getValueAsToken() {
     return OffHeapRegionEntryHelper.getValueAsToken(this);
   }
-  
+
   @Override
   protected Object getValueField() {
     return OffHeapRegionEntryHelper._getValue(this);
@@ -235,7 +220,7 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
   public boolean setAddress(final long expectedAddress, long newAddress) {
     return OFF_HEAP_ADDRESS_UPDATER.compareAndSet(this, expectedAddress, newAddress);
   }
-  
+
   @Override
 
   @Released
@@ -243,7 +228,7 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
   public void release() {
     OffHeapRegionEntryHelper.releaseEntry(this);
   }
-  
+
   @Override
   public void returnToPool() {
     // never implemented
@@ -311,7 +296,7 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public DiskId getDiskId() {
     return this.id;
@@ -331,7 +316,7 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
     Helper.initialize(this, diskRecoveryStore, value);
   }
 
-  
+
 
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
@@ -352,9 +337,9 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
     // 1: getValue ok w/o incing refcount because we are synced and only getting the size
     return updateEntrySize(capacityController, getValue());
   }
-  
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -430,10 +415,9 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public Object getKeyForSizing() {
-
 
 
 
@@ -444,8 +428,6 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
 
 
 
-  
-
   // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
@@ -453,17 +435,17 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
   public int getEntryVersion() {
     return ((entryVersionHighByte << 16) & 0xFF0000) | (entryVersionLowBytes & 0xFFFF);
   }
-  
+
   @Override
   public long getRegionVersion() {
-    return (((long)regionVersionHighBytes) << 32) | (regionVersionLowBytes & 0x00000000FFFFFFFFL);  
+    return (((long) regionVersionHighBytes) << 32) | (regionVersionLowBytes & 0x00000000FFFFFFFFL);
   }
 
   @Override
   public long getVersionTimeStamp() {
     return getLastModified();
   }
-  
+
   @Override
   public void setVersionTimeStamp(final long timeStamp) {
     setLastModified(timeStamp);
@@ -480,7 +462,7 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public void setVersions(final VersionTag versionTag) {
     this.memberId = versionTag.getMemberID();
@@ -490,7 +472,8 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
     this.regionVersionHighBytes = versionTag.getRegionVersionHighBytes();
     this.regionVersionLowBytes = versionTag.getRegionVersionLowBytes();
 
-    if (!versionTag.isGatewayTag() && this.distributedSystemId == versionTag.getDistributedSystemId()) {
+    if (!versionTag.isGatewayTag()
+        && this.distributedSystemId == versionTag.getDistributedSystemId()) {
       if (getVersionTimeStamp() <= versionTag.getVersionTimeStamp()) {
         setVersionTimeStamp(versionTag.getVersionTimeStamp());
       } else {
@@ -514,7 +497,7 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public VersionTag asVersionTag() {
     VersionTag tag = VersionTag.create(memberId);
@@ -529,7 +512,8 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
   public void processVersionTag(final InternalRegion region, final VersionTag versionTag,
       final boolean isTombstoneFromGII, final boolean hasDelta, final VersionSource versionSource,
       final InternalDistributedMember sender, final boolean checkForConflicts) {
-    basicProcessVersionTag(region, versionTag, isTombstoneFromGII, hasDelta, versionSource, sender, checkForConflicts);
+    basicProcessVersionTag(region, versionTag, isTombstoneFromGII, hasDelta, versionSource, sender,
+        checkForConflicts);
   }
 
   @Override
@@ -543,14 +527,14 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
   public short getRegionVersionHighBytes() {
     return this.regionVersionHighBytes;
   }
-  
+
   /** get rvv internal low bytes. Used by region entries for transferring to storage */
   @Override
   public int getRegionVersionLowBytes() {
     return this.regionVersionLowBytes;
   }
 
-  
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
@@ -572,12 +556,12 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
     long tempBits1 = this.bits1;
 
     if (getEncoding() == 1) {
-      for (int i=0; i < keyLength; i++) {
+      for (int i = 0; i < keyLength; i++) {
         tempBits1 >>= 8;
-      chars[i] = (char) (tempBits1 & 0x00ff);
+        chars[i] = (char) (tempBits1 & 0x00ff);
       }
     } else {
-      for (int i=0; i < keyLength; i++) {
+      for (int i = 0; i < keyLength; i++) {
         tempBits1 >>= 16;
         chars[i] = (char) (tempBits1 & 0x00FFff);
       }
@@ -587,7 +571,7 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public boolean isKeyEqual(final Object key) {
     if (key instanceof String) {
@@ -620,7 +604,7 @@ public class VersionedThinDiskLRURegionEntryOffHeapStringKey1 extends VersionedT
     }
     return false;
   }
-  
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

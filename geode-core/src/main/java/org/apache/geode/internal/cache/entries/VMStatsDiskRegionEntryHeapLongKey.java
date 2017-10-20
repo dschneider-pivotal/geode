@@ -18,27 +18,19 @@ package org.apache.geode.internal.cache.entries;
 
 
 
-
-
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
-
-
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
-
 import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DiskStoreImpl;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
-
 
 import org.apache.geode.internal.InternalStatisticsDisabledException;
 
@@ -47,20 +39,12 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -71,8 +55,8 @@ public class VMStatsDiskRegionEntryHeapLongKey extends VMStatsDiskRegionEntryHea
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VMStatsDiskRegionEntryHeapLongKey> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapLongKey.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VMStatsDiskRegionEntryHeapLongKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapLongKey.class, "lastModified");
 
   protected int hash;
 
@@ -101,11 +85,11 @@ public class VMStatsDiskRegionEntryHeapLongKey extends VMStatsDiskRegionEntryHea
   private volatile int hitCount;
   private volatile int missCount;
 
-  private static final AtomicIntegerFieldUpdater<VMStatsDiskRegionEntryHeapLongKey> HIT_COUNT_UPDATER
-    = AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapLongKey.class, "hitCount");
+  private static final AtomicIntegerFieldUpdater<VMStatsDiskRegionEntryHeapLongKey> HIT_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapLongKey.class, "hitCount");
 
-  private static final AtomicIntegerFieldUpdater<VMStatsDiskRegionEntryHeapLongKey> MISS_COUNT_UPDATER
-    = AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapLongKey.class, "missCount");
+  private static final AtomicIntegerFieldUpdater<VMStatsDiskRegionEntryHeapLongKey> MISS_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VMStatsDiskRegionEntryHeapLongKey.class, "missCount");
 
 
   // ----------------------------------------- key code -------------------------------------------
@@ -113,13 +97,10 @@ public class VMStatsDiskRegionEntryHeapLongKey extends VMStatsDiskRegionEntryHea
 
 
 
-
-
-
   private final long key;
 
 
-  public VMStatsDiskRegionEntryHeapLongKey (final RegionEntryContext context, final long key,
+  public VMStatsDiskRegionEntryHeapLongKey(final RegionEntryContext context, final long key,
 
 
 
@@ -127,20 +108,17 @@ public class VMStatsDiskRegionEntryHeapLongKey extends VMStatsDiskRegionEntryHea
 
 
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
-          (value instanceof RecoveredEntry ? null : value)
+        (value instanceof RecoveredEntry ? null : value)
 
 
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
     initialize(context, value);
-
-
-
 
 
 
@@ -208,7 +186,7 @@ public class VMStatsDiskRegionEntryHeapLongKey extends VMStatsDiskRegionEntryHea
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public DiskId getDiskId() {
     return this.id;
@@ -228,8 +206,6 @@ public class VMStatsDiskRegionEntryHeapLongKey extends VMStatsDiskRegionEntryHea
     Helper.initialize(this, diskRecoveryStore, value);
   }
 
-  
-
 
 
   // ---------------------------------------- stats code ------------------------------------------
@@ -248,13 +224,13 @@ public class VMStatsDiskRegionEntryHeapLongKey extends VMStatsDiskRegionEntryHea
   @Override
   protected void setLastModifiedAndAccessedTimes(final long lastModified, final long lastAccessed) {
     setLastModified(lastModified);
-    if (!DISABLE_ACCESS_TIME_UPDATE_ON_PUT) { 
+    if (!DISABLE_ACCESS_TIME_UPDATE_ON_PUT) {
       setLastAccessed(lastAccessed);
     }
   }
-  
 
-  
+
+
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
     return this.lastAccessed;
@@ -284,12 +260,12 @@ public class VMStatsDiskRegionEntryHeapLongKey extends VMStatsDiskRegionEntryHea
 
   @Override
   public void resetCounts() throws InternalStatisticsDisabledException {
-    HIT_COUNT_UPDATER.set(this,0);
-    MISS_COUNT_UPDATER.set(this,0);
+    HIT_COUNT_UPDATER.set(this, 0);
+    MISS_COUNT_UPDATER.set(this, 0);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -303,9 +279,8 @@ public class VMStatsDiskRegionEntryHeapLongKey extends VMStatsDiskRegionEntryHea
     return true;
   }
 
-  
 
-  
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
@@ -322,7 +297,7 @@ public class VMStatsDiskRegionEntryHeapLongKey extends VMStatsDiskRegionEntryHea
     }
     return false;
   }
-  
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

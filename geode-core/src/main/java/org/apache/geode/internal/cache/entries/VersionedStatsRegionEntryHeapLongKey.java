@@ -18,9 +18,6 @@ package org.apache.geode.internal.cache.entries;
 
 
 
-
-
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
@@ -32,43 +29,22 @@ import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.InternalStatisticsDisabledException;
 
-
-
-
-
-
-
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.cache.versions.VersionSource;
 import org.apache.geode.internal.cache.versions.VersionStamp;
 import org.apache.geode.internal.cache.versions.VersionTag;
-
-
-
-
-
-
-
 
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -79,8 +55,8 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VersionedStatsRegionEntryHeapLongKey> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapLongKey.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VersionedStatsRegionEntryHeapLongKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapLongKey.class, "lastModified");
 
   protected int hash;
 
@@ -100,11 +76,11 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
   private volatile int hitCount;
   private volatile int missCount;
 
-  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapLongKey> HIT_COUNT_UPDATER
-    = AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapLongKey.class, "hitCount");
+  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapLongKey> HIT_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapLongKey.class, "hitCount");
 
-  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapLongKey> MISS_COUNT_UPDATER
-    = AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapLongKey.class, "missCount");
+  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryHeapLongKey> MISS_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryHeapLongKey.class, "missCount");
 
 
 
@@ -124,13 +100,10 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
 
 
 
-
-
-
   private final long key;
 
 
-  public VersionedStatsRegionEntryHeapLongKey (final RegionEntryContext context, final long key,
+  public VersionedStatsRegionEntryHeapLongKey(final RegionEntryContext context, final long key,
 
 
 
@@ -138,20 +111,15 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
 
 
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
 
 
-          value
+        value
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-
-
-
-
-
 
 
 
@@ -203,8 +171,6 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
     this.nextEntry = nextEntry;
   }
 
-  
-
 
 
   // ---------------------------------------- stats code ------------------------------------------
@@ -223,13 +189,13 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
   @Override
   protected void setLastModifiedAndAccessedTimes(final long lastModified, final long lastAccessed) {
     setLastModified(lastModified);
-    if (!DISABLE_ACCESS_TIME_UPDATE_ON_PUT) { 
+    if (!DISABLE_ACCESS_TIME_UPDATE_ON_PUT) {
       setLastAccessed(lastAccessed);
     }
   }
-  
 
-  
+
+
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
     return this.lastAccessed;
@@ -259,12 +225,12 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
 
   @Override
   public void resetCounts() throws InternalStatisticsDisabledException {
-    HIT_COUNT_UPDATER.set(this,0);
-    MISS_COUNT_UPDATER.set(this,0);
+    HIT_COUNT_UPDATER.set(this, 0);
+    MISS_COUNT_UPDATER.set(this, 0);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -278,7 +244,7 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
     return true;
   }
 
-  
+
 
   // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
@@ -287,17 +253,17 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
   public int getEntryVersion() {
     return ((entryVersionHighByte << 16) & 0xFF0000) | (entryVersionLowBytes & 0xFFFF);
   }
-  
+
   @Override
   public long getRegionVersion() {
-    return (((long)regionVersionHighBytes) << 32) | (regionVersionLowBytes & 0x00000000FFFFFFFFL);  
+    return (((long) regionVersionHighBytes) << 32) | (regionVersionLowBytes & 0x00000000FFFFFFFFL);
   }
 
   @Override
   public long getVersionTimeStamp() {
     return getLastModified();
   }
-  
+
   @Override
   public void setVersionTimeStamp(final long timeStamp) {
     setLastModified(timeStamp);
@@ -314,7 +280,7 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public void setVersions(final VersionTag versionTag) {
     this.memberId = versionTag.getMemberID();
@@ -324,7 +290,8 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
     this.regionVersionHighBytes = versionTag.getRegionVersionHighBytes();
     this.regionVersionLowBytes = versionTag.getRegionVersionLowBytes();
 
-    if (!versionTag.isGatewayTag() && this.distributedSystemId == versionTag.getDistributedSystemId()) {
+    if (!versionTag.isGatewayTag()
+        && this.distributedSystemId == versionTag.getDistributedSystemId()) {
       if (getVersionTimeStamp() <= versionTag.getVersionTimeStamp()) {
         setVersionTimeStamp(versionTag.getVersionTimeStamp());
       } else {
@@ -348,7 +315,7 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public VersionTag asVersionTag() {
     VersionTag tag = VersionTag.create(memberId);
@@ -363,7 +330,8 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
   public void processVersionTag(final InternalRegion region, final VersionTag versionTag,
       final boolean isTombstoneFromGII, final boolean hasDelta, final VersionSource versionSource,
       final InternalDistributedMember sender, final boolean checkForConflicts) {
-    basicProcessVersionTag(region, versionTag, isTombstoneFromGII, hasDelta, versionSource, sender, checkForConflicts);
+    basicProcessVersionTag(region, versionTag, isTombstoneFromGII, hasDelta, versionSource, sender,
+        checkForConflicts);
   }
 
   @Override
@@ -377,14 +345,14 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
   public short getRegionVersionHighBytes() {
     return this.regionVersionHighBytes;
   }
-  
+
   /** get rvv internal low bytes. Used by region entries for transferring to storage */
   @Override
   public int getRegionVersionLowBytes() {
     return this.regionVersionLowBytes;
   }
 
-  
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
@@ -401,7 +369,7 @@ public class VersionedStatsRegionEntryHeapLongKey extends VersionedStatsRegionEn
     }
     return false;
   }
-  
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

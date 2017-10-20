@@ -18,15 +18,9 @@ package org.apache.geode.internal.cache.entries;
 
 
 
-
-
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
-
-
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
@@ -42,20 +36,12 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -66,8 +52,8 @@ public class VMThinLRURegionEntryHeapStringKey1 extends VMThinLRURegionEntryHeap
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryHeapStringKey1> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryHeapStringKey1.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryHeapStringKey1> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryHeapStringKey1.class, "lastModified");
 
   protected int hash;
 
@@ -88,7 +74,7 @@ public class VMThinLRURegionEntryHeapStringKey1 extends VMThinLRURegionEntryHeap
   private final long bits1;
 
 
-  public VMThinLRURegionEntryHeapStringKey1 (final RegionEntryContext context, final String key,
+  public VMThinLRURegionEntryHeapStringKey1(final RegionEntryContext context, final String key,
 
 
 
@@ -96,14 +82,14 @@ public class VMThinLRURegionEntryHeapStringKey1 extends VMThinLRURegionEntryHeap
 
       , final boolean byteEncode
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
 
 
-          value
+        value
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
     // caller has already confirmed that key.length <= MAX_INLINE_STRING_KEY
@@ -115,7 +101,7 @@ public class VMThinLRURegionEntryHeapStringKey1 extends VMThinLRURegionEntryHeap
         tempBits1 |= (byte) key.charAt(i) & 0xff;
         tempBits1 <<= 8;
       }
-      tempBits1 |= 1<<6;
+      tempBits1 |= 1 << 6;
     } else {
       for (int i = key.length() - 1; i >= 0; i--) {
         tempBits1 |= key.charAt(i);
@@ -171,15 +157,13 @@ public class VMThinLRURegionEntryHeapStringKey1 extends VMThinLRURegionEntryHeap
     this.nextEntry = nextEntry;
   }
 
-  
+
 
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
-
-
 
 
 
@@ -192,9 +176,9 @@ public class VMThinLRURegionEntryHeapStringKey1 extends VMThinLRURegionEntryHeap
     // OFFHEAP: getValue ok w/o incing refcount because we are synced and only getting the size
     return updateEntrySize(capacityController, getValue());
   }
-  
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -270,10 +254,9 @@ public class VMThinLRURegionEntryHeapStringKey1 extends VMThinLRURegionEntryHeap
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public Object getKeyForSizing() {
-
 
 
 
@@ -284,9 +267,6 @@ public class VMThinLRURegionEntryHeapStringKey1 extends VMThinLRURegionEntryHeap
 
 
 
-  
-
-  
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
@@ -308,12 +288,12 @@ public class VMThinLRURegionEntryHeapStringKey1 extends VMThinLRURegionEntryHeap
     long tempBits1 = this.bits1;
 
     if (getEncoding() == 1) {
-      for (int i=0; i < keyLength; i++) {
+      for (int i = 0; i < keyLength; i++) {
         tempBits1 >>= 8;
-      chars[i] = (char) (tempBits1 & 0x00ff);
+        chars[i] = (char) (tempBits1 & 0x00ff);
       }
     } else {
-      for (int i=0; i < keyLength; i++) {
+      for (int i = 0; i < keyLength; i++) {
         tempBits1 >>= 16;
         chars[i] = (char) (tempBits1 & 0x00FFff);
       }
@@ -323,7 +303,7 @@ public class VMThinLRURegionEntryHeapStringKey1 extends VMThinLRURegionEntryHeap
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public boolean isKeyEqual(final Object key) {
     if (key instanceof String) {
@@ -356,7 +336,7 @@ public class VMThinLRURegionEntryHeapStringKey1 extends VMThinLRURegionEntryHeap
     }
     return false;
   }
-  
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

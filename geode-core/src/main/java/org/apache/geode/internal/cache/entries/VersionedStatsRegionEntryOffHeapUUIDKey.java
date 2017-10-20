@@ -20,7 +20,6 @@ package org.apache.geode.internal.cache.entries;
 
 import java.util.UUID;
 
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
@@ -32,17 +31,10 @@ import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.InternalStatisticsDisabledException;
 
-
-
-
-
-
-
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.cache.versions.VersionSource;
 import org.apache.geode.internal.cache.versions.VersionStamp;
 import org.apache.geode.internal.cache.versions.VersionTag;
-
 
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.offheap.OffHeapRegionEntryHelper;
@@ -55,20 +47,12 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -79,8 +63,9 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VersionedStatsRegionEntryOffHeapUUIDKey> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VersionedStatsRegionEntryOffHeapUUIDKey.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VersionedStatsRegionEntryOffHeapUUIDKey> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VersionedStatsRegionEntryOffHeapUUIDKey.class,
+          "lastModified");
 
   protected int hash;
 
@@ -91,9 +76,6 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
 
 
 
-
-
-
   // --------------------------------------- offheap fields ---------------------------------------
 
   /**
@@ -101,7 +83,9 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
    * tell it is.
    */
   @SuppressWarnings("unused")
-  @Retained @Released private volatile long offHeapAddress;
+  @Retained
+  @Released
+  private volatile long offHeapAddress;
   /**
    * I needed to add this because I wanted clear to call setValue which normally can only be called
    * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
@@ -112,7 +96,8 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
    * regions.
    */
   private static final AtomicLongFieldUpdater<VersionedStatsRegionEntryOffHeapUUIDKey> OFF_HEAP_ADDRESS_UPDATER =
-      AtomicLongFieldUpdater.newUpdater(VersionedStatsRegionEntryOffHeapUUIDKey.class, "offHeapAddress");
+      AtomicLongFieldUpdater.newUpdater(VersionedStatsRegionEntryOffHeapUUIDKey.class,
+          "offHeapAddress");
 
 
   // --------------------------------------- stats fields -----------------------------------------
@@ -121,11 +106,13 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
   private volatile int hitCount;
   private volatile int missCount;
 
-  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryOffHeapUUIDKey> HIT_COUNT_UPDATER
-    = AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryOffHeapUUIDKey.class, "hitCount");
+  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryOffHeapUUIDKey> HIT_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryOffHeapUUIDKey.class,
+          "hitCount");
 
-  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryOffHeapUUIDKey> MISS_COUNT_UPDATER
-    = AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryOffHeapUUIDKey.class, "missCount");
+  private static final AtomicIntegerFieldUpdater<VersionedStatsRegionEntryOffHeapUUIDKey> MISS_COUNT_UPDATER =
+      AtomicIntegerFieldUpdater.newUpdater(VersionedStatsRegionEntryOffHeapUUIDKey.class,
+          "missCount");
 
 
 
@@ -148,7 +135,7 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
   private final long keyLeastSigBits;
 
 
-  public VersionedStatsRegionEntryOffHeapUUIDKey (final RegionEntryContext context, final UUID key,
+  public VersionedStatsRegionEntryOffHeapUUIDKey(final RegionEntryContext context, final UUID key,
 
       @Retained
 
@@ -156,14 +143,14 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
 
 
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
 
 
-          value
+        value
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
     this.keyMostSigBits = key.getMostSignificantBits();
@@ -178,7 +165,7 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
   public Token getValueAsToken() {
     return OffHeapRegionEntryHelper.getValueAsToken(this);
   }
-  
+
   @Override
   protected Object getValueField() {
     return OffHeapRegionEntryHelper._getValue(this);
@@ -213,7 +200,7 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
   public boolean setAddress(final long expectedAddress, long newAddress) {
     return OFF_HEAP_ADDRESS_UPDATER.compareAndSet(this, expectedAddress, newAddress);
   }
-  
+
   @Override
 
   @Released
@@ -221,7 +208,7 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
   public void release() {
     OffHeapRegionEntryHelper.releaseEntry(this);
   }
-  
+
   @Override
   public void returnToPool() {
     // never implemented
@@ -258,8 +245,6 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
     this.nextEntry = nextEntry;
   }
 
-  
-
 
 
   // ---------------------------------------- stats code ------------------------------------------
@@ -278,13 +263,13 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
   @Override
   protected void setLastModifiedAndAccessedTimes(final long lastModified, final long lastAccessed) {
     setLastModified(lastModified);
-    if (!DISABLE_ACCESS_TIME_UPDATE_ON_PUT) { 
+    if (!DISABLE_ACCESS_TIME_UPDATE_ON_PUT) {
       setLastAccessed(lastAccessed);
     }
   }
-  
 
-  
+
+
   @Override
   public long getLastAccessed() throws InternalStatisticsDisabledException {
     return this.lastAccessed;
@@ -314,12 +299,12 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
 
   @Override
   public void resetCounts() throws InternalStatisticsDisabledException {
-    HIT_COUNT_UPDATER.set(this,0);
-    MISS_COUNT_UPDATER.set(this,0);
+    HIT_COUNT_UPDATER.set(this, 0);
+    MISS_COUNT_UPDATER.set(this, 0);
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public void txDidDestroy(long timeStamp) {
     setLastModified(timeStamp);
@@ -333,7 +318,7 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
     return true;
   }
 
-  
+
 
   // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
@@ -342,17 +327,17 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
   public int getEntryVersion() {
     return ((entryVersionHighByte << 16) & 0xFF0000) | (entryVersionLowBytes & 0xFFFF);
   }
-  
+
   @Override
   public long getRegionVersion() {
-    return (((long)regionVersionHighBytes) << 32) | (regionVersionLowBytes & 0x00000000FFFFFFFFL);  
+    return (((long) regionVersionHighBytes) << 32) | (regionVersionLowBytes & 0x00000000FFFFFFFFL);
   }
 
   @Override
   public long getVersionTimeStamp() {
     return getLastModified();
   }
-  
+
   @Override
   public void setVersionTimeStamp(final long timeStamp) {
     setLastModified(timeStamp);
@@ -369,7 +354,7 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public void setVersions(final VersionTag versionTag) {
     this.memberId = versionTag.getMemberID();
@@ -379,7 +364,8 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
     this.regionVersionHighBytes = versionTag.getRegionVersionHighBytes();
     this.regionVersionLowBytes = versionTag.getRegionVersionLowBytes();
 
-    if (!versionTag.isGatewayTag() && this.distributedSystemId == versionTag.getDistributedSystemId()) {
+    if (!versionTag.isGatewayTag()
+        && this.distributedSystemId == versionTag.getDistributedSystemId()) {
       if (getVersionTimeStamp() <= versionTag.getVersionTimeStamp()) {
         setVersionTimeStamp(versionTag.getVersionTimeStamp());
       } else {
@@ -403,7 +389,7 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public VersionTag asVersionTag() {
     VersionTag tag = VersionTag.create(memberId);
@@ -418,7 +404,8 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
   public void processVersionTag(final InternalRegion region, final VersionTag versionTag,
       final boolean isTombstoneFromGII, final boolean hasDelta, final VersionSource versionSource,
       final InternalDistributedMember sender, final boolean checkForConflicts) {
-    basicProcessVersionTag(region, versionTag, isTombstoneFromGII, hasDelta, versionSource, sender, checkForConflicts);
+    basicProcessVersionTag(region, versionTag, isTombstoneFromGII, hasDelta, versionSource, sender,
+        checkForConflicts);
   }
 
   @Override
@@ -432,14 +419,14 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
   public short getRegionVersionHighBytes() {
     return this.regionVersionHighBytes;
   }
-  
+
   /** get rvv internal low bytes. Used by region entries for transferring to storage */
   @Override
   public int getRegionVersionLowBytes() {
     return this.regionVersionLowBytes;
   }
 
-  
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
@@ -458,7 +445,7 @@ public class VersionedStatsRegionEntryOffHeapUUIDKey extends VersionedStatsRegio
     }
     return false;
   }
-  
+
 
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

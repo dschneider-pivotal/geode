@@ -18,15 +18,9 @@ package org.apache.geode.internal.cache.entries;
 
 
 
-
-
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
-
-
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
@@ -36,13 +30,6 @@ import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.eviction.LRUClockNode;
 import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
-
-
-
-
-
-
-
 
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.offheap.OffHeapRegionEntryHelper;
@@ -55,20 +42,12 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
 /*
  * macros whose definition changes this class:
  *
- * disk: DISK
- * lru: LRU
- * stats: STATS
- * versioned: VERSIONED
- * offheap: OFFHEAP
+ * disk: DISK lru: LRU stats: STATS versioned: VERSIONED offheap: OFFHEAP
  *
  * One of the following key macros must be defined:
  *
- * key object: KEY_OBJECT
- * key int: KEY_INT
- * key long: KEY_LONG
- * key uuid: KEY_UUID
- * key string1: KEY_STRING1
- * key string2: KEY_STRING2
+ * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
+ * KEY_STRING1 key string2: KEY_STRING2
  */
 
 /**
@@ -79,8 +58,9 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
 
   // --------------------------------------- common fields ----------------------------------------
 
-  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryOffHeapStringKey2> LAST_MODIFIED_UPDATER
-    = AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryOffHeapStringKey2.class, "lastModified");
+  private static final AtomicLongFieldUpdater<VMThinLRURegionEntryOffHeapStringKey2> LAST_MODIFIED_UPDATER =
+      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryOffHeapStringKey2.class,
+          "lastModified");
 
   protected int hash;
 
@@ -91,9 +71,6 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
 
 
 
-
-
-
   // --------------------------------------- offheap fields ---------------------------------------
 
   /**
@@ -101,7 +78,9 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
    * tell it is.
    */
   @SuppressWarnings("unused")
-  @Retained @Released private volatile long offHeapAddress;
+  @Retained
+  @Released
+  private volatile long offHeapAddress;
   /**
    * I needed to add this because I wanted clear to call setValue which normally can only be called
    * while the re is synced. But if I sync in that code it causes a lock ordering deadlock with the
@@ -112,7 +91,8 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
    * regions.
    */
   private static final AtomicLongFieldUpdater<VMThinLRURegionEntryOffHeapStringKey2> OFF_HEAP_ADDRESS_UPDATER =
-      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryOffHeapStringKey2.class, "offHeapAddress");
+      AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryOffHeapStringKey2.class,
+          "offHeapAddress");
 
 
   // ----------------------------------------- key code -------------------------------------------
@@ -132,7 +112,7 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
   private final long bits2;
 
 
-  public VMThinLRURegionEntryOffHeapStringKey2 (final RegionEntryContext context, final String key,
+  public VMThinLRURegionEntryOffHeapStringKey2(final RegionEntryContext context, final String key,
 
       @Retained
 
@@ -140,14 +120,14 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
 
       , final boolean byteEncode
 
-      ) {
-    super(context, 
+  ) {
+    super(context,
 
 
 
-          value
+        value
 
-        );
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
     // caller has already confirmed that key.length <= MAX_INLINE_STRING_KEY
@@ -158,14 +138,14 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
         // Note: we know each byte is <= 0x7f so the "& 0xff" is not needed. But I added it in to
         // keep findbugs happy.
         if (i < 7) {
-          tempBits1 |= (byte)key.charAt(i) & 0xff;
+          tempBits1 |= (byte) key.charAt(i) & 0xff;
           tempBits1 <<= 8;
         } else {
           tempBits2 <<= 8;
-          tempBits2 |= (byte)key.charAt(i) & 0xff;
+          tempBits2 |= (byte) key.charAt(i) & 0xff;
         }
       }
-      tempBits1 |= 1<<6;
+      tempBits1 |= 1 << 6;
     } else {
       for (int i = key.length() - 1; i >= 0; i--) {
         if (i < 3) {
@@ -190,7 +170,7 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
   public Token getValueAsToken() {
     return OffHeapRegionEntryHelper.getValueAsToken(this);
   }
-  
+
   @Override
   protected Object getValueField() {
     return OffHeapRegionEntryHelper._getValue(this);
@@ -225,7 +205,7 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
   public boolean setAddress(final long expectedAddress, long newAddress) {
     return OFF_HEAP_ADDRESS_UPDATER.compareAndSet(this, expectedAddress, newAddress);
   }
-  
+
   @Override
 
   @Released
@@ -233,7 +213,7 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
   public void release() {
     OffHeapRegionEntryHelper.releaseEntry(this);
   }
-  
+
   @Override
   public void returnToPool() {
     // never implemented
@@ -270,15 +250,13 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
     this.nextEntry = nextEntry;
   }
 
-  
+
 
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
-
-
 
 
 
@@ -291,9 +269,9 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
     // 1: getValue ok w/o incing refcount because we are synced and only getting the size
     return updateEntrySize(capacityController, getValue());
   }
-  
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -369,10 +347,9 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public Object getKeyForSizing() {
-
 
 
 
@@ -383,9 +360,6 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
 
 
 
-  
-
-  
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
@@ -422,7 +396,7 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
       for (int i = 0; i < keyLength; i++) {
         if (i < 3) {
           tempBits1 >>= 16;
-        chars[i] = (char) (tempBits1 & 0x00FFff);
+          chars[i] = (char) (tempBits1 & 0x00FFff);
         } else {
           chars[i] = (char) (tempBits2 & 0x00FFff);
           tempBits2 >>= 16;
@@ -433,11 +407,11 @@ public class VMThinLRURegionEntryOffHeapStringKey2 extends VMThinLRURegionEntryO
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
-  
+
   @Override
   public boolean isKeyEqual(final Object key) {
     if (key instanceof String) {
-      String stringKey = (String)key;
+      String stringKey = (String) key;
       int keyLength = getKeyLength();
       if (stringKey.length() == keyLength) {
         long tempBits1 = this.bits1;
