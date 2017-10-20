@@ -27,10 +27,11 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.lru.EnableLRU;
+import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
 import org.apache.geode.internal.InternalStatisticsDisabledException;
 
-import org.apache.geode.internal.cache.LocalRegion;
+import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.lru.LRUClockNode;
 import org.apache.geode.internal.cache.lru.NewLRUClockHand;
 

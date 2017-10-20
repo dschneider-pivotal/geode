@@ -25,16 +25,16 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.lru.EnableLRU;
+import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
 import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DiskStoreImpl;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
-import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
 import org.apache.geode.internal.InternalStatisticsDisabledException;
 
-import org.apache.geode.internal.cache.LocalRegion;
+import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.lru.LRUClockNode;
 import org.apache.geode.internal.cache.lru.NewLRUClockHand;
 
@@ -195,12 +195,12 @@ public class VMStatsDiskLRURegionEntryHeapStringKey1 extends VMStatsDiskLRURegio
 
   protected void initialize(final RegionEntryContext context, final Object value) {
     boolean isBackup;
-    if (context instanceof LocalRegion) {
-      isBackup = ((LocalRegion) context).getDiskRegion().isBackup();
+    if (context instanceof InternalRegion) {
+      isBackup = ((InternalRegion) context).getDiskRegion().isBackup();
     } else if (context instanceof PlaceHolderDiskRegion) {
       isBackup = true;
     } else {
-      throw new IllegalArgumentException("expected a LocalRegion or PlaceHolderDiskRegion");
+      throw new IllegalArgumentException("expected a InternalRegion or PlaceHolderDiskRegion");
     }
     // Delay the initialization of DiskID if overflow only
     if (isBackup) {
@@ -226,7 +226,7 @@ public class VMStatsDiskLRURegionEntryHeapStringKey1 extends VMStatsDiskLRURegio
   }
 
   @Override
-  void setDiskId(final RegionEntry oldEntry) {
+  public void setDiskId(final RegionEntry oldEntry) {
     this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
   }
 
@@ -239,16 +239,7 @@ public class VMStatsDiskLRURegionEntryHeapStringKey1 extends VMStatsDiskLRURegio
     Helper.initialize(this, diskRecoveryStore, value);
   }
 
-  @Override
-  public DiskId getDiskId() {
-    return this.id;
-  }
 
-  @Override
-  public void setDiskId(final RegionEntry oldEntry) {
-    this.id = ((AbstractDiskRegionEntry)oldEntry).getDiskId();
-
-  
 
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

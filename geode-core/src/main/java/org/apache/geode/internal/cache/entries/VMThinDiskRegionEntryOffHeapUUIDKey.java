@@ -25,12 +25,12 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.lru.EnableLRU;
+import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
 import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DiskStoreImpl;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
-import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.offheap.OffHeapRegionEntryHelper;
@@ -246,7 +246,7 @@ public class VMThinDiskRegionEntryOffHeapUUIDKey extends VMThinDiskRegionEntryOf
   }
 
   @Override
-  void setDiskId(final RegionEntry oldEntry) {
+  public void setDiskId(final RegionEntry oldEntry) {
     this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
   }
 
@@ -259,22 +259,8 @@ public class VMThinDiskRegionEntryOffHeapUUIDKey extends VMThinDiskRegionEntryOf
     Helper.initialize(this, diskRecoveryStore, value);
   }
 
-  @Override
-  public DiskId getDiskId() {
-    return this.id;
-  }
-
-  @Override
-  public void setDiskId(final RegionEntry oldEntry) {
-    this.id = ((AbstractDiskRegionEntry)oldEntry).getDiskId();
-
-  
 
 
-
-  
-
-  
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 

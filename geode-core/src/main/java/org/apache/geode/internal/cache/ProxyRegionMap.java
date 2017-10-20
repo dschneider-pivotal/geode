@@ -415,7 +415,7 @@ class ProxyRegionMap implements RegionMap {
 
   @Override
   public void removeEntry(Object key, RegionEntry re, boolean updateStat, EntryEventImpl event,
-      LocalRegion owner) {
+      InternalRegion owner) {
     // nothing to do
   }
 

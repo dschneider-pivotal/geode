@@ -38,24 +38,24 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 #if defined(VERSIONED)
 import org.apache.geode.cache.EntryEvent;
-import org.apache.geode.internal.cache.LocalRegion;
+import org.apache.geode.internal.cache.InternalRegion;
 #endif
 import org.apache.geode.internal.cache.RegionEntryContext;
 #if defined(DISK) || defined(LRU)
 import org.apache.geode.internal.cache.lru.EnableLRU;
+import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 #endif
 #ifdef DISK
 import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DiskStoreImpl;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
-import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 #endif
 #ifdef STATS
 import org.apache.geode.internal.InternalStatisticsDisabledException;
 #endif
 #ifdef LRU
-import org.apache.geode.internal.cache.LocalRegion;
+import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.lru.LRUClockNode;
 import org.apache.geode.internal.cache.lru.NewLRUClockHand;
 #endif
@@ -385,12 +385,12 @@ public class LEAF_CLASS extends PARENT_CLASS {
 #ifdef LRU
   protected void initialize(final RegionEntryContext context, final Object value) {
     boolean isBackup;
-    if (context instanceof LocalRegion) {
-      isBackup = ((LocalRegion) context).getDiskRegion().isBackup();
+    if (context instanceof InternalRegion) {
+      isBackup = ((InternalRegion) context).getDiskRegion().isBackup();
     } else if (context instanceof PlaceHolderDiskRegion) {
       isBackup = true;
     } else {
-      throw new IllegalArgumentException("expected a LocalRegion or PlaceHolderDiskRegion");
+      throw new IllegalArgumentException("expected a InternalRegion or PlaceHolderDiskRegion");
     }
     // Delay the initialization of DiskID if overflow only
     if (isBackup) {
@@ -425,7 +425,7 @@ public class LEAF_CLASS extends PARENT_CLASS {
   }
 
   @Override
-  void setDiskId(final RegionEntry oldEntry) {
+  public void setDiskId(final RegionEntry oldEntry) {
     this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
   }
 
@@ -437,15 +437,6 @@ public class LEAF_CLASS extends PARENT_CLASS {
     this.id = DiskId.createDiskId(maxOplogSize, true, diskStore.needsLinkedList());
     Helper.initialize(this, diskRecoveryStore, value);
   }
-
-  @Override
-  public DiskId getDiskId() {
-    return this.id;
-  }
-
-  @Override
-  public void setDiskId(final RegionEntry oldEntry) {
-    this.id = ((AbstractDiskRegionEntry)oldEntry).getDiskId();
 #endif
   
 #ifdef LRU

@@ -21,17 +21,17 @@ package org.apache.geode.internal.cache.entries;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.apache.geode.cache.EntryEvent;
-import org.apache.geode.internal.cache.LocalRegion;
+import org.apache.geode.internal.cache.InternalRegion;
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.lru.EnableLRU;
+import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
 import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DiskStoreImpl;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
-import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.cache.versions.VersionSource;
@@ -229,7 +229,7 @@ public class VersionedThinDiskRegionEntryHeapStringKey2 extends VersionedThinDis
   }
 
   @Override
-  void setDiskId(final RegionEntry oldEntry) {
+  public void setDiskId(final RegionEntry oldEntry) {
     this.id = ((AbstractDiskRegionEntry) oldEntry).getDiskId();
   }
 
@@ -242,20 +242,7 @@ public class VersionedThinDiskRegionEntryHeapStringKey2 extends VersionedThinDis
     Helper.initialize(this, diskRecoveryStore, value);
   }
 
-  @Override
-  public DiskId getDiskId() {
-    return this.id;
-  }
 
-  @Override
-  public void setDiskId(final RegionEntry oldEntry) {
-    this.id = ((AbstractDiskRegionEntry)oldEntry).getDiskId();
-
-  
-
-
-
-  
 
   // -------------------------------------- versioned code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp

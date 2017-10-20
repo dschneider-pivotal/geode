@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.apache.geode.cache.EntryEvent;
-import org.apache.geode.internal.cache.LocalRegion;
+import org.apache.geode.internal.cache.InternalRegion;
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
