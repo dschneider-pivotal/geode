@@ -3380,17 +3380,6 @@ public class DiskStoreImpl implements DiskStore {
     this.criticalPercent = criticalPercent;
   }
 
-  // public String toString() {
-  // StringBuffer sb = new StringBuffer();
-  // sb.append("<");
-  // sb.append(getName());
-  // if (getOwnedByRegion()) {
-  // sb.append(" OWNED_BY_REGION");
-  // }
-  // sb.append(">");
-  // return sb.toString();
-  // }
-
   public static class AsyncDiskEntry {
     public final InternalRegion region;
     public final DiskEntry de;

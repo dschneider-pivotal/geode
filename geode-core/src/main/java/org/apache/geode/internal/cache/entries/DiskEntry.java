@@ -1376,10 +1376,9 @@ public interface DiskEntry extends RegionEntry {
     }
 
     private static void scheduleAsyncWrite(AsyncDiskEntry ade) {
-      DiskRegion dr = ((Bucket) ade.region).getDiskRegion();
+      DiskRegion dr = ade.region.getDiskRegion();
       dr.scheduleAsyncWrite(ade);
     }
-
 
     public static void handleFullAsyncQueue(DiskEntry entry, InternalRegion region,
         VersionTag tag) {
