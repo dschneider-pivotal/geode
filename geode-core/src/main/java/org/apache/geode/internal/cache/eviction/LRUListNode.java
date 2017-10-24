@@ -15,15 +15,15 @@
 
 package org.apache.geode.internal.cache.eviction;
 
-public interface LRUClockNode {
+public interface LRUListNode {
 
-  public void setNextLRUNode(LRUClockNode next);
+  public void setNextLRUNode(LRUListNode next);
 
-  public void setPrevLRUNode(LRUClockNode prev);
+  public void setPrevLRUNode(LRUListNode prev);
 
-  public LRUClockNode nextLRUNode();
+  public LRUListNode nextLRUNode();
 
-  public LRUClockNode prevLRUNode();
+  public LRUListNode prevLRUNode();
 
   /** compute the new entry size and return the delta from the previous entry size */
   public int updateEntrySize(EnableLRU ccHelper);

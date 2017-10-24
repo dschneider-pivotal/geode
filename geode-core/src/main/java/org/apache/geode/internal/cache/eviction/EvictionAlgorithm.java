@@ -57,16 +57,16 @@ import java.util.Properties;
  *
  * {@link org.apache.geode.cache.EvictionAttributes Eviction controllers} that use an LRU algorithm
  * maintain certain region-dependent state (such as the maximum number of entries allowed in the
- * region). As a result, an instance of <code>LRUAlgorithm</code> cannot be shared among multiple
+ * region). As a result, an instance of <code>EvictionAlgorithm</code> cannot be shared among multiple
  * regions. Attempts to create a region with a LRU-based capacity controller that has already been
  * used to create another region will result in an {@link IllegalStateException} being thrown.
  *
  * @since GemFire 3.2
  */
-public abstract class LRUAlgorithm implements CacheCallback, Serializable, Cloneable {
+public abstract class EvictionAlgorithm implements CacheCallback, Serializable, Cloneable {
 
   /**
-   * The key for setting the <code>eviction-action</code> property of an <code>LRUAlgorithm</code>
+   * The key for setting the <code>eviction-action</code> property of an <code>EvictionAlgorithm</code>
    */
   public static final String EVICTION_ACTION = "eviction-action";
 
@@ -74,18 +74,18 @@ public abstract class LRUAlgorithm implements CacheCallback, Serializable, Clone
   protected EvictionAction evictionAction;
 
   /** Used to dynamically track the changing region limit. */
-  protected transient LRUStatistics stats;
+  protected transient EvictionStatistics stats;
 
-  /** The helper created by this LRUAlgorithm */
+  /** The helper created by this EvictionAlgorithm */
   private transient EnableLRU helper;
 
   protected BucketRegion bucketRegion;
 
   /**
-   * Creates a new <code>LRUAlgorithm</code> with the given {@linkplain EvictionAction eviction
+   * Creates a new <code>EvictionAlgorithm</code> with the given {@linkplain EvictionAction eviction
    * action}.
    */
-  protected LRUAlgorithm(EvictionAction evictionAction, Region region) {
+  protected EvictionAlgorithm(EvictionAction evictionAction, Region region) {
     bucketRegion = (BucketRegion) (region instanceof BucketRegion ? region : null);
     setEvictionAction(evictionAction);
     this.helper = createLRUHelper();
@@ -125,7 +125,7 @@ public abstract class LRUAlgorithm implements CacheCallback, Serializable, Clone
     return this.evictionAction;
   }
 
-  public LRUStatistics getStatistics() {
+  public EvictionStatistics getStatistics() {
     synchronized (this) {
       // Synchronize with readObject/writeObject to avoid race
       // conditions with copy sharing. See bug 31047.
@@ -184,7 +184,7 @@ public abstract class LRUAlgorithm implements CacheCallback, Serializable, Clone
   public abstract Properties getProperties();
 
   /**
-   * Releases resources obtained by this <code>LRUAlgorithm</code>
+   * Releases resources obtained by this <code>EvictionAlgorithm</code>
    */
   public void close() {
     if (this.stats != null) {
@@ -205,7 +205,7 @@ public abstract class LRUAlgorithm implements CacheCallback, Serializable, Clone
   @Override
   public Object clone() throws CloneNotSupportedException {
     synchronized (this) {
-      LRUAlgorithm clone = (LRUAlgorithm) super.clone();
+      EvictionAlgorithm clone = (EvictionAlgorithm) super.clone();
       clone.stats = null;
       synchronized (clone) {
         clone.helper = clone.createLRUHelper();
@@ -223,7 +223,7 @@ public abstract class LRUAlgorithm implements CacheCallback, Serializable, Clone
       return false;
     if (!getClass().isAssignableFrom(cc.getClass()))
       return false;
-    LRUAlgorithm other = (LRUAlgorithm) cc;
+    EvictionAlgorithm other = (EvictionAlgorithm) cc;
     if (!other.evictionAction.equals(this.evictionAction))
       return false;
     return true;
@@ -248,7 +248,7 @@ public abstract class LRUAlgorithm implements CacheCallback, Serializable, Clone
 
   /**
    * A partial implementation of the <code>EnableLRU</code> interface that contains code common to
-   * all <code>LRUAlgorithm</code>s.
+   * all <code>EvictionAlgorithm</code>s.
    */
   protected abstract class AbstractEnableLRU implements EnableLRU {
 
@@ -289,31 +289,31 @@ public abstract class LRUAlgorithm implements CacheCallback, Serializable, Clone
         throw new IllegalArgumentException(
             LocalizedStrings.LRUAlgorithm_LRU_EVICTION_CONTROLLER_0_ALREADY_CONTROLS_THE_CAPACITY_OF_1_IT_CANNOT_ALSO_CONTROL_THE_CAPACITY_OF_REGION_2
                 .toLocalizedString(
-                    new Object[] {LRUAlgorithm.this, this.regionName, fullPathName}));
+                    new Object[] {EvictionAlgorithm.this, this.regionName, fullPathName}));
       }
       this.regionName = fullPathName; // store the name not the region since
       // region is not fully constructed yet
     }
 
-    protected void setStats(LRUStatistics stats) {
-      LRUAlgorithm.this.stats = stats;
+    protected void setStats(EvictionStatistics stats) {
+      EvictionAlgorithm.this.stats = stats;
     }
 
-    public LRUStatistics initStats(Object region, StatisticsFactory sf) {
+    public EvictionStatistics initStats(Object region, StatisticsFactory sf) {
       setRegionName(region);
-      final LRUStatistics stats = new LRUStatistics(sf, getRegionName(), this);
-      stats.setLimit(LRUAlgorithm.this.getLimit());
+      final EvictionStatistics stats = new EvictionStatistics(sf, getRegionName(), this);
+      stats.setLimit(EvictionAlgorithm.this.getLimit());
       stats.setDestroysLimit(1000);
       setStats(stats);
       return stats;
     }
 
-    public LRUStatistics getStats() {
-      return LRUAlgorithm.this.stats;
+    public EvictionStatistics getStats() {
+      return EvictionAlgorithm.this.stats;
     }
 
     public EvictionAction getEvictionAction() {
-      return LRUAlgorithm.this.evictionAction;
+      return EvictionAlgorithm.this.evictionAction;
     }
 
     public void afterEviction() {

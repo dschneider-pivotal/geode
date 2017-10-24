@@ -18,6 +18,7 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 
+import org.apache.geode.internal.cache.eviction.EvictionStatistics;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -27,7 +28,6 @@ import org.apache.geode.internal.cache.DiskRegionHelperFactory;
 import org.apache.geode.internal.cache.DiskRegionProperties;
 import org.apache.geode.internal.cache.DiskRegionTestingBase;
 import org.apache.geode.internal.cache.LocalRegion;
-import org.apache.geode.internal.cache.eviction.LRUStatistics;
 import org.apache.geode.test.junit.categories.IntegrationTest;
 
 /**
@@ -73,7 +73,7 @@ public class DiskRegOverflowAsyncJUnitPerformanceTest extends DiskRegionTestingB
   @Test
   public void testPopulatefor5Kbwrites() {
     // RegionAttributes ra = region.getAttributes();
-    LRUStatistics lruStats = getLRUStats(region);
+    EvictionStatistics lruStats = getLRUStats(region);
     // Put in larger stuff until we start evicting
     int total;
     for (total = 0; lruStats.getEvictions() <= 0; total++) {
@@ -133,7 +133,7 @@ public class DiskRegOverflowAsyncJUnitPerformanceTest extends DiskRegionTestingB
     System.out.println("Perf Stats of get which is fauting in :" + statsGet);
   }
 
-  private LRUStatistics getLRUStats(Region region) {
+  private EvictionStatistics getLRUStats(Region region) {
     return ((LocalRegion) region).getEvictionController().getStatistics();
   }
 }

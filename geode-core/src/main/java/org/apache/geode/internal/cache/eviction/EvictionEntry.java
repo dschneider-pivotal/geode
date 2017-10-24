@@ -20,7 +20,7 @@ import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 /**
  * Represents an entry in an LRU map
  */
-public interface LRUEntry extends LRUClockNode, RegionEntry {
+public interface EvictionEntry extends LRUListNode, RegionEntry {
   /**
    * If the key is stored as an Object then returns that object; but if the key is stored as
    * primitives then returns null.

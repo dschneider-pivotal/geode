@@ -26,7 +26,7 @@ import org.apache.geode.*;
  * @see LRUCapacityController
  * @since GemFire 4.0
  */
-public class HeapLRUStatistics extends LRUStatistics {
+public class HeapLRUStatistics extends EvictionStatistics {
 
   public HeapLRUStatistics(StatisticsFactory factory, String name, EnableLRU helper) {
     super(factory, name, helper);

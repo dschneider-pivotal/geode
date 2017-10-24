@@ -51,7 +51,7 @@ import java.util.*;
  *
  * @since GemFire 2.0.2
  */
-public class LRUCapacityController extends LRUAlgorithm implements Declarable {
+public class LRUCapacityController extends EvictionAlgorithm implements Declarable {
 
   private static final long serialVersionUID = -4383074909189355938L;
 
@@ -82,7 +82,7 @@ public class LRUCapacityController extends LRUAlgorithm implements Declarable {
     final String lruEvaluationsDesc = "Number of entries evaluated during LRU operations.";
     final String lruGreedyReturnsDesc = "Number of non-LRU entries evicted during LRU operations";
 
-    statType = f.createType("LRUStatistics",
+    statType = f.createType("EvictionStatistics",
         "Statistics about entry based Least Recently Used region entry disposal",
         new StatisticDescriptor[] {
             f.createLongGauge("entriesAllowed", entriesAllowedDesc, "entries"),
@@ -226,8 +226,8 @@ public class LRUCapacityController extends LRUAlgorithm implements Declarable {
        * Indicate what kind of <code>EvictionAlgorithm</code> this helper implements
        */
       @Override
-      public EvictionAlgorithm getEvictionAlgorithm() {
-        return EvictionAlgorithm.LRU_ENTRY;
+      public org.apache.geode.cache.EvictionAlgorithm getEvictionAlgorithm() {
+        return org.apache.geode.cache.EvictionAlgorithm.LRU_ENTRY;
       }
 
       /**
@@ -259,7 +259,7 @@ public class LRUCapacityController extends LRUAlgorithm implements Declarable {
 
       @Override
       public String getStatisticsName() {
-        return "LRUStatistics";
+        return "EvictionStatistics";
       }
 
       @Override
@@ -298,12 +298,12 @@ public class LRUCapacityController extends LRUAlgorithm implements Declarable {
       }
 
       @Override
-      public boolean mustEvict(LRUStatistics stats, Region region, int delta) {
+      public boolean mustEvict(EvictionStatistics stats, Region region, int delta) {
         return stats.getCounter() + delta > stats.getLimit();
       }
 
       @Override
-      public boolean lruLimitExceeded(LRUStatistics lruStatistics, DiskRegionView drv) {
+      public boolean lruLimitExceeded(EvictionStatistics lruStatistics, DiskRegionView drv) {
         return lruStatistics.getCounter() > lruStatistics.getLimit();
       }
     };

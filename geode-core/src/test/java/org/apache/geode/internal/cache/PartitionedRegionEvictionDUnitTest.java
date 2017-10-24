@@ -748,7 +748,7 @@ public class PartitionedRegionEvictionDUnitTest extends JUnit4CacheTestCase {
         "Create Entry LRU with local destroy on a partitioned Region") {
       public void run2() {
 
-        // Assert that LRUEntry maximum can be less than 1 entry per
+        // Assert that EvictionEntry maximum can be less than 1 entry per
         // bucket
         // DUnit not required for this test, but its a convenient place
         // to put it.

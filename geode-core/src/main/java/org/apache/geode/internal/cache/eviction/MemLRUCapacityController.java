@@ -21,7 +21,6 @@ import org.apache.geode.StatisticsType;
 import org.apache.geode.StatisticsTypeFactory;
 import org.apache.geode.cache.Declarable;
 import org.apache.geode.cache.EvictionAction;
-import org.apache.geode.cache.EvictionAlgorithm;
 import org.apache.geode.cache.EvictionAttributes;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.RegionAttributes;
@@ -74,7 +73,7 @@ import org.apache.geode.internal.i18n.LocalizedStrings;
  *
  * @since GemFire 2.0.2
  */
-public class MemLRUCapacityController extends LRUAlgorithm implements Declarable {
+public class MemLRUCapacityController extends EvictionAlgorithm implements Declarable {
 
   private static final long serialVersionUID = 6364183985590572514L;
 
@@ -355,8 +354,8 @@ public class MemLRUCapacityController extends LRUAlgorithm implements Declarable
        * Indicate what kind of <code>EvictionAlgorithm</code> this helper implements
        */
       @Override
-      public EvictionAlgorithm getEvictionAlgorithm() {
-        return EvictionAlgorithm.LRU_MEMORY;
+      public org.apache.geode.cache.EvictionAlgorithm getEvictionAlgorithm() {
+        return org.apache.geode.cache.EvictionAlgorithm.LRU_MEMORY;
       }
 
 
@@ -432,12 +431,12 @@ public class MemLRUCapacityController extends LRUAlgorithm implements Declarable
       }
 
       @Override
-      public boolean mustEvict(LRUStatistics stats, Region region, int delta) {
+      public boolean mustEvict(EvictionStatistics stats, Region region, int delta) {
         return stats.getCounter() + delta > stats.getLimit();
       }
 
       @Override
-      public boolean lruLimitExceeded(LRUStatistics lruStatistics, DiskRegionView drv) {
+      public boolean lruLimitExceeded(EvictionStatistics lruStatistics, DiskRegionView drv) {
         return lruStatistics.getCounter() > lruStatistics.getLimit();
       }
     };

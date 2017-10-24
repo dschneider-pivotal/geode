@@ -38,16 +38,16 @@ public class NewLRUClockHand {
   private BucketRegion bucketRegion = null;
 
   /** The last node in the LRU list after which all new nodes are added */
-  protected LRUClockNode tail = new GuardNode();
+  protected LRUListNode tail = new GuardNode();
 
   /** The starting point in the LRU list for searching for the LRU node */
-  protected LRUClockNode head = new GuardNode();
+  protected LRUListNode head = new GuardNode();
 
   /** The object for locking the head of the cu-pipe. */
   final protected HeadLock lock;
 
   /** Description of the Field */
-  final private LRUStatistics stats;
+  final private EvictionStatistics stats;
   /** Counter for the size of the LRU list */
   protected int size = 0;
 
@@ -79,7 +79,7 @@ public class NewLRUClockHand {
       this.stats = internalRegionArgs.getPartitionedRegion() != null
           ? internalRegionArgs.getPartitionedRegion().getEvictionController().stats : null;
     } else {
-      LRUStatistics tmp = null;
+      EvictionStatistics tmp = null;
       if (region instanceof PlaceHolderDiskRegion) {
         tmp = ((PlaceHolderDiskRegion) region).getPRLRUStats();
       } else if (region instanceof PartitionedRegion) {
@@ -131,7 +131,7 @@ public class NewLRUClockHand {
   }
 
   public void closeStats() {
-    LRUStatistics ls = this.stats;
+    EvictionStatistics ls = this.stats;
     if (ls != null) {
       ls.close();
     }
@@ -142,7 +142,7 @@ public class NewLRUClockHand {
    *
    * @param aNode Description of the Parameter
    */
-  public void appendEntry(final LRUClockNode aNode) {
+  public void appendEntry(final LRUListNode aNode) {
     synchronized (this.lock) {
       if (aNode.nextLRUNode() != null || aNode.prevLRUNode() != null) {
         return;
@@ -165,14 +165,14 @@ public class NewLRUClockHand {
    * return the head entry in the list preserving the cupipe requirement of at least one entry left
    * in the list
    */
-  private LRUClockNode getHeadEntry() {
+  private LRUListNode getHeadEntry() {
     synchronized (lock) {
-      LRUClockNode aNode = NewLRUClockHand.this.head.nextLRUNode();
+      LRUListNode aNode = NewLRUClockHand.this.head.nextLRUNode();
       if (aNode == this.tail) {
         return null;
       }
 
-      LRUClockNode next = aNode.nextLRUNode();
+      LRUListNode next = aNode.nextLRUNode();
       this.head.setNextLRUNode(next);
       next.setPrevLRUNode(this.head);
 
@@ -188,11 +188,11 @@ public class NewLRUClockHand {
    * return the Entry that is considered least recently used. The entry will no longer be in the
    * pipe (unless it is the last empty marker).
    */
-  public LRUClockNode getLRUEntry() {
+  public LRUListNode getLRUEntry() {
     long numEvals = 0;
 
     for (;;) {
-      LRUClockNode aNode = null;
+      LRUListNode aNode = null;
       aNode = getHeadEntry();
 
       if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
@@ -268,7 +268,7 @@ public class NewLRUClockHand {
     }
     synchronized (lock) {
       int idx = 1;
-      for (LRUClockNode aNode = this.head; aNode != null; aNode = aNode.nextLRUNode()) {
+      for (LRUListNode aNode = this.head; aNode != null; aNode = aNode.nextLRUNode()) {
         if (isDebugEnabled) {
           logger.trace(LogMarker.LRU_CLOCK, "  ({}) {}", (idx++), aNode);
         }
@@ -279,7 +279,7 @@ public class NewLRUClockHand {
   public long getExpensiveListCount() {
     synchronized (lock) {
       long count = 0;
-      for (LRUClockNode aNode = this.head.nextLRUNode(); aNode != this.tail; aNode =
+      for (LRUListNode aNode = this.head.nextLRUNode(); aNode != this.tail; aNode =
           aNode.nextLRUNode()) {
         count++;
       }
@@ -288,7 +288,7 @@ public class NewLRUClockHand {
   }
 
   public String getAuditReport() {
-    LRUClockNode h = this.head;
+    LRUListNode h = this.head;
     int totalNodes = 0;
     int evictedNodes = 0;
     int usedNodes = 0;
@@ -312,7 +312,7 @@ public class NewLRUClockHand {
   }
 
   /** remove an entry from the pipe... (marks it evicted to be skipped later) */
-  public boolean unlinkEntry(LRUClockNode entry) {
+  public boolean unlinkEntry(LRUListNode entry) {
     if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
       logger.trace(LogMarker.LRU_CLOCK,
           LocalizedMessage.create(LocalizedStrings.NewLRUClockHand_UNLINKENTRY_CALLED, entry));
@@ -320,8 +320,8 @@ public class NewLRUClockHand {
     entry.setEvicted();
     stats().incDestroys();
     synchronized (lock) {
-      LRUClockNode next = entry.nextLRUNode();
-      LRUClockNode prev = entry.prevLRUNode();
+      LRUListNode next = entry.nextLRUNode();
+      LRUListNode prev = entry.prevLRUNode();
       if (next == null || prev == null) {
         // not in the list anymore.
         return false;
@@ -338,9 +338,9 @@ public class NewLRUClockHand {
   /**
    * Get the modifier for lru based statistics.
    *
-   * @return The LRUStatistics for this Clock hand's region.
+   * @return The EvictionStatistics for this Clock hand's region.
    */
-  public LRUStatistics stats() {
+  public EvictionStatistics stats() {
     return this.stats;
   }
 
@@ -360,7 +360,7 @@ public class NewLRUClockHand {
         this.stats.resetCounter();
       }
       initHeadAndTail();
-      // LRUClockNode node = this.tail;
+      // LRUListNode node = this.tail;
       // node.setEvicted();
       //
       // // NYI need to walk the list and call unsetInList for each one.
@@ -396,7 +396,7 @@ public class NewLRUClockHand {
   /** perform work of clear(), after subclass has properly synchronized */
   // private void internalClear() {
   // stats().resetCounter();
-  // LRUClockNode node = this.tail;
+  // LRUListNode node = this.tail;
   // node.setEvicted();
   //
   // // NYI need to walk the list and call unsetInList for each one.
@@ -409,20 +409,20 @@ public class NewLRUClockHand {
   protected static class HeadLock extends Object {
   }
 
-  private static class GuardNode implements LRUClockNode {
+  private static class GuardNode implements LRUListNode {
 
-    private LRUClockNode next;
-    LRUClockNode prev;
+    private LRUListNode next;
+    LRUListNode prev;
 
     public int getEntrySize() {
       return 0;
     }
 
-    public LRUClockNode nextLRUNode() {
+    public LRUListNode nextLRUNode() {
       return next;
     }
 
-    public LRUClockNode prevLRUNode() {
+    public LRUListNode prevLRUNode() {
       return prev;
     }
 
@@ -430,11 +430,11 @@ public class NewLRUClockHand {
 
     }
 
-    public void setNextLRUNode(LRUClockNode next) {
+    public void setNextLRUNode(LRUListNode next) {
       this.next = next;
     }
 
-    public void setPrevLRUNode(LRUClockNode prev) {
+    public void setPrevLRUNode(LRUListNode prev) {
       this.prev = prev;
     }
 

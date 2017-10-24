@@ -27,7 +27,7 @@ import org.apache.geode.internal.Assert;
  * <code>final</code>. Thus, we do not need to worry about refreshing an instance when it resides in
  * shared memory.
  */
-public class LRUStatistics {
+public class EvictionStatistics {
 
   /** The Statistics object that we delegate most behavior to */
   private final Statistics stats;
@@ -58,11 +58,11 @@ public class LRUStatistics {
   ///////////////////////// Constructors /////////////////////////
 
   /**
-   * Constructor for the LRUStatistics object
+   * Constructor for the EvictionStatistics object
    *
    * @param name Description of the Parameter
    */
-  public LRUStatistics(StatisticsFactory factory, String name, EnableLRU helper) {
+  public EvictionStatistics(StatisticsFactory factory, String name, EnableLRU helper) {
     String statName = helper.getStatisticsName() + "-" + name;
     stats = factory.createAtomicStatistics(helper.getStatisticsType(), statName);
     if (!helper.getEvictionAlgorithm().isLRUHeap()) {
@@ -76,7 +76,7 @@ public class LRUStatistics {
     this.greedyReturnsId = helper.getGreedyReturnsStatId();
   }
 
-  public LRUStatistics(StatisticsFactory factory, String name, StatisticsType statisticsType) {
+  public EvictionStatistics(StatisticsFactory factory, String name, StatisticsType statisticsType) {
     stats = factory.createAtomicStatistics(statisticsType, name);
     limitId = 0;
     destroysLimitId = 0;

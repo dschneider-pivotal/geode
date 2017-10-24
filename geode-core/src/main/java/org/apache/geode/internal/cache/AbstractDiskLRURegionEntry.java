@@ -17,7 +17,7 @@ package org.apache.geode.internal.cache;
 
 
 import org.apache.geode.internal.cache.entries.AbstractOplogDiskRegionEntry;
-import org.apache.geode.internal.cache.eviction.LRUEntry;
+import org.apache.geode.internal.cache.eviction.EvictionEntry;
 
 /**
  * Abstract implementation class of RegionEntry interface. This adds LRU support behavior to entries
@@ -28,7 +28,7 @@ import org.apache.geode.internal.cache.eviction.LRUEntry;
  *
  */
 public abstract class AbstractDiskLRURegionEntry extends AbstractOplogDiskRegionEntry
-    implements LRUEntry {
+    implements EvictionEntry {
   protected AbstractDiskLRURegionEntry(RegionEntryContext context, Object value) {
     super(context, value);
   }

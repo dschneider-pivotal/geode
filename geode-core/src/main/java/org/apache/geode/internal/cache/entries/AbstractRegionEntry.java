@@ -27,6 +27,7 @@ import org.apache.geode.internal.cache.FilterProfile;
 import org.apache.geode.internal.cache.GemFireCacheImpl;
 import org.apache.geode.internal.cache.ImageState;
 import org.apache.geode.internal.cache.InitialImageOperation.Entry;
+import org.apache.geode.internal.cache.eviction.LRUListNode;
 import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.CancelException;
@@ -63,7 +64,6 @@ import org.apache.geode.internal.cache.TXManagerImpl;
 import org.apache.geode.internal.cache.TimestampedEntryEventImpl;
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.cache.TombstoneService;
-import org.apache.geode.internal.cache.eviction.LRUClockNode;
 import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 import org.apache.geode.internal.cache.persistence.DiskStoreID;
@@ -125,10 +125,10 @@ public abstract class AbstractRegionEntry implements RegionEntry, HashEntry<Obje
 
   private static final long LISTENER_INVOCATION_IN_PROGRESS = 0x08L << 56;
 
-  /** used for LRUEntry instances. */
+  /** used for EvictionEntry instances. */
   protected static final long RECENTLY_USED = 0x10L << 56;
 
-  /** used for LRUEntry instances. */
+  /** used for EvictionEntry instances. */
   protected static final long EVICTED = 0x20L << 56;
 
   /**
@@ -1468,7 +1468,7 @@ public abstract class AbstractRegionEntry implements RegionEntry, HashEntry<Obje
         setInUseByTransaction(false);
         if (lruList != null) {
           // No more transactions, place in lru list
-          lruList.appendEntry((LRUClockNode) this);
+          lruList.appendEntry((LRUListNode) this);
         }
         if (region != null && region.isEntryExpiryPossible()) {
           region.addExpiryTaskIfAbsent(this);
@@ -1482,7 +1482,7 @@ public abstract class AbstractRegionEntry implements RegionEntry, HashEntry<Obje
     if (isInUseByTransaction()) {
       setInUseByTransaction(false);
       if (lruList != null) {
-        lruList.appendEntry((LRUClockNode) this);
+        lruList.appendEntry((LRUListNode) this);
       }
     }
   }

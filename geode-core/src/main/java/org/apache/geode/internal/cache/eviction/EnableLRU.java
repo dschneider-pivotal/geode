@@ -38,13 +38,13 @@ public interface EnableLRU {
   public long limit();
 
   /** setup stats for this LRU type, if reset is true, initialize counter on stats to zero. */
-  public LRUStatistics initStats(Object region, StatisticsFactory sf);
+  public EvictionStatistics initStats(Object region, StatisticsFactory sf);
 
   /** return the eviction controller instance this came from */
   public EvictionAlgorithm getEvictionAlgorithm();
 
   /** return the stats object for this eviction controller */
-  public LRUStatistics getStats();
+  public EvictionStatistics getStats();
 
   /**
    * Returns the {@linkplain EvictionAction action} to take when the LRU entry is evicted.
@@ -100,16 +100,16 @@ public interface EnableLRU {
 
   /**
    * Returns whether or not there is enough room to accommodate data of the given size based on the
-   * given <code>LRUStatistics</code>.
+   * given <code>EvictionStatistics</code>.
    */
-  public boolean mustEvict(LRUStatistics stats, Region region, int delta);
+  public boolean mustEvict(EvictionStatistics stats, Region region, int delta);
 
   /**
    * Envoked after an entry has been evicted
    */
   public void afterEviction();
 
-  public boolean lruLimitExceeded(LRUStatistics lruStatistics, DiskRegionView drv);
+  public boolean lruLimitExceeded(EvictionStatistics lruStatistics, DiskRegionView drv);
 
 }
 

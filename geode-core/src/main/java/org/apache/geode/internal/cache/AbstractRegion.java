@@ -86,7 +86,7 @@ import org.apache.geode.internal.DataSerializableFixedID;
 import org.apache.geode.internal.cache.extension.Extensible;
 import org.apache.geode.internal.cache.extension.ExtensionPoint;
 import org.apache.geode.internal.cache.extension.SimpleExtensionPoint;
-import org.apache.geode.internal.cache.eviction.LRUAlgorithm;
+import org.apache.geode.internal.cache.eviction.EvictionAlgorithm;
 import org.apache.geode.internal.cache.snapshot.RegionSnapshotServiceImpl;
 import org.apache.geode.internal.i18n.LocalizedStrings;
 import org.apache.geode.internal.logging.LogService;
@@ -127,7 +127,7 @@ public abstract class AbstractRegion implements InternalRegion, AttributesMutato
 
   private volatile CacheWriter cacheWriter;
 
-  private LRUAlgorithm evictionController;
+  private EvictionAlgorithm evictionController;
 
   protected int entryIdleTimeout;
 
@@ -1693,11 +1693,11 @@ public abstract class AbstractRegion implements InternalRegion, AttributesMutato
     return this.evictionAttributes;
   }
 
-  private void setEvictionController(LRUAlgorithm evictionController) {
+  private void setEvictionController(EvictionAlgorithm evictionController) {
     this.evictionController = evictionController;
   }
 
-  public LRUAlgorithm getEvictionController() {
+  public EvictionAlgorithm getEvictionController() {
     return this.evictionController;
   }
 

@@ -17,6 +17,8 @@ package org.apache.geode.internal.cache.entries;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.apache.geode.internal.cache.eviction.EvictionEntry;
+import org.apache.geode.internal.cache.eviction.LRUListNode;
 import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.cache.CacheClosedException;
@@ -46,9 +48,6 @@ import org.apache.geode.internal.cache.RegionEntryContext;
 import org.apache.geode.internal.cache.RegionMap;
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
-import org.apache.geode.internal.cache.eviction.LRUClockNode;
-import org.apache.geode.internal.cache.eviction.LRUEntry;
-import org.apache.geode.internal.cache.partitioned.Bucket;
 import org.apache.geode.internal.cache.persistence.BytesAndBits;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 import org.apache.geode.internal.cache.persistence.DiskRegionView;
@@ -984,8 +983,8 @@ public interface DiskEntry extends RegionEntry {
           }
         }
       }
-      if (entry instanceof LRUEntry) {
-        LRUEntry le = (LRUEntry) entry;
+      if (entry instanceof EvictionEntry) {
+        EvictionEntry le = (EvictionEntry) entry;
         le.unsetEvicted();
       }
       return result;
@@ -1054,7 +1053,7 @@ public interface DiskEntry extends RegionEntry {
       boolean lruFaultedIn = false;
       boolean done = false;
       try {
-        if (entry instanceof LRUEntry && !dr.isSync()) {
+        if (entry instanceof EvictionEntry && !dr.isSync()) {
           synchronized (entry) {
             DiskId did = entry.getDiskId();
             if (did != null && did.isPendingAsync()) {
@@ -1062,7 +1061,7 @@ public interface DiskEntry extends RegionEntry {
               // See if it is pending async because of a faultOut.
               // If so then if we are not a backup then we can unschedule the pending async.
               // In either case we need to do the lruFaultIn logic.
-              boolean evicted = ((LRUClockNode) entry).testEvicted();
+              boolean evicted = ((LRUListNode) entry).testEvicted();
               if (evicted) {
                 if (!dr.isBackup()) {
                   // @todo do we also need a bit that tells us if it is in the async queue?
@@ -1070,7 +1069,7 @@ public interface DiskEntry extends RegionEntry {
                   did.setPendingAsync(false);
                 }
               }
-              lruEntryFaultIn((LRUEntry) entry, (DiskRecoveryStore) region);
+              lruEntryFaultIn((EvictionEntry) entry, (DiskRecoveryStore) region);
               lruFaultedIn = true;
             }
           }
@@ -1081,9 +1080,9 @@ public interface DiskEntry extends RegionEntry {
 
             if (v == null) {
               v = readValueFromDisk(entry, (DiskRecoveryStore) region);
-              if (entry instanceof LRUEntry) {
+              if (entry instanceof EvictionEntry) {
                 if (v != null && !Token.isInvalid(v)) {
-                  lruEntryFaultIn((LRUEntry) entry, (DiskRecoveryStore) region);
+                  lruEntryFaultIn((EvictionEntry) entry, (DiskRecoveryStore) region);
 
                   lruFaultedIn = true;
                 }
@@ -1132,9 +1131,9 @@ public interface DiskEntry extends RegionEntry {
             } finally {
               dr.releaseReadLock();
             }
-            if (entry instanceof LRUEntry) {
+            if (entry instanceof EvictionEntry) {
               if (value != null && !Token.isInvalid(value)) {
-                lruEntryFaultIn((LRUEntry) entry, recoveryStore);
+                lruEntryFaultIn((EvictionEntry) entry, recoveryStore);
                 lruFaultedIn = true;
               }
             }
@@ -1195,10 +1194,10 @@ public interface DiskEntry extends RegionEntry {
       }
     }
 
-    private static void lruEntryFaultIn(LRUEntry entry, DiskRecoveryStore recoveryStore) {
+    private static void lruEntryFaultIn(EvictionEntry entry, DiskRecoveryStore recoveryStore) {
       RegionMap rm = (RegionMap) recoveryStore.getRegionMap();
       try {
-        rm.lruEntryFaultIn((LRUEntry) entry);
+        rm.lruEntryFaultIn((EvictionEntry) entry);
       } catch (DiskAccessException dae) {
         recoveryStore.handleDiskAccessException(dae);
         throw dae;
@@ -1318,7 +1317,7 @@ public interface DiskEntry extends RegionEntry {
       // Get diskID . If it is null, it implies it is overflow only mode.
       DiskId did = entry.getDiskId();
       if (did == null) {
-        ((LRUEntry) entry).setDelayedDiskId((DiskRecoveryStore) region);
+        ((EvictionEntry) entry).setDelayedDiskId((DiskRecoveryStore) region);
         did = entry.getDiskId();
       }
 
@@ -1356,7 +1355,7 @@ public interface DiskEntry extends RegionEntry {
             region.updateSizeOnEvict(entry.getKey(), oldSize);
             entry.handleValueOverflow(region);
             entry.setValueWithContext(region, null);
-            change = ((LRUClockNode) entry).updateEntrySize(ccHelper);
+            change = ((LRUListNode) entry).updateEntrySize(ccHelper);
             // the caller checked to make sure we had something to overflow
             // so dec inVM and inc onDisk
             updateStats(dr, region, -1/* InVM */, 1/* OnDisk */, getValueLength(did));
@@ -1459,7 +1458,7 @@ public interface DiskEntry extends RegionEntry {
                     // Only setValue to null if this was an evict.
                     // We could just be a backup that is writing async.
                     if (!Token.isInvalid(entryVal) && (entryVal != Token.TOMBSTONE)
-                        && entry instanceof LRUEntry && ((LRUClockNode) entry).testEvicted()) {
+                        && entry instanceof EvictionEntry && ((LRUListNode) entry).testEvicted()) {
                       // Moved this here to fix bug 40116.
                       region.updateSizeOnEvict(entry.getKey(), entryValSize);
                       updateStats(dr, region, -1/* InVM */, 1/* OnDisk */, did.getValueLength());

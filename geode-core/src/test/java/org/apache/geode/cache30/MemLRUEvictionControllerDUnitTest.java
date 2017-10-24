@@ -14,6 +14,7 @@
  */
 package org.apache.geode.cache30;
 
+import org.apache.geode.internal.cache.eviction.EvictionStatistics;
 import org.junit.experimental.categories.Category;
 import org.junit.Test;
 
@@ -36,7 +37,6 @@ import org.apache.geode.cache.util.ObjectSizer;
 import org.apache.geode.distributed.DistributedSystem;
 import org.apache.geode.internal.SharedLibrary;
 import org.apache.geode.internal.cache.LocalRegion;
-import org.apache.geode.internal.cache.eviction.LRUStatistics;
 import org.apache.geode.internal.cache.eviction.MemLRUCapacityController;
 import org.apache.geode.internal.size.ReflectionSingleObjectSizer;
 import org.apache.geode.internal.size.WellKnownClassSizer;
@@ -60,9 +60,9 @@ public class MemLRUEvictionControllerDUnitTest extends JUnit4CacheTestCase {
   }
 
   /**
-   * Returns the <code>LRUStatistics</code> for the given region
+   * Returns the <code>EvictionStatistics</code> for the given region
    */
-  private LRUStatistics getLRUStats(Region region) {
+  private EvictionStatistics getLRUStats(Region region) {
     final LocalRegion l = (LocalRegion) region;
     return l.getEvictionController().getStatistics();
   }
@@ -75,7 +75,7 @@ public class MemLRUEvictionControllerDUnitTest extends JUnit4CacheTestCase {
   // ////// Test Methods
 
   /**
-   * Carefully verifies that region operations effect the {@link LRUStatistics} as expected.
+   * Carefully verifies that region operations effect the {@link EvictionStatistics} as expected.
    */
   @Test
   public void testRegionOperations() throws CacheException {
@@ -97,7 +97,7 @@ public class MemLRUEvictionControllerDUnitTest extends JUnit4CacheTestCase {
       region = createRegion(name, factory.create());
     }
 
-    LRUStatistics lruStats = getLRUStats(region);
+    EvictionStatistics lruStats = getLRUStats(region);
     assertNotNull(lruStats);
 
     String sampleKey = new String("10000");
@@ -158,7 +158,7 @@ public class MemLRUEvictionControllerDUnitTest extends JUnit4CacheTestCase {
 
     Region region = createRegion(name, factory.create());
 
-    LRUStatistics lruStats = getLRUStats(region);
+    EvictionStatistics lruStats = getLRUStats(region);
     assertNotNull(lruStats);
 
     TestObject object = new TestObject(50);

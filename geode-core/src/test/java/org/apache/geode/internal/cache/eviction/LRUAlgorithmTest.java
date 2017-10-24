@@ -17,8 +17,6 @@ package org.apache.geode.internal.cache.eviction;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.apache.geode.internal.cache.eviction.EnableLRU;
-import org.apache.geode.internal.cache.eviction.LRUAlgorithm;
 import org.apache.geode.test.junit.categories.UnitTest;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -28,7 +26,7 @@ public class LRUAlgorithmTest {
 
   @Test
   public void shouldBeMockable() throws Exception {
-    LRUAlgorithm mockLRUAlgorithm = mock(LRUAlgorithm.class);
+    EvictionAlgorithm mockLRUAlgorithm = mock(EvictionAlgorithm.class);
     EnableLRU mockEnableLRU = mock(EnableLRU.class);
     when(mockLRUAlgorithm.getLRUHelper()).thenReturn(mockEnableLRU);
     assertThat(mockLRUAlgorithm.getLRUHelper()).isEqualTo(mockEnableLRU);

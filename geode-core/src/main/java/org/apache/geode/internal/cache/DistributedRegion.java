@@ -101,7 +101,7 @@ import org.apache.geode.internal.cache.execute.FunctionStats;
 import org.apache.geode.internal.cache.execute.LocalResultCollector;
 import org.apache.geode.internal.cache.execute.RegionFunctionContextImpl;
 import org.apache.geode.internal.cache.execute.ServerToClientFunctionResultSender;
-import org.apache.geode.internal.cache.eviction.LRUEntry;
+import org.apache.geode.internal.cache.eviction.EvictionEntry;
 import org.apache.geode.internal.cache.partitioned.RemoteSizeMessage;
 import org.apache.geode.internal.cache.persistence.CreatePersistentRegionProcessor;
 import org.apache.geode.internal.cache.persistence.PersistenceAdvisor;
@@ -1644,7 +1644,7 @@ public class DistributedRegion extends LocalRegion implements InternalDistribute
   }
 
   @Override
-  boolean evictDestroy(LRUEntry entry) {
+  boolean evictDestroy(EvictionEntry entry) {
     boolean evictDestroyWasDone = super.evictDestroy(entry);
     if (evictDestroyWasDone) {
       if (this.scope.isGlobal()) {

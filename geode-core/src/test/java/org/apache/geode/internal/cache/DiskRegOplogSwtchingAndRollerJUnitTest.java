@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.util.Arrays;
 
+import org.apache.geode.internal.cache.eviction.EvictionStatistics;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -27,7 +28,6 @@ import org.apache.geode.cache.DiskStore;
 import org.apache.geode.cache.EntryNotFoundException;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.Scope;
-import org.apache.geode.internal.cache.eviction.LRUStatistics;
 import org.apache.geode.test.junit.categories.IntegrationTest;
 
 /**
@@ -617,7 +617,7 @@ public class DiskRegOplogSwtchingAndRollerJUnitTest extends DiskRegionTestingBas
     // region.close();
   }// end of testEntryDeletedinCurrentOplog
 
-  private LRUStatistics getLRUStats(Region region) {
+  private EvictionStatistics getLRUStats(Region region) {
     return ((LocalRegion) region).getEvictionController().getStatistics();
   }
 

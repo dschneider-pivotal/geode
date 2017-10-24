@@ -27,6 +27,7 @@ import org.apache.geode.internal.cache.entries.AbstractOplogDiskRegionEntry;
 import org.apache.geode.internal.cache.entries.AbstractRegionEntry;
 import org.apache.geode.internal.cache.entries.DiskEntry;
 import org.apache.geode.internal.cache.entries.OffHeapRegionEntry;
+import org.apache.geode.internal.cache.eviction.EvictionEntry;
 import org.apache.geode.internal.util.BlobHelper;
 import org.apache.logging.log4j.Logger;
 
@@ -53,7 +54,6 @@ import org.apache.geode.internal.cache.DiskInitFile.DiskRegionFlag;
 import org.apache.geode.internal.cache.FilterRoutingInfo.FilterInfo;
 import org.apache.geode.internal.cache.ha.HAContainerWrapper;
 import org.apache.geode.internal.cache.ha.HARegionQueue;
-import org.apache.geode.internal.cache.eviction.LRUEntry;
 import org.apache.geode.internal.cache.persistence.DiskRegionView;
 import org.apache.geode.internal.cache.region.entry.RegionEntryFactoryBuilder;
 import org.apache.geode.internal.cache.tier.sockets.CacheClientNotifier;
@@ -527,7 +527,7 @@ public abstract class AbstractRegionMap implements RegionMap {
   }
 
   @Override
-  public void lruEntryFaultIn(LRUEntry entry) {
+  public void lruEntryFaultIn(EvictionEntry entry) {
     // do nothing by default
   }
 

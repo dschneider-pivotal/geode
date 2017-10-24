@@ -40,6 +40,7 @@ import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
+import org.apache.geode.internal.cache.eviction.EvictionStatistics;
 import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.Statistics;
@@ -76,7 +77,6 @@ import org.apache.geode.internal.cache.PartitionedRegion;
 import org.apache.geode.internal.cache.PartitionedRegionStats;
 import org.apache.geode.internal.cache.control.ResourceManagerStats;
 import org.apache.geode.internal.cache.execute.FunctionServiceStats;
-import org.apache.geode.internal.cache.eviction.LRUStatistics;
 import org.apache.geode.internal.i18n.LocalizedStrings;
 import org.apache.geode.internal.logging.LogService;
 import org.apache.geode.internal.logging.log4j.LocalizedMessage;
@@ -513,7 +513,7 @@ public class MemberMBeanBridge {
 
     LocalRegion l = (LocalRegion) region;
     if (l.getEvictionController() != null) {
-      LRUStatistics stats = l.getEvictionController().getStatistics();
+      EvictionStatistics stats = l.getEvictionController().getStatistics();
       if (stats != null) {
         addLRUStats(stats);
       }
@@ -531,7 +531,7 @@ public class MemberMBeanBridge {
     regionMonitor.addStatisticsToMonitor(parStats.getStats());
   }
 
-  public void addLRUStats(LRUStatistics lruStats) {
+  public void addLRUStats(EvictionStatistics lruStats) {
     regionMonitor.addStatisticsToMonitor(lruStats.getStats());
   }
 
@@ -546,7 +546,7 @@ public class MemberMBeanBridge {
 
     LocalRegion l = (LocalRegion) region;
     if (l.getEvictionController() != null) {
-      LRUStatistics stats = l.getEvictionController().getStatistics();
+      EvictionStatistics stats = l.getEvictionController().getStatistics();
       if (stats != null) {
         removeLRUStats(stats);
       }
@@ -564,7 +564,7 @@ public class MemberMBeanBridge {
     regionMonitor.removePartitionStatistics(parStats.getStats());
   }
 
-  public void removeLRUStats(LRUStatistics lruStats) {
+  public void removeLRUStats(EvictionStatistics lruStats) {
     regionMonitor.removeLRUStatistics(lruStats.getStats());
   }
 

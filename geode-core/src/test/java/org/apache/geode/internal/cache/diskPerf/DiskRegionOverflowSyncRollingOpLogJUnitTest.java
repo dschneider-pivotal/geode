@@ -18,12 +18,12 @@ import org.apache.geode.internal.cache.*;
 
 import java.util.*;
 
+import org.apache.geode.internal.cache.eviction.EvictionStatistics;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import org.apache.geode.*;
 import org.apache.geode.cache.*;
-import org.apache.geode.internal.cache.eviction.LRUStatistics;
 import org.apache.geode.test.dunit.Wait;
 import org.apache.geode.test.dunit.WaitCriterion;
 import org.apache.geode.test.junit.categories.IntegrationTest;
@@ -63,7 +63,7 @@ public class DiskRegionOverflowSyncRollingOpLogJUnitTest extends DiskRegionTesti
   public void populateFirst0k_10Kbwrites() {
     // RegionAttributes ra = region.getAttributes();
 
-    // LRUStatistics lruStats = getLRUStats(region);
+    // EvictionStatistics lruStats = getLRUStats(region);
 
     // put first 0-9999 entries
     // final String key = "K";
@@ -101,7 +101,7 @@ public class DiskRegionOverflowSyncRollingOpLogJUnitTest extends DiskRegionTesti
     afterHavingCompacted = false;
     // RegionAttributes ra = region.getAttributes();
 
-    // LRUStatistics lruStats = getLRUStats(region);
+    // EvictionStatistics lruStats = getLRUStats(region);
 
     DiskRegionTestingBase.setCacheObserverCallBack();
 
@@ -181,7 +181,7 @@ public class DiskRegionOverflowSyncRollingOpLogJUnitTest extends DiskRegionTesti
    * @param region1
    * @return
    */
-  protected LRUStatistics getLRUStats(Region region1) {
+  protected EvictionStatistics getLRUStats(Region region1) {
     return ((LocalRegion) region1).getEvictionController().getStatistics();
 
   }

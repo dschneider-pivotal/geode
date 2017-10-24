@@ -18,7 +18,7 @@ import org.apache.geode.cache.*;
 import org.apache.geode.distributed.DistributedSystem;
 import org.apache.geode.internal.Assert;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
-import org.apache.geode.internal.cache.eviction.LRUClockNode;
+import org.apache.geode.internal.cache.eviction.LRUListNode;
 import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 import org.apache.geode.test.junit.categories.IntegrationTest;
 import org.junit.Test;
@@ -154,7 +154,7 @@ public class Bug37244JUnitTest {
     /**
      * Overridden getLRUEntry method
      */
-    public LRUClockNode getLRUEntry() {
+    public LRUListNode getLRUEntry() {
       if (EXECUTE_AFTER_GET_CALL) {
         Cache cache = CacheFactory.getAnyInstance();
         Assert.assertTrue(cache != null);
@@ -174,7 +174,7 @@ public class Bug37244JUnitTest {
         }
       }
 
-      LRUClockNode aNode = super.getLRUEntry();
+      LRUListNode aNode = super.getLRUEntry();
       return aNode;
     }
 

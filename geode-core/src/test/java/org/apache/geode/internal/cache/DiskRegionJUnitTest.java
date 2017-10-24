@@ -30,7 +30,7 @@ import org.apache.geode.cache.Scope;
 import org.apache.geode.cache.server.CacheServer;
 import org.apache.geode.cache.util.CacheListenerAdapter;
 import org.apache.geode.internal.cache.entries.DiskEntry;
-import org.apache.geode.internal.cache.eviction.LRUStatistics;
+import org.apache.geode.internal.cache.eviction.EvictionStatistics;
 import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 import org.apache.geode.internal.cache.persistence.UninterruptibleFileChannel;
 import org.apache.geode.test.dunit.ThreadUtils;
@@ -182,7 +182,7 @@ public class DiskRegionJUnitTest extends DiskRegionTestingBase {
     assertNotNull(dr);
 
     DiskRegionStats diskStats = dr.getStats();
-    LRUStatistics lruStats = ((LocalRegion) region).getEvictionController().getStatistics();
+    EvictionStatistics lruStats = ((LocalRegion) region).getEvictionController().getStatistics();
     assertNotNull(diskStats);
     assertNotNull(lruStats);
 

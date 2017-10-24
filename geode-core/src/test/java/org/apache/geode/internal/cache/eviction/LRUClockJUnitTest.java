@@ -37,10 +37,6 @@ import org.apache.geode.cache.EvictionAction;
 import org.apache.geode.cache.EvictionAlgorithm;
 import org.apache.geode.cache.Region;
 import org.apache.geode.distributed.DistributedSystem;
-import org.apache.geode.internal.cache.eviction.EnableLRU;
-import org.apache.geode.internal.cache.eviction.LRUClockNode;
-import org.apache.geode.internal.cache.eviction.LRUStatistics;
-import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 import org.apache.geode.internal.statistics.StatisticsTypeFactoryImpl;
 import org.apache.geode.internal.cache.InternalRegionArguments;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
@@ -96,12 +92,12 @@ public class LRUClockJUnitTest {
     NewLRUClockHand clock = getAClockHand(getARegion(), new TestEnableLRU());
 
     for (int i = 0; i < 100; i++) {
-      LRUClockNode entry = getANode(i);
+      LRUListNode entry = getANode(i);
       clock.appendEntry(entry);
     }
 
     for (int i = 100; i < 2000; i++) {
-      LRUClockNode entry = getANode(i);
+      LRUListNode entry = getANode(i);
       clock.appendEntry(entry);
       Object obj = clock.getLRUEntry();
       if (obj instanceof LRUTestEntry) {
@@ -250,16 +246,16 @@ public class LRUClockJUnitTest {
     return new LocalLRUTestEntry(id);
   }
 
-  private interface LRUTestEntry extends LRUClockNode {
+  private interface LRUTestEntry extends LRUListNode {
     public int id();
   }
 
-  /** test implementation of an LRUClockNode */
+  /** test implementation of an LRUListNode */
   private static class LocalLRUTestEntry implements LRUTestEntry {
 
     int id;
-    LRUClockNode next;
-    LRUClockNode prev;
+    LRUListNode next;
+    LRUListNode prev;
     int size;
     boolean recentlyUsed;
     boolean evicted;
@@ -283,22 +279,22 @@ public class LRUClockJUnitTest {
     }
 
     @Override
-    public void setNextLRUNode(LRUClockNode next) {
+    public void setNextLRUNode(LRUListNode next) {
       this.next = next;
     }
 
     @Override
-    public LRUClockNode nextLRUNode() {
+    public LRUListNode nextLRUNode() {
       return this.next;
     }
 
     @Override
-    public void setPrevLRUNode(LRUClockNode prev) {
+    public void setPrevLRUNode(LRUListNode prev) {
       this.prev = prev;
     }
 
     @Override
-    public LRUClockNode prevLRUNode() {
+    public LRUListNode prevLRUNode() {
       return this.prev;
     }
 
@@ -348,11 +344,11 @@ public class LRUClockJUnitTest {
       recentlyUsed = false;
     }
 
-    public LRUClockNode absoluteSelf() {
+    public LRUListNode absoluteSelf() {
       return this;
     }
 
-    public LRUClockNode clearClones() {
+    public LRUListNode clearClones() {
       return this;
     }
 
@@ -409,7 +405,7 @@ public class LRUClockJUnitTest {
     }
 
     @Override
-    public LRUStatistics getStats() {
+    public EvictionStatistics getStats() {
       return null;
     }
 
@@ -464,7 +460,7 @@ public class LRUClockJUnitTest {
     }
 
     @Override
-    public boolean mustEvict(LRUStatistics stats, Region region, int delta) {
+    public boolean mustEvict(EvictionStatistics stats, Region region, int delta) {
       throw new UnsupportedOperationException("Not implemented");
     }
 
@@ -474,7 +470,7 @@ public class LRUClockJUnitTest {
     }
 
     @Override
-    public LRUStatistics initStats(Object region, StatisticsFactory sf) {
+    public EvictionStatistics initStats(Object region, StatisticsFactory sf) {
       String regionName;
       if (region instanceof Region) {
         regionName = ((Region) region).getName();
@@ -484,13 +480,14 @@ public class LRUClockJUnitTest {
       } else {
         throw new IllegalStateException("expected Region or PlaceHolderDiskRegion");
       }
-      final LRUStatistics stats = new LRUStatistics(sf, "TestLRUStatistics" + regionName, this);
+      final EvictionStatistics
+          stats = new EvictionStatistics(sf, "TestLRUStatistics" + regionName, this);
       stats.setLimit(limit());
       return stats;
     }
 
     @Override
-    public boolean lruLimitExceeded(LRUStatistics lruStatistics, DiskRegionView drv) {
+    public boolean lruLimitExceeded(EvictionStatistics lruStatistics, DiskRegionView drv) {
       throw new UnsupportedOperationException("Not implemented");
     }
   }

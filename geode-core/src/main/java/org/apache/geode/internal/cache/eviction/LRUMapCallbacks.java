@@ -64,5 +64,5 @@ public interface LRUMapCallbacks {
   /**
    * Called when an entry is faulted in from disk.
    */
-  public void lruEntryFaultIn(LRUEntry entry);
+  public void lruEntryFaultIn(EvictionEntry entry);
 }

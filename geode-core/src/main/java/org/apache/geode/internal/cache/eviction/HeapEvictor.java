@@ -38,7 +38,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * for on-heap regions. This is registered with the ResourceManager.
  * 
  * @since GemFire 6.0
- * 
  */
 public class HeapEvictor implements ResourceListener<MemoryEvent> {
   private static final Logger logger = LogService.getLogger();

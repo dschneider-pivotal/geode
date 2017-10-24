@@ -171,13 +171,13 @@ import org.apache.geode.internal.cache.control.ResourceListener;
 import org.apache.geode.internal.cache.entries.DiskEntry;
 import org.apache.geode.internal.cache.event.EventTracker;
 import org.apache.geode.internal.cache.event.NonDistributedEventTracker;
+import org.apache.geode.internal.cache.eviction.EvictionEntry;
 import org.apache.geode.internal.cache.execute.DistributedRegionFunctionExecutor;
 import org.apache.geode.internal.cache.execute.DistributedRegionFunctionResultSender;
 import org.apache.geode.internal.cache.execute.LocalResultCollector;
 import org.apache.geode.internal.cache.execute.RegionFunctionContextImpl;
 import org.apache.geode.internal.cache.execute.ServerToClientFunctionResultSender;
 import org.apache.geode.internal.cache.ha.ThreadIdentifier;
-import org.apache.geode.internal.cache.eviction.LRUEntry;
 import org.apache.geode.internal.cache.partitioned.Bucket;
 import org.apache.geode.internal.cache.partitioned.RedundancyAlreadyMetException;
 import org.apache.geode.internal.cache.persistence.DiskExceptionHandler;
@@ -6590,7 +6590,7 @@ public class LocalRegion extends AbstractRegion implements InternalRegion, Loade
   /**
    * @return true if the evict destroy was done; false if it was not needed
    */
-  boolean evictDestroy(LRUEntry entry) {
+  boolean evictDestroy(EvictionEntry entry) {
     checkReadiness();
 
     @Released
@@ -8264,8 +8264,8 @@ public class LocalRegion extends AbstractRegion implements InternalRegion, Loade
       try {
         synchronized (regionEntry) {
           if (!regionEntry.isRemoved()) {
-            if (regionEntry instanceof DiskEntry && regionEntry instanceof LRUEntry) {
-              LRUEntry le = (LRUEntry) regionEntry;
+            if (regionEntry instanceof DiskEntry && regionEntry instanceof EvictionEntry) {
+              EvictionEntry le = (EvictionEntry) regionEntry;
               if (le.testEvicted()) {
                 // Handle the case where we fault in a disk entry
                 txLRUStart();

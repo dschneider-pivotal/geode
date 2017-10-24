@@ -17,8 +17,8 @@ package org.apache.geode.internal.cache;
 import org.apache.geode.cache.*;
 import org.apache.geode.distributed.DistributedSystem;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
-import org.apache.geode.internal.cache.eviction.LRUClockNode;
-import org.apache.geode.internal.cache.eviction.LRUStatistics;
+import org.apache.geode.internal.cache.eviction.LRUListNode;
+import org.apache.geode.internal.cache.eviction.EvictionStatistics;
 import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 import org.apache.geode.test.junit.categories.IntegrationTest;
 import org.junit.After;
@@ -49,7 +49,7 @@ public class LIFOEvictionAlgoMemoryEnabledRegionJUnitTest {
   private static Cache cache = null;
 
   /** Stores LIFO Related Statistics */
-  private static LRUStatistics lifoStats = null;
+  private static EvictionStatistics lifoStats = null;
 
   /** The distributedSystem instance */
   private static DistributedSystem distributedSystem = null;
@@ -339,10 +339,10 @@ public class LIFOEvictionAlgoMemoryEnabledRegionJUnitTest {
 
 
 // test class for validating LIFO queue
-class TestLRUNode implements LRUClockNode {
+class TestLRUNode implements LRUListNode {
 
-  LRUClockNode next = null;
-  LRUClockNode prev = null;
+  LRUListNode next = null;
+  LRUListNode prev = null;
   boolean evicted = false;
   boolean recentlyUsed = false;
   int value = 0;
@@ -355,19 +355,19 @@ class TestLRUNode implements LRUClockNode {
     return value;
   }
 
-  public void setNextLRUNode(LRUClockNode next) {
+  public void setNextLRUNode(LRUListNode next) {
     this.next = next;
   }
 
-  public void setPrevLRUNode(LRUClockNode prev) {
+  public void setPrevLRUNode(LRUListNode prev) {
     this.prev = prev;
   }
 
-  public LRUClockNode nextLRUNode() {
+  public LRUListNode nextLRUNode() {
     return next;
   }
 
-  public LRUClockNode prevLRUNode() {
+  public LRUListNode prevLRUNode() {
     return prev;
   }
 

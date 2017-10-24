@@ -21,7 +21,6 @@ import org.apache.geode.StatisticsFactory;
 import org.apache.geode.StatisticsType;
 import org.apache.geode.StatisticsTypeFactory;
 import org.apache.geode.cache.EvictionAction;
-import org.apache.geode.cache.EvictionAlgorithm;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.util.ObjectSizer;
 import org.apache.geode.distributed.internal.DistributionConfig;
@@ -51,7 +50,7 @@ import org.apache.geode.internal.statistics.StatisticsTypeFactoryImpl;
  * @since GemFire 3.2
  */
 @SuppressWarnings("synthetic-access")
-public class HeapLRUCapacityController extends LRUAlgorithm {
+public class HeapLRUCapacityController extends EvictionAlgorithm {
   private static final long serialVersionUID = 4970685814429530675L;
   /**
    * The default percentage of VM heap usage over which LRU eviction occurs
@@ -190,8 +189,8 @@ public class HeapLRUCapacityController extends LRUAlgorithm {
        * Indicate what kind of <code>EvictionAlgorithm</code> this helper implements
        */
       @Override
-      public EvictionAlgorithm getEvictionAlgorithm() {
-        return EvictionAlgorithm.LRU_HEAP;
+      public org.apache.geode.cache.EvictionAlgorithm getEvictionAlgorithm() {
+        return org.apache.geode.cache.EvictionAlgorithm.LRU_HEAP;
       }
 
       /**
@@ -219,9 +218,9 @@ public class HeapLRUCapacityController extends LRUAlgorithm {
        * the LRU entry.
        */
       @Override
-      public LRUStatistics initStats(Object region, StatisticsFactory sf) {
+      public EvictionStatistics initStats(Object region, StatisticsFactory sf) {
         setRegionName(region);
-        final LRUStatistics stats = new HeapLRUStatistics(sf, getRegionName(), this);
+        final EvictionStatistics stats = new HeapLRUStatistics(sf, getRegionName(), this);
         setStats(stats);
         return stats;
       }
@@ -279,7 +278,7 @@ public class HeapLRUCapacityController extends LRUAlgorithm {
        * greater than the overflow threshold, then we evict the LRU entry.
        */
       @Override
-      public boolean mustEvict(LRUStatistics stats, Region region, int delta) {
+      public boolean mustEvict(EvictionStatistics stats, Region region, int delta) {
         final InternalCache cache = (InternalCache) region.getRegionService();
         InternalResourceManager resourceManager = cache.getInternalResourceManager();
         boolean offheap = region.getAttributes().getOffHeap();
@@ -293,7 +292,7 @@ public class HeapLRUCapacityController extends LRUAlgorithm {
       }
 
       @Override
-      public boolean lruLimitExceeded(LRUStatistics lruStatistics, DiskRegionView drv) {
+      public boolean lruLimitExceeded(EvictionStatistics lruStatistics, DiskRegionView drv) {
         InternalResourceManager resourceManager =
             drv.getDiskStore().getCache().getInternalResourceManager();
         return resourceManager.getMemoryMonitor(drv.getOffHeap()).getState().isEviction();

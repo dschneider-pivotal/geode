@@ -17,7 +17,7 @@ package org.apache.geode.internal.cache.entries;
 
 
 import org.apache.geode.internal.cache.RegionEntryContext;
-import org.apache.geode.internal.cache.eviction.LRUEntry;
+import org.apache.geode.internal.cache.eviction.EvictionEntry;
 
 /**
  * Abstract implementation class of RegionEntry interface. This adds LRU support behaviour
@@ -26,7 +26,7 @@ import org.apache.geode.internal.cache.eviction.LRUEntry;
  *
  *
  */
-public abstract class AbstractLRURegionEntry extends AbstractRegionEntry implements LRUEntry {
+public abstract class AbstractLRURegionEntry extends AbstractRegionEntry implements EvictionEntry {
   protected AbstractLRURegionEntry(RegionEntryContext context, Object value) {
     super(context, value);
   }

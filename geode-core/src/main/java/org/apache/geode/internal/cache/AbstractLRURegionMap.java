@@ -18,11 +18,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.geode.internal.cache.eviction.EvictionAlgorithm;
+import org.apache.geode.internal.cache.eviction.EvictionEntry;
+import org.apache.geode.internal.cache.eviction.EvictionStatistics;
 import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.InternalGemFireException;
 import org.apache.geode.cache.EvictionAction;
-import org.apache.geode.cache.EvictionAlgorithm;
 import org.apache.geode.cache.RegionDestroyedException;
 import org.apache.geode.internal.Assert;
 import org.apache.geode.internal.cache.control.InternalResourceManager;
@@ -30,9 +32,6 @@ import org.apache.geode.internal.cache.entries.DiskEntry;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.eviction.HeapEvictor;
 import org.apache.geode.internal.cache.eviction.HeapLRUCapacityController;
-import org.apache.geode.internal.cache.eviction.LRUAlgorithm;
-import org.apache.geode.internal.cache.eviction.LRUEntry;
-import org.apache.geode.internal.cache.eviction.LRUStatistics;
 import org.apache.geode.internal.cache.eviction.MemLRUCapacityController;
 import org.apache.geode.internal.cache.eviction.NewLIFOClockHand;
 import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
@@ -62,7 +61,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
 
   protected abstract NewLRUClockHand _getLruList();
 
-  private LRUAlgorithm evictionController;
+  private EvictionAlgorithm evictionController;
 
   protected AbstractLRURegionMap(InternalRegionArguments internalRegionArgs) {
     super(internalRegionArgs);
@@ -73,8 +72,8 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
 
     super.initialize(owner, attr, internalRegionArgs, true/* isLRU */);
 
-    EvictionAlgorithm ea;
-    LRUAlgorithm ec;
+    org.apache.geode.cache.EvictionAlgorithm ea;
+    EvictionAlgorithm ec;
     if (owner instanceof LocalRegion) {
       ea = ((LocalRegion) owner).getEvictionAttributes().getAlgorithm();
       ec = ((LocalRegion) owner).getEvictionController();
@@ -99,7 +98,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
      * modification for LIFO Logic incubation
      * 
      */
-    if (ea == EvictionAlgorithm.LIFO_ENTRY || ea == EvictionAlgorithm.LIFO_MEMORY) {
+    if (ea == org.apache.geode.cache.EvictionAlgorithm.LIFO_ENTRY || ea == org.apache.geode.cache.EvictionAlgorithm.LIFO_MEMORY) {
       _setLruList(new NewLIFOClockHand(owner, _getCCHelper(), internalRegionArgs));
     } else {
       _setLruList(new NewLRUClockHand(owner, _getCCHelper(), internalRegionArgs));
@@ -174,7 +173,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
    * @return true if finishExpandValue needs to be called
    * @since GemFire 6.1.2.9
    */
-  public boolean beginChangeValueForm(LRUEntry le, CachedDeserializable cd, Object v) {
+  public boolean beginChangeValueForm(EvictionEntry le, CachedDeserializable cd, Object v) {
     // make sure this cached deserializable is still in the entry
     // @todo what if a clear is done and this entry is no longer in the region?
     {
@@ -273,7 +272,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
    * 
    * @return number of bytes evicted, zero if no eviction took place
    */
-  protected int evictEntry(LRUEntry entry, LRUStatistics stats) throws RegionClearedException {
+  protected int evictEntry(EvictionEntry entry, EvictionStatistics stats) throws RegionClearedException {
     EvictionAction action = _getCCHelper().getEvictionAction();
     LocalRegion region = _getOwner();
     if (action.isLocalDestroy()) {
@@ -372,7 +371,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
    * @param ec The governing eviction controller.
    * @return the helper instance from the eviction controller.
    */
-  private static EnableLRU getHelper(LRUAlgorithm ec) {
+  private static EnableLRU getHelper(EvictionAlgorithm ec) {
     return ec.getLRUHelper();
   }
 
@@ -395,7 +394,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
     return _getLruList().stats().getLimit();
   }
 
-  public LRUStatistics getLRUStatistics() {
+  public EvictionStatistics getLRUStatistics() {
     return _getLruList().stats();
   }
 
@@ -429,7 +428,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
           getTotalEntrySize(), this._getLruList().getExpensiveListCount(), size(), delta,
           getLimit(), _getOwner().getTombstoneCount());
     }
-    LRUStatistics stats = _getLruList().stats();
+    EvictionStatistics stats = _getLruList().stats();
     if (!_isOwnerALocalRegion()) {
       changeTotalEntrySize(delta);
       // instead of evicting we just quit faulting values in
@@ -479,7 +478,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
             }
           }
           if (evictFromThisRegion) {
-            LRUEntry removalEntry = (LRUEntry) _getLruList().getLRUEntry();
+            EvictionEntry removalEntry = (EvictionEntry) _getLruList().getLRUEntry();
             if (removalEntry != null) {
               int sizeOfValue = evictEntry(removalEntry, stats);
               if (sizeOfValue != 0) {
@@ -521,7 +520,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
       try {
         // to fix bug 48285 do no evict if bytesToEvict <= 0.
         while (bytesToEvict > 0 && _getCCHelper().mustEvict(stats, _getOwner(), bytesToEvict)) {
-          LRUEntry removalEntry = (LRUEntry) _getLruList().getLRUEntry();
+          EvictionEntry removalEntry = (EvictionEntry) _getLruList().getLRUEntry();
           if (removalEntry != null) {
             if (evictEntry(removalEntry, stats) != 0) {
               if (isDebugEnabled_LRU) {
@@ -587,10 +586,10 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
       logger.trace(LogMarker.LRU, "centralLruUpdateCallback: lru size is now {}, limit is: {}",
           getTotalEntrySize(), getLimit());
     }
-    LRUStatistics stats = _getLruList().stats();
+    EvictionStatistics stats = _getLruList().stats();
     try {
       while (mustEvict() && evictedBytes == 0) {
-        LRUEntry removalEntry = (LRUEntry) _getLruList().getLRUEntry();
+        EvictionEntry removalEntry = (EvictionEntry) _getLruList().getLRUEntry();
         if (removalEntry != null) {
           evictedBytes = evictEntry(removalEntry, stats);
           if (evictedBytes != 0) {
@@ -723,7 +722,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
    */
   @Override
   protected void lruEntryCreate(RegionEntry re) {
-    LRUEntry e = (LRUEntry) re;
+    EvictionEntry e = (EvictionEntry) re;
     // Assert.assertFalse(e._getValue() instanceof DiskEntry.RecoveredEntry)
     if (logger.isTraceEnabled(LogMarker.LRU)) {
       logger.trace(LogMarker.LRU,
@@ -744,7 +743,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
 
   @Override
   protected void lruEntryUpdate(RegionEntry re) {
-    final LRUEntry e = (LRUEntry) re;
+    final EvictionEntry e = (EvictionEntry) re;
     setDelta(e.updateEntrySize(_getCCHelper()));
     if (logger.isDebugEnabled()) {
       logger.debug("lruEntryUpdate for key={} size={}", re.getKey(), e.getEntrySize());
@@ -786,7 +785,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
 
   @Override
   protected void lruEntryDestroy(RegionEntry re) {
-    final LRUEntry e = (LRUEntry) re;
+    final EvictionEntry e = (EvictionEntry) re;
     if (logger.isTraceEnabled(LogMarker.LRU)) {
       logger.trace(LogMarker.LRU,
           "lruEntryDestroy for key={}; list size is: {}; actual size is: {}; map size is: {}; entry size: {}; in lru clock: {}",
@@ -818,7 +817,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
    * Called by DiskEntry.Helper.faultInValue
    */
   @Override
-  public void lruEntryFaultIn(LRUEntry e) {
+  public void lruEntryFaultIn(EvictionEntry e) {
     if (logger.isDebugEnabled()) {
       logger.debug("lruEntryFaultIn for key={} size={}", e.getKey(), e.getEntrySize());
     }
@@ -843,7 +842,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
     if (_isOwnerALocalRegion()) {
       lr = _getOwner();
     }
-    ((LRUEntry) re).decRefCount(_getLruList(), lr);
+    ((EvictionEntry) re).decRefCount(_getLruList(), lr);
   }
 
   @Override
@@ -859,7 +858,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
   @Override
   boolean confirmEvictionDestroy(RegionEntry re) {
     // We assume here that a LRURegionMap contains LRUEntries
-    LRUEntry lruRe = (LRUEntry) re;
+    EvictionEntry lruRe = (EvictionEntry) re;
     if (lruRe.isInUseByTransaction() || lruRe.isDestroyed()) {
       lruRe.unsetEvicted();
       return false;

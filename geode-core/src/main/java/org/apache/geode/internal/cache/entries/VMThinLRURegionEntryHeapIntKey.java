@@ -18,18 +18,13 @@ package org.apache.geode.internal.cache.entries;
 
 
 
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.eviction.EnableLRU;
+import org.apache.geode.internal.cache.eviction.LRUListNode;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
-
-import org.apache.geode.internal.cache.InternalRegion;
-import org.apache.geode.internal.cache.eviction.LRUClockNode;
-import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
@@ -206,27 +201,27 @@ public class VMThinLRURegionEntryHeapIntKey extends VMThinLRURegionEntryHeap {
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  private LRUClockNode nextLRU;
-  private LRUClockNode previousLRU;
+  private LRUListNode nextLRU;
+  private LRUListNode previousLRU;
   private int size;
 
   @Override
-  public void setNextLRUNode(final LRUClockNode nextLRU) {
+  public void setNextLRUNode(final LRUListNode nextLRU) {
     this.nextLRU = nextLRU;
   }
 
   @Override
-  public LRUClockNode nextLRUNode() {
+  public LRUListNode nextLRUNode() {
     return this.nextLRU;
   }
 
   @Override
-  public void setPrevLRUNode(final LRUClockNode previousLRU) {
+  public void setPrevLRUNode(final LRUListNode previousLRU) {
     this.previousLRU = previousLRU;
   }
 
   @Override
-  public LRUClockNode prevLRUNode() {
+  public LRUListNode prevLRUNode() {
     return this.previousLRU;
   }
 

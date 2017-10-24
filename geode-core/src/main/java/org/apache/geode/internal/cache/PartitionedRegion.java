@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 
+import org.apache.geode.internal.cache.eviction.EvictionStatistics;
 import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.CancelException;
@@ -178,7 +179,6 @@ import org.apache.geode.internal.cache.execute.RegionFunctionContextImpl;
 import org.apache.geode.internal.cache.execute.ServerToClientFunctionResultSender;
 import org.apache.geode.internal.cache.ha.ThreadIdentifier;
 import org.apache.geode.internal.cache.eviction.HeapEvictor;
-import org.apache.geode.internal.cache.eviction.LRUStatistics;
 import org.apache.geode.internal.cache.eviction.Sizeable;
 import org.apache.geode.internal.cache.partitioned.ContainsKeyValueMessage;
 import org.apache.geode.internal.cache.partitioned.ContainsKeyValueMessage.ContainsKeyValueResponse;
@@ -510,11 +510,11 @@ public class PartitionedRegion extends LocalRegion
   }
 
   /**
-   * Returns the LRUStatistics for this PR. This is needed to find the single instance of
-   * LRUStatistics created early for a PR when it is recovered from disk. This fixes bug 41938
+   * Returns the EvictionStatistics for this PR. This is needed to find the single instance of
+   * EvictionStatistics created early for a PR when it is recovered from disk. This fixes bug 41938
    */
-  public LRUStatistics getPRLRUStatsDuringInitialization() {
-    LRUStatistics result = null;
+  public EvictionStatistics getPRLRUStatsDuringInitialization() {
+    EvictionStatistics result = null;
     if (getDiskStore() != null) {
       result = getDiskStore().getPRLRUStats(this);
     }
