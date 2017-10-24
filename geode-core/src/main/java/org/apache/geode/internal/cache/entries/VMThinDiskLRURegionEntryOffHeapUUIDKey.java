@@ -15,24 +15,35 @@
 package org.apache.geode.internal.cache.entries;
 
 // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
 import java.util.UUID;
+
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+
 import org.apache.geode.internal.cache.RegionEntryContext;
+
 import org.apache.geode.internal.cache.lru.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
+
 import org.apache.geode.internal.cache.DiskId;
 import org.apache.geode.internal.cache.DiskStoreImpl;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
+
 import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.lru.LRUClockNode;
 import org.apache.geode.internal.cache.lru.NewLRUClockHand;
+
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.offheap.OffHeapRegionEntryHelper;
 import org.apache.geode.internal.offheap.annotations.Released;
 import org.apache.geode.internal.offheap.annotations.Retained;
 import org.apache.geode.internal.offheap.annotations.Unretained;
+
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
@@ -45,20 +56,30 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
  * KEY_STRING1 key string2: KEY_STRING2
  */
+
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionEntryOffHeap {
+
   // --------------------------------------- common fields ----------------------------------------
+
   private static final AtomicLongFieldUpdater<VMThinDiskLRURegionEntryOffHeapUUIDKey> LAST_MODIFIED_UPDATER =
       AtomicLongFieldUpdater.newUpdater(VMThinDiskLRURegionEntryOffHeapUUIDKey.class,
           "lastModified");
+
   protected int hash;
+
   private HashEntry<Object, Object> nextEntry;
+
   @SuppressWarnings("unused")
   private volatile long lastModified;
+
+
+
   // --------------------------------------- offheap fields ---------------------------------------
+
   /**
    * All access done using OFF_HEAP_ADDRESS_UPDATER so it is used even though the compiler can not
    * tell it is.
@@ -79,26 +100,55 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
   private static final AtomicLongFieldUpdater<VMThinDiskLRURegionEntryOffHeapUUIDKey> OFF_HEAP_ADDRESS_UPDATER =
       AtomicLongFieldUpdater.newUpdater(VMThinDiskLRURegionEntryOffHeapUUIDKey.class,
           "offHeapAddress");
+
+
+
   // ---------------------------------------- disk fields -----------------------------------------
+
   /**
    * @since GemFire 5.1
    */
   protected DiskId id;
+
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   private final long keyMostSigBits;
   private final long keyLeastSigBits;
 
+
   public VMThinDiskLRURegionEntryOffHeapUUIDKey(final RegionEntryContext context, final UUID key,
-      @Retained final Object value) {
-    super(context, (value instanceof RecoveredEntry ? null : value));
+
+      @Retained
+
+      final Object value
+
+
+
+  ) {
+    super(context,
+
+        (value instanceof RecoveredEntry ? null : value)
+
+
+
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
     initialize(context, value);
+
+
+
     this.keyMostSigBits = key.getMostSignificantBits();
     this.keyLeastSigBits = key.getLeastSignificantBits();
+
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   @Override
   public Token getValueAsToken() {
     return OffHeapRegionEntryHelper.getValueAsToken(this);
@@ -110,14 +160,21 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
+
   @Unretained
   protected void setValueField(@Unretained final Object value) {
+
+
+
     OffHeapRegionEntryHelper.setValue(this, value);
   }
 
   @Override
+
   @Retained
+
   public Object getValueRetain(final RegionEntryContext context, final boolean decompress) {
     return OffHeapRegionEntryHelper._getValueRetain(this, decompress, context);
   }
@@ -133,7 +190,9 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
   }
 
   @Override
+
   @Released
+
   public void release() {
     OffHeapRegionEntryHelper.releaseEntry(this);
   }
@@ -142,6 +201,7 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
   public void returnToPool() {
     // never implemented
   }
+
 
   @Override
   protected long getLastModifiedField() {
@@ -173,8 +233,11 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
     this.nextEntry = nextEntry;
   }
 
+
   // ----------------------------------------- disk code ------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   protected void initialize(final RegionEntryContext context, final Object value) {
     boolean isBackup;
     if (context instanceof InternalRegion) {
@@ -199,7 +262,9 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
     return delta;
   }
 
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public DiskId getDiskId() {
     return this.id;
@@ -219,22 +284,30 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
     Helper.initialize(this, diskRecoveryStore, value);
   }
 
+
+
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
+
     DiskStoreImpl diskStore = diskRecoveryStore.getDiskStore();
     long maxOplogSize = diskStore.getMaxOplogSize();
     this.id = DiskId.createDiskId(maxOplogSize, false, diskStore.needsLinkedList());
+
+
+
   }
 
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController) {
-    // OFFHEAP: getValue ok w/o incing refcount because we are synced and only getting the size
+    // 1: getValue ok w/o incing refcount because we are synced and only getting the size
     return updateEntrySize(capacityController, getValue());
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -275,6 +348,7 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   private LRUClockNode nextLRU;
   private LRUClockNode previousLRU;
   private int size;
@@ -309,14 +383,23 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public Object getKeyForSizing() {
+
+
+
     // inline keys always report null for sizing since the size comes from the entry size
     return null;
+
   }
+
+
 
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   @Override
   public Object getKey() {
     return new UUID(this.keyMostSigBits, this.keyLeastSigBits);
@@ -331,5 +414,9 @@ public class VMThinDiskLRURegionEntryOffHeapUUIDKey extends VMThinDiskLRURegionE
     }
     return false;
   }
+
+
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 }
+

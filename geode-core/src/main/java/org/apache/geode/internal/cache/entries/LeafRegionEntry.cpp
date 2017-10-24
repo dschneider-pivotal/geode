@@ -580,7 +580,7 @@ public class LEAF_CLASS extends PARENT_CLASS {
     return this.lastAccessed;
   }
   @Override
-  public void setLastAccessed(finallong lastAccessed) {
+  public void setLastAccessed(final long lastAccessed) {
     this.lastAccessed = lastAccessed;
   }
 

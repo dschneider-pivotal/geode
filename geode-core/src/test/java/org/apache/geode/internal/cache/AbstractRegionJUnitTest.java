@@ -474,6 +474,11 @@ public class AbstractRegionJUnitTest {
     }
 
     @Override
+    public RegionEntry getRegionEntry(final Object key) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public RegionVersionVector getVersionVector() {
       throw new UnsupportedOperationException();
     }

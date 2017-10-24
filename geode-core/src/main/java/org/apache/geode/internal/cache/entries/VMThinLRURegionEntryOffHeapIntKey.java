@@ -15,19 +15,28 @@
 package org.apache.geode.internal.cache.entries;
 
 // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+
 import org.apache.geode.internal.cache.RegionEntryContext;
+
 import org.apache.geode.internal.cache.lru.EnableLRU;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
+
 import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.lru.LRUClockNode;
 import org.apache.geode.internal.cache.lru.NewLRUClockHand;
+
 import org.apache.geode.internal.cache.Token;
 import org.apache.geode.internal.offheap.OffHeapRegionEntryHelper;
 import org.apache.geode.internal.offheap.annotations.Released;
 import org.apache.geode.internal.offheap.annotations.Retained;
 import org.apache.geode.internal.offheap.annotations.Unretained;
+
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
 /*
@@ -40,19 +49,29 @@ import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.Ha
  * key object: KEY_OBJECT key int: KEY_INT key long: KEY_LONG key uuid: KEY_UUID key string1:
  * KEY_STRING1 key string2: KEY_STRING2
  */
+
 /**
  * Do not modify this class. It was generated. Instead modify LeafRegionEntry.cpp and then run
  * ./dev-tools/generateRegionEntryClasses.sh (it must be run from the top level directory).
  */
 public class VMThinLRURegionEntryOffHeapIntKey extends VMThinLRURegionEntryOffHeap {
+
   // --------------------------------------- common fields ----------------------------------------
+
   private static final AtomicLongFieldUpdater<VMThinLRURegionEntryOffHeapIntKey> LAST_MODIFIED_UPDATER =
       AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryOffHeapIntKey.class, "lastModified");
+
   protected int hash;
+
   private HashEntry<Object, Object> nextEntry;
+
   @SuppressWarnings("unused")
   private volatile long lastModified;
+
+
+
   // --------------------------------------- offheap fields ---------------------------------------
+
   /**
    * All access done using OFF_HEAP_ADDRESS_UPDATER so it is used even though the compiler can not
    * tell it is.
@@ -72,18 +91,43 @@ public class VMThinLRURegionEntryOffHeapIntKey extends VMThinLRURegionEntryOffHe
    */
   private static final AtomicLongFieldUpdater<VMThinLRURegionEntryOffHeapIntKey> OFF_HEAP_ADDRESS_UPDATER =
       AtomicLongFieldUpdater.newUpdater(VMThinLRURegionEntryOffHeapIntKey.class, "offHeapAddress");
+
+
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
   private final int key;
 
+
   public VMThinLRURegionEntryOffHeapIntKey(final RegionEntryContext context, final int key,
-      @Retained final Object value) {
-    super(context, value);
+
+      @Retained
+
+      final Object value
+
+
+
+  ) {
+    super(context,
+
+
+
+        value
+
+    );
     // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
     this.key = key;
+
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
   @Override
   public Token getValueAsToken() {
     return OffHeapRegionEntryHelper.getValueAsToken(this);
@@ -95,14 +139,21 @@ public class VMThinLRURegionEntryOffHeapIntKey extends VMThinLRURegionEntryOffHe
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
+
   @Unretained
   protected void setValueField(@Unretained final Object value) {
+
+
+
     OffHeapRegionEntryHelper.setValue(this, value);
   }
 
   @Override
+
   @Retained
+
   public Object getValueRetain(final RegionEntryContext context, final boolean decompress) {
     return OffHeapRegionEntryHelper._getValueRetain(this, decompress, context);
   }
@@ -118,7 +169,9 @@ public class VMThinLRURegionEntryOffHeapIntKey extends VMThinLRURegionEntryOffHe
   }
 
   @Override
+
   @Released
+
   public void release() {
     OffHeapRegionEntryHelper.releaseEntry(this);
   }
@@ -127,6 +180,7 @@ public class VMThinLRURegionEntryOffHeapIntKey extends VMThinLRURegionEntryOffHe
   public void returnToPool() {
     // never implemented
   }
+
 
   @Override
   protected long getLastModifiedField() {
@@ -158,20 +212,28 @@ public class VMThinLRURegionEntryOffHeapIntKey extends VMThinLRURegionEntryOffHe
     this.nextEntry = nextEntry;
   }
 
+
+
   // --------------------------------------- eviction code ----------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public void setDelayedDiskId(final DiskRecoveryStore diskRecoveryStore) {
+
+
+
     // nothing needed for LRUs with no disk
+
   }
 
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController) {
-    // OFFHEAP: getValue ok w/o incing refcount because we are synced and only getting the size
+    // 1: getValue ok w/o incing refcount because we are synced and only getting the size
     return updateEntrySize(capacityController, getValue());
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public synchronized int updateEntrySize(final EnableLRU capacityController, final Object value) {
     int oldSize = getEntrySize();
@@ -212,6 +274,7 @@ public class VMThinLRURegionEntryOffHeapIntKey extends VMThinLRURegionEntryOffHe
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   private LRUClockNode nextLRU;
   private LRUClockNode previousLRU;
   private int size;
@@ -246,14 +309,24 @@ public class VMThinLRURegionEntryOffHeapIntKey extends VMThinLRURegionEntryOffHe
   }
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
   @Override
   public Object getKeyForSizing() {
+
+
+
     // inline keys always report null for sizing since the size comes from the entry size
     return null;
+
   }
+
+
 
   // ----------------------------------------- key code -------------------------------------------
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
+
+
+
   @Override
   public Object getKey() {
     return this.key;
@@ -266,5 +339,9 @@ public class VMThinLRURegionEntryOffHeapIntKey extends VMThinLRURegionEntryOffHe
     }
     return false;
   }
+
+
+
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 }
+
