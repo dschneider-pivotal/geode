@@ -57,16 +57,18 @@ import java.util.Properties;
  *
  * {@link org.apache.geode.cache.EvictionAttributes Eviction controllers} that use an LRU algorithm
  * maintain certain region-dependent state (such as the maximum number of entries allowed in the
- * region). As a result, an instance of <code>EvictionAlgorithm</code> cannot be shared among multiple
- * regions. Attempts to create a region with a LRU-based capacity controller that has already been
- * used to create another region will result in an {@link IllegalStateException} being thrown.
+ * region). As a result, an instance of <code>EvictionAlgorithm</code> cannot be shared among
+ * multiple regions. Attempts to create a region with a LRU-based capacity controller that has
+ * already been used to create another region will result in an {@link IllegalStateException} being
+ * thrown.
  *
  * @since GemFire 3.2
  */
 public abstract class EvictionAlgorithm implements CacheCallback, Serializable, Cloneable {
 
   /**
-   * The key for setting the <code>eviction-action</code> property of an <code>EvictionAlgorithm</code>
+   * The key for setting the <code>eviction-action</code> property of an
+   * <code>EvictionAlgorithm</code>
    */
   public static final String EVICTION_ACTION = "eviction-action";
 

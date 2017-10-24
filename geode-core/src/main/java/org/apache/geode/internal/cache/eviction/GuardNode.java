@@ -14,20 +14,20 @@
  */
 package org.apache.geode.internal.cache.eviction;
 
-public class GuardNode implements org.apache.geode.internal.cache.lru.LRUListNode {
+public class GuardNode implements LRUListNode {
 
-  private org.apache.geode.internal.cache.lru.LRUListNode next;
-  org.apache.geode.internal.cache.lru.LRUListNode prev;
+  private LRUListNode next;
+  LRUListNode prev;
 
   public int getEntrySize() {
     return 0;
   }
 
-  public org.apache.geode.internal.cache.lru.LRUListNode nextLRUNode() {
+  public LRUListNode nextLRUNode() {
     return next;
   }
 
-  public org.apache.geode.internal.cache.lru.LRUListNode prevLRUNode() {
+  public LRUListNode prevLRUNode() {
     return prev;
   }
 
@@ -35,7 +35,7 @@ public class GuardNode implements org.apache.geode.internal.cache.lru.LRUListNod
 
   }
 
-  public void setNextLRUNode(org.apache.geode.internal.cache.lru.LRUListNode next) {
+  public void setNextLRUNode(LRUListNode next) {
     this.next = next;
   }
 

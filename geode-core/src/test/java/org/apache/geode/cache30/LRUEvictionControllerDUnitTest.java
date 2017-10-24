@@ -128,8 +128,8 @@ public class LRUEvictionControllerDUnitTest extends JUnit4CacheTestCase {
   }
 
   /**
-   * Carefully verifies that region operations effect the {@link EvictionStatistics} as expected in the
-   * presense of a {@link CacheLoader}.
+   * Carefully verifies that region operations effect the {@link EvictionStatistics} as expected in
+   * the presense of a {@link CacheLoader}.
    */
   @Test
   public void testCacheLoader() throws CacheException {

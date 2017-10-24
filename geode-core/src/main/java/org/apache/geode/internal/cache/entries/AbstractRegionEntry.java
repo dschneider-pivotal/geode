@@ -27,6 +27,7 @@ import org.apache.geode.internal.cache.FilterProfile;
 import org.apache.geode.internal.cache.GemFireCacheImpl;
 import org.apache.geode.internal.cache.ImageState;
 import org.apache.geode.internal.cache.InitialImageOperation.Entry;
+import org.apache.geode.internal.cache.eviction.LRUList;
 import org.apache.geode.internal.cache.eviction.LRUListNode;
 import org.apache.logging.log4j.Logger;
 

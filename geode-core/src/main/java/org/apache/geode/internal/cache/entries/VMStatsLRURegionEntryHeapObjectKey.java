@@ -25,14 +25,13 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.eviction.EnableLRU;
-import org.apache.geode.internal.cache.eviction.LRUListNode;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
-<<<<<<< HEAD:geode-core/src/main/java/org/apache/geode/internal/cache/entries/VMStatsLRURegionEntryHeapObjectKey.java
 import org.apache.geode.internal.InternalStatisticsDisabledException;
-=======
-import org.apache.geode.internal.cache.lru.NewLRUClockHand;
->>>>>>> dfbd9e438... initial wip:geode-core/src/main/java/org/apache/geode/internal/cache/VMStatsLRURegionEntryHeapObjectKey.java
+
+import org.apache.geode.internal.cache.InternalRegion;
+import org.apache.geode.internal.cache.eviction.LRUListNode;
+import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 
@@ -222,7 +221,6 @@ public class VMStatsLRURegionEntryHeapObjectKey extends VMStatsLRURegionEntryHea
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
   private LRUListNode nextLRU;
-<<<<<<< HEAD:geode-core/src/main/java/org/apache/geode/internal/cache/entries/VMStatsLRURegionEntryHeapObjectKey.java
   private LRUListNode previousLRU;
   private int size;
 
@@ -232,20 +230,10 @@ public class VMStatsLRURegionEntryHeapObjectKey extends VMStatsLRURegionEntryHea
   }
 
   @Override
-=======
-  private LRUListNode prevLRU;
-  private int size;
-
-  public void setNextLRUNode(LRUListNode next) {
-    this.nextLRU = next;
-  }
-
->>>>>>> dfbd9e438... initial wip:geode-core/src/main/java/org/apache/geode/internal/cache/VMStatsLRURegionEntryHeapObjectKey.java
   public LRUListNode nextLRUNode() {
     return this.nextLRU;
   }
 
-<<<<<<< HEAD:geode-core/src/main/java/org/apache/geode/internal/cache/entries/VMStatsLRURegionEntryHeapObjectKey.java
   @Override
   public void setPrevLRUNode(final LRUListNode previousLRU) {
     this.previousLRU = previousLRU;
@@ -254,14 +242,6 @@ public class VMStatsLRURegionEntryHeapObjectKey extends VMStatsLRURegionEntryHea
   @Override
   public LRUListNode prevLRUNode() {
     return this.previousLRU;
-=======
-  public void setPrevLRUNode(LRUListNode prev) {
-    this.prevLRU = prev;
-  }
-
-  public LRUListNode prevLRUNode() {
-    return this.prevLRU;
->>>>>>> dfbd9e438... initial wip:geode-core/src/main/java/org/apache/geode/internal/cache/VMStatsLRURegionEntryHeapObjectKey.java
   }
 
   @Override

@@ -30,7 +30,6 @@ import org.apache.geode.internal.cache.InternalRegion;
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.eviction.EnableLRU;
-import org.apache.geode.internal.cache.eviction.LRUListNode;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
 import org.apache.geode.internal.cache.DiskId;
@@ -38,11 +37,11 @@ import org.apache.geode.internal.cache.DiskStoreImpl;
 import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
 
-<<<<<<< HEAD:geode-core/src/main/java/org/apache/geode/internal/cache/entries/VersionedStatsDiskLRURegionEntryHeapUUIDKey.java
 import org.apache.geode.internal.InternalStatisticsDisabledException;
-=======
-import org.apache.geode.internal.cache.lru.NewLRUClockHand;
->>>>>>> dfbd9e438... initial wip:geode-core/src/main/java/org/apache/geode/internal/cache/VersionedStatsDiskLRURegionEntryHeapUUIDKey.java
+
+import org.apache.geode.internal.cache.InternalRegion;
+import org.apache.geode.internal.cache.eviction.LRUListNode;
+import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.cache.versions.VersionSource;
@@ -320,7 +319,6 @@ public class VersionedStatsDiskLRURegionEntryHeapUUIDKey
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
   private LRUListNode nextLRU;
-<<<<<<< HEAD:geode-core/src/main/java/org/apache/geode/internal/cache/entries/VersionedStatsDiskLRURegionEntryHeapUUIDKey.java
   private LRUListNode previousLRU;
   private int size;
 
@@ -330,20 +328,10 @@ public class VersionedStatsDiskLRURegionEntryHeapUUIDKey
   }
 
   @Override
-=======
-  private LRUListNode prevLRU;
-  private int size;
-
-  public void setNextLRUNode(LRUListNode next) {
-    this.nextLRU = next;
-  }
-
->>>>>>> dfbd9e438... initial wip:geode-core/src/main/java/org/apache/geode/internal/cache/VersionedStatsDiskLRURegionEntryHeapUUIDKey.java
   public LRUListNode nextLRUNode() {
     return this.nextLRU;
   }
 
-<<<<<<< HEAD:geode-core/src/main/java/org/apache/geode/internal/cache/entries/VersionedStatsDiskLRURegionEntryHeapUUIDKey.java
   @Override
   public void setPrevLRUNode(final LRUListNode previousLRU) {
     this.previousLRU = previousLRU;
@@ -352,14 +340,6 @@ public class VersionedStatsDiskLRURegionEntryHeapUUIDKey
   @Override
   public LRUListNode prevLRUNode() {
     return this.previousLRU;
-=======
-  public void setPrevLRUNode(LRUListNode prev) {
-    this.prevLRU = prev;
-  }
-
-  public LRUListNode prevLRUNode() {
-    return this.prevLRU;
->>>>>>> dfbd9e438... initial wip:geode-core/src/main/java/org/apache/geode/internal/cache/VersionedStatsDiskLRURegionEntryHeapUUIDKey.java
   }
 
   @Override

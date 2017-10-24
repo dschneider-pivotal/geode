@@ -49,4 +49,6 @@ public interface LRUListNode {
   public void unsetEvicted();
 
   public boolean testEvicted();
+
+  public boolean isInUseByTransaction();
 }

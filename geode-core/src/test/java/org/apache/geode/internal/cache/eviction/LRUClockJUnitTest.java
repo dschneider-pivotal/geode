@@ -486,8 +486,8 @@ public class LRUClockJUnitTest {
       } else {
         throw new IllegalStateException("expected Region or PlaceHolderDiskRegion");
       }
-      final EvictionStatistics
-          stats = new EvictionStatistics(sf, "TestLRUStatistics" + regionName, this);
+      final EvictionStatistics stats =
+          new EvictionStatistics(sf, "TestLRUStatistics" + regionName, this);
       stats.setLimit(limit());
       return stats;
     }

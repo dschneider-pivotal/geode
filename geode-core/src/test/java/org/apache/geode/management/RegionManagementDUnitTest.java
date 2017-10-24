@@ -362,7 +362,8 @@ public class RegionManagementDUnitTest implements Serializable {
 
       Region region = getCache().createRegion(REGION_NAME, factory.create());
 
-      EvictionStatistics lruStats = ((AbstractRegion) region).getEvictionController().getStatistics();
+      EvictionStatistics lruStats =
+          ((AbstractRegion) region).getEvictionController().getStatistics();
       assertThat(lruStats).isNotNull();
 
       RegionMXBean regionMXBean = getManagementService().getLocalRegionMBean(REGION_PATH);

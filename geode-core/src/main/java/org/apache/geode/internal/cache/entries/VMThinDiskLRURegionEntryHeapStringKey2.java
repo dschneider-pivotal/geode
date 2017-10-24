@@ -18,12 +18,13 @@ package org.apache.geode.internal.cache.entries;
 
 
 
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.apache.geode.internal.cache.RegionEntryContext;
 
 import org.apache.geode.internal.cache.eviction.EnableLRU;
-import org.apache.geode.internal.cache.eviction.LRUListNode;
 import org.apache.geode.internal.cache.persistence.DiskRecoveryStore;
 
 import org.apache.geode.internal.cache.DiskId;
@@ -32,6 +33,8 @@ import org.apache.geode.internal.cache.PlaceHolderDiskRegion;
 import org.apache.geode.internal.cache.RegionEntry;
 
 import org.apache.geode.internal.cache.InternalRegion;
+import org.apache.geode.internal.cache.eviction.LRUListNode;
+import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 
 import org.apache.geode.internal.util.concurrent.CustomEntryConcurrentHashMap.HashEntry;
 

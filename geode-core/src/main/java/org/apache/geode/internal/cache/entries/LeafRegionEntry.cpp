@@ -56,7 +56,7 @@ import org.apache.geode.internal.InternalStatisticsDisabledException;
 #endif
 #ifdef LRU
 import org.apache.geode.internal.cache.InternalRegion;
-import org.apache.geode.internal.cache.eviction.LRUClockNode;
+import org.apache.geode.internal.cache.eviction.LRUListNode;
 import org.apache.geode.internal.cache.eviction.NewLRUClockHand;
 #endif
 #ifdef VERSIONED
@@ -506,27 +506,27 @@ public class LEAF_CLASS extends PARENT_CLASS {
 
   // DO NOT modify this class. It was generated from LeafRegionEntry.cpp
 
-  private LRUClockNode nextLRU;
-  private LRUClockNode previousLRU;
+  private LRUListNode nextLRU;
+  private LRUListNode previousLRU;
   private int size;
 
   @Override
-  public void setNextLRUNode(final LRUClockNode nextLRU) {
+  public void setNextLRUNode(final LRUListNode nextLRU) {
     this.nextLRU = nextLRU;
   }
 
   @Override
-  public LRUClockNode nextLRUNode() {
+  public LRUListNode nextLRUNode() {
     return this.nextLRU;
   }
 
   @Override
-  public void setPrevLRUNode(final LRUClockNode previousLRU) {
+  public void setPrevLRUNode(final LRUListNode previousLRU) {
     this.previousLRU = previousLRU;
   }
 
   @Override
-  public LRUClockNode prevLRUNode() {
+  public LRUListNode prevLRUNode() {
     return this.previousLRU;
   }
 

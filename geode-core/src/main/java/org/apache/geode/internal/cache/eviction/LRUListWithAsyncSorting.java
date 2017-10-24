@@ -45,16 +45,16 @@ public class LRUListWithAsyncSorting implements LRUList {
   private BucketRegion bucketRegion = null;
 
   /** The last node in the LRU list after which all new nodes are added */
-  protected final org.apache.geode.internal.cache.lru.LRUListNode tail = new GuardNode();
+  protected final LRUListNode tail = new GuardNode();
 
   /** The starting point in the LRU list for searching for the LRU node */
-  protected final org.apache.geode.internal.cache.lru.LRUListNode head = new GuardNode();
+  protected final LRUListNode head = new GuardNode();
 
   /** The object for locking this list */
   final protected Object lock = new Object();
 
   /** Description of the Field */
-  final private LRUStatistics stats;
+  final private EvictionStatistics stats;
   /** Counter for the size of the LRU list */
   protected int size = 0;
 
@@ -66,7 +66,7 @@ public class LRUListWithAsyncSorting implements LRUList {
       this.stats = internalRegionArgs.getPartitionedRegion() != null
           ? internalRegionArgs.getPartitionedRegion().getEvictionController().stats : null;
     } else {
-      LRUStatistics tmp = null;
+      EvictionStatistics tmp = null;
       if (region instanceof PlaceHolderDiskRegion) {
         tmp = ((PlaceHolderDiskRegion) region).getPRLRUStats();
       } else if (region instanceof PartitionedRegion) {
@@ -92,7 +92,7 @@ public class LRUListWithAsyncSorting implements LRUList {
 
   @Override
   public void closeStats() {
-    LRUStatistics ls = this.stats;
+    EvictionStatistics ls = this.stats;
     if (ls != null) {
       ls.close();
     }
@@ -102,7 +102,7 @@ public class LRUListWithAsyncSorting implements LRUList {
    * Adds an lru node to the tail of the list.
    */
   @Override
-  public void appendEntry(final org.apache.geode.internal.cache.lru.LRUListNode aNode) {
+  public void appendEntry(final LRUListNode aNode) {
     synchronized (this.lock) {
       if (aNode.nextLRUNode() != null) {
         // already in the list
@@ -127,15 +127,15 @@ public class LRUListWithAsyncSorting implements LRUList {
   /**
    * Remove and return the head entry in the list
    */
-  private org.apache.geode.internal.cache.lru.LRUListNode getHeadEntry() {
+  private LRUListNode getHeadEntry() {
     synchronized (lock) {
-      org.apache.geode.internal.cache.lru.LRUListNode aNode = this.head.nextLRUNode();
+      LRUListNode aNode = this.head.nextLRUNode();
       if (aNode == this.tail) {
         // empty list
         return null;
       }
 
-      org.apache.geode.internal.cache.lru.LRUListNode next = aNode.nextLRUNode();
+      LRUListNode next = aNode.nextLRUNode();
       this.head.setNextLRUNode(next);
       next.setPrevLRUNode(this.head);
 
@@ -151,9 +151,9 @@ public class LRUListWithAsyncSorting implements LRUList {
    * Remove and return the Entry that is considered least recently used.
    */
   @Override
-  public org.apache.geode.internal.cache.lru.LRUListNode getLRUEntry() {
+  public LRUListNode getLRUEntry() {
     for (;;) {
-      final org.apache.geode.internal.cache.lru.LRUListNode aNode = getHeadEntry();
+      final LRUListNode aNode = getHeadEntry();
 
       if (aNode == null) { // hit the end of the list
         return null;
@@ -198,7 +198,7 @@ public class LRUListWithAsyncSorting implements LRUList {
     }
     synchronized (lock) {
       int idx = 1;
-      for (org.apache.geode.internal.cache.lru.LRUListNode aNode = this.head; aNode != null; aNode = aNode.nextLRUNode()) {
+      for (LRUListNode aNode = this.head; aNode != null; aNode = aNode.nextLRUNode()) {
         if (isDebugEnabled) {
           logger.trace(LogMarker.LRU_CLOCK, "  ({}) {}", (idx++), aNode);
         }
@@ -211,7 +211,7 @@ public class LRUListWithAsyncSorting implements LRUList {
     int evictedNodes = 0;
     int usedNodes = 0;
     synchronized (lock) {
-      org.apache.geode.internal.cache.lru.LRUListNode h = this.head;
+      LRUListNode h = this.head;
       while (h != null) {
         totalNodes++;
         if (h.testEvicted())
@@ -221,7 +221,7 @@ public class LRUListWithAsyncSorting implements LRUList {
         h = h.nextLRUNode();
       }
     }
-    StringBuffer result = new StringBuffer(128);
+    StringBuilder result = new StringBuilder(128);
     result.append("LRUList Audit: listEntries = ").append(totalNodes).append(" evicted = ")
         .append(evictedNodes).append(" used = ").append(usedNodes);
     return result.toString();
@@ -234,14 +234,14 @@ public class LRUListWithAsyncSorting implements LRUList {
   }
 
   @Override
-  public boolean unlinkEntry(org.apache.geode.internal.cache.lru.LRUListNode entry) {
+  public boolean unlinkEntry(LRUListNode entry) {
     if (logger.isTraceEnabled(LogMarker.LRU_CLOCK)) {
       logger.trace(LogMarker.LRU_CLOCK,
           LocalizedMessage.create(LocalizedStrings.NewLRUClockHand_UNLINKENTRY_CALLED, entry));
     }
     synchronized (lock) {
-      org.apache.geode.internal.cache.lru.LRUListNode next = entry.nextLRUNode();
-      org.apache.geode.internal.cache.lru.LRUListNode prev = entry.prevLRUNode();
+      LRUListNode next = entry.nextLRUNode();
+      LRUListNode prev = entry.prevLRUNode();
       if (next == null) {
         // not in the list anymore.
         return false;
@@ -258,13 +258,14 @@ public class LRUListWithAsyncSorting implements LRUList {
   }
 
   /**
-   * Determine who/when should invoke scan. Maybe when 10% of the RegionEntries have been dirtied by {@link RegionEntry#setRecentlyUsed()}
+   * Determine who/when should invoke scan. Maybe when 10% of the RegionEntries have been dirtied by
+   * {@link RegionEntry#setRecentlyUsed()}
    *
    * Determine when to stop scanning.
    */
   @Override
   public void scan() {
-    org.apache.geode.internal.cache.lru.LRUListNode aNode;
+    LRUListNode aNode;
     do {
       synchronized (lock) {
         aNode = this.head.nextLRUNode();
@@ -276,7 +277,7 @@ public class LRUListWithAsyncSorting implements LRUList {
         // happen then this will be detected by next and prev being null.
         if (aNode.testRecentlyUsed()) {
           aNode.unsetRecentlyUsed();
-          org.apache.geode.internal.cache.lru.LRUListNode next;
+          LRUListNode next;
           synchronized (lock) {
             next = aNode.nextLRUNode();
             if (next != null) {
@@ -303,7 +304,7 @@ public class LRUListWithAsyncSorting implements LRUList {
   }
 
   @Override
-  public LRUStatistics stats() {
+  public EvictionStatistics stats() {
     return this.stats;
   }
 

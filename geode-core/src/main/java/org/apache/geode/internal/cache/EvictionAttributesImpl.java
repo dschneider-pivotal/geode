@@ -50,8 +50,8 @@ public class EvictionAttributesImpl extends EvictionAttributes
     implements EvictionAttributesMutator {
   private static final long serialVersionUID = -6404395520499379715L;
 
-  private org.apache.geode.cache.EvictionAlgorithm
-      algorithm = org.apache.geode.cache.EvictionAlgorithm.NONE;
+  private org.apache.geode.cache.EvictionAlgorithm algorithm =
+      org.apache.geode.cache.EvictionAlgorithm.NONE;
 
   private ObjectSizer sizer;
 

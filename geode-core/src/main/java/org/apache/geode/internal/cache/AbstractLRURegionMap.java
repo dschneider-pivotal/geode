@@ -32,6 +32,7 @@ import org.apache.geode.internal.cache.entries.DiskEntry;
 import org.apache.geode.internal.cache.eviction.EnableLRU;
 import org.apache.geode.internal.cache.eviction.HeapEvictor;
 import org.apache.geode.internal.cache.eviction.HeapLRUCapacityController;
+import org.apache.geode.internal.cache.eviction.LRUListWithAsyncSorting;
 import org.apache.geode.internal.cache.eviction.MemLRUCapacityController;
 import org.apache.geode.internal.cache.eviction.NewLIFOClockHand;
 import org.apache.geode.internal.cache.eviction.LRUList;
@@ -98,7 +99,8 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
      * modification for LIFO Logic incubation
      * 
      */
-    if (ea == org.apache.geode.cache.EvictionAlgorithm.LIFO_ENTRY || ea == org.apache.geode.cache.EvictionAlgorithm.LIFO_MEMORY) {
+    if (ea == org.apache.geode.cache.EvictionAlgorithm.LIFO_ENTRY
+        || ea == org.apache.geode.cache.EvictionAlgorithm.LIFO_MEMORY) {
       _setLruList(new NewLIFOClockHand(owner, _getCCHelper(), internalRegionArgs));
     } else {
       _setLruList(new LRUListWithAsyncSorting(owner, _getCCHelper(), internalRegionArgs));
@@ -272,7 +274,8 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
    * 
    * @return number of bytes evicted, zero if no eviction took place
    */
-  protected int evictEntry(EvictionEntry entry, EvictionStatistics stats) throws RegionClearedException {
+  protected int evictEntry(EvictionEntry entry, EvictionStatistics stats)
+      throws RegionClearedException {
     EvictionAction action = _getCCHelper().getEvictionAction();
     LocalRegion region = _getOwner();
     if (action.isLocalDestroy()) {
@@ -514,7 +517,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
       } catch (RegionClearedException e) {
         // TODO Auto-generated catch block
         if (isDebugEnabled_LRU) {
-          logger.trace(LogMarker.LRU, "exception ={}", e.getCause());
+          logger.trace(LogMarker.LRU, "exception ={}", e.getCause().getMessage(), e.getCause());
         }
       }
     } else {
@@ -526,7 +529,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
             if (evictEntry(removalEntry, stats) != 0) {
               if (isDebugEnabled_LRU) {
                 logger.trace(LogMarker.LRU,
-                    "evicted entry key(2)={} total entry size is now: {} bytesToEvict :",
+                    "evicted entry key(2)={} total entry size is now: {} bytesToEvict :{}",
                     removalEntry.getKey(), getTotalEntrySize(), bytesToEvict);
               }
               stats.incEvictions();
@@ -555,7 +558,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
       } catch (RegionClearedException e) {
         // TODO Auto-generated catch block
         if (isDebugEnabled_LRU) {
-          logger.debug("exception ={}", e.getCause());
+          logger.debug("exception ={}", e.getCause().getMessage(), e.getCause());
         }
       }
     }
@@ -615,7 +618,7 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
     } catch (RegionClearedException rce) {
       // Ignore
       if (isDebugEnabled_LRU) {
-        logger.trace(LogMarker.LRU, "exception ={}", rce.getCause());
+        logger.trace(LogMarker.LRU, "exception ={}", rce.getCause().getMessage(), rce.getCause());
       }
     }
     if (isDebugEnabled_LRU) {
@@ -660,16 +663,6 @@ public abstract class AbstractLRURegionMap extends AbstractRegionMap {
 
   @Override
   public void enableLruUpdateCallback() {
-    setCallbackDisabled(false);
-  }
-
-  // TODO rebalancing these methods are new on the
-  // rebalancing branch but never used???
-  public void disableLruUpdateCallbackForInline() {
-    setCallbackDisabled(true);
-  }
-
-  public void enableLruUpdateCallbackForInline() {
     setCallbackDisabled(false);
   }
 

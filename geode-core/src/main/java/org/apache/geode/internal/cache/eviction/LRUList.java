@@ -45,9 +45,9 @@ public interface LRUList {
   /**
    * Get the modifier for lru based statistics.
    *
-   * @return The LRUStatistics for this Clock hand's region.
+   * @return The EvictionStatistics for this Clock hand's region.
    */
-  LRUStatistics stats();
+  EvictionStatistics stats();
 
   /**
    * called when an LRU map is cleared... resets stats and releases prev and next.

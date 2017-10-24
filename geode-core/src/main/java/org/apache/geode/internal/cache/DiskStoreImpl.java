@@ -3913,7 +3913,8 @@ public class DiskStoreImpl implements DiskStore {
     }
   }
 
-  private final HashMap<String, EvictionStatistics> prlruStatMap = new HashMap<String, EvictionStatistics>();
+  private final HashMap<String, EvictionStatistics> prlruStatMap =
+      new HashMap<String, EvictionStatistics>();
 
   /**
    * Lock used to synchronize access to the init file. This is a lock rather than a synchronized
@@ -3942,8 +3943,8 @@ public class DiskStoreImpl implements DiskStore {
   }
 
   /**
-   * If we have recovered a bucket earlier for the given pr then we will have an EvictionStatistics to
-   * return for it. Otherwise return null.
+   * If we have recovered a bucket earlier for the given pr then we will have an EvictionStatistics
+   * to return for it. Otherwise return null.
    */
   EvictionStatistics getPRLRUStats(PartitionedRegion pr) {
     String prName = pr.getFullPath();
