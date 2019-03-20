@@ -134,7 +134,8 @@ public class Message {
   /**
    * maximum size of an outgoing message. See GEODE-478
    */
-  private final int maxMessageSize;
+  private static final int maxMessageSize =
+      Integer.getInteger(MAX_MESSAGE_SIZE_PROPERTY, DEFAULT_MAX_MESSAGE_SIZE);
 
   protected int messageType;
   private int payloadLength = 0;
@@ -170,7 +171,6 @@ public class Message {
    * Creates a new message with the given number of parts
    */
   public Message(int numberOfParts, Version destVersion) {
-    this.maxMessageSize = Integer.getInteger(MAX_MESSAGE_SIZE_PROPERTY, DEFAULT_MAX_MESSAGE_SIZE);
     this.version = destVersion;
     Assert.assertTrue(destVersion != null, "Attempt to create an unversioned message");
     this.partsList = new Part[numberOfParts];
@@ -597,9 +597,9 @@ public class Message {
 
         int msgLen = (int) (headerLen + totalPartLen);
 
-        if (msgLen > this.maxMessageSize) {
+        if (msgLen > maxMessageSize) {
           throw new MessageTooLargeException("Message size (" + msgLen
-              + ") exceeds gemfire.client.max-message-size setting (" + this.maxMessageSize + ")");
+              + ") exceeds gemfire.client.max-message-size setting (" + maxMessageSize + ")");
         }
 
         commBuffer.clear();
