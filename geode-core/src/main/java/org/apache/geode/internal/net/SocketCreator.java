@@ -43,6 +43,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -51,8 +52,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
@@ -151,7 +150,7 @@ public class SocketCreator {
       && Boolean.getBoolean("java.net.preferIPv6Addresses");
 
   @MakeNotStatic
-  private static final ConcurrentMap<InetAddress, String> hostNames = new ConcurrentHashMap<>();
+  private static final Map<InetAddress, String> hostNames = new HashMap<>();
 
   /**
    * flag to force always using DNS (regardless of the fact that these lookups can hang)
@@ -301,7 +300,7 @@ public class SocketCreator {
    * returns the host name for the given inet address, using a local cache of names to avoid dns
    * hits and duplicate strings
    */
-  public static String getHostName(InetAddress addr) {
+  public static synchronized String getHostName(InetAddress addr) {
     String result = hostNames.get(addr);
     if (result == null) {
       result = addr.getHostName();
@@ -314,7 +313,7 @@ public class SocketCreator {
    * returns the host name for the given inet address, using a local cache of names to avoid dns
    * hits and duplicate strings
    */
-  public static String getCanonicalHostName(InetAddress addr, String hostName) {
+  public static synchronized String getCanonicalHostName(InetAddress addr, String hostName) {
     String result = hostNames.get(addr);
     if (result == null) {
       hostNames.put(addr, hostName);
@@ -326,7 +325,7 @@ public class SocketCreator {
   /**
    * Reset the hostNames caches
    */
-  public static void resetHostNameCache() {
+  public static synchronized void resetHostNameCache() {
     hostNames.clear();
   }
 
