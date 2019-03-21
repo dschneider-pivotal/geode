@@ -664,11 +664,15 @@ public class Message {
     // TODO: for server changes make sure sc is not null as this class also used by client
 
     int timeout = socket.getSoTimeout();
-    try {
-      socket.setSoTimeout(headerReadTimeoutMillis);
+    if (timeout != headerReadTimeoutMillis) {
+      try {
+        socket.setSoTimeout(headerReadTimeoutMillis);
+        fetchHeader();
+      } finally {
+        socket.setSoTimeout(timeout);
+      }
+    } else {
       fetchHeader();
-    } finally {
-      socket.setSoTimeout(timeout);
     }
 
     final ByteBuffer cb = getCommBuffer();
