@@ -206,7 +206,6 @@ import org.apache.geode.internal.logging.LogWriterImpl;
 import org.apache.geode.internal.logging.LogWriterLevel;
 import org.apache.geode.internal.security.SecurableCommunicationChannel;
 import org.apache.geode.internal.statistics.StatisticsConfig;
-import org.apache.geode.internal.tcp.Connection;
 import org.apache.geode.memcached.GemFireMemcachedServer;
 
 /**
@@ -1383,7 +1382,7 @@ public interface DistributionConfig extends Config, LogConfig, StatisticsConfig 
    * <p>
    * Actual value of this constant is <code>20000000</code>.
    */
-  int MAX_SOCKET_BUFFER_SIZE = Connection.MAX_MSG_SIZE;
+  int MAX_SOCKET_BUFFER_SIZE = Integer.MAX_VALUE;
 
   boolean VALIDATE = Boolean.getBoolean(DistributionConfig.GEMFIRE_PREFIX + "validateMessageSize");
   int VALIDATE_CEILING = Integer
