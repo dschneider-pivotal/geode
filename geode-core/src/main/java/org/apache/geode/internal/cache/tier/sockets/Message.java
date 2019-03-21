@@ -663,15 +663,17 @@ public class Message {
     clearParts();
     // TODO: for server changes make sure sc is not null as this class also used by client
 
-    int timeout = socket.getSoTimeout();
-    if (timeout != headerReadTimeoutMillis) {
-      try {
-        socket.setSoTimeout(headerReadTimeoutMillis);
-        fetchHeader();
-      } finally {
-        socket.setSoTimeout(timeout);
-      }
-    } else {
+    /*
+     * int timeout = socket.getSoTimeout();
+     * if (timeout != headerReadTimeoutMillis) {
+     * try {
+     * socket.setSoTimeout(headerReadTimeoutMillis);
+     * fetchHeader();
+     * } finally {
+     * socket.setSoTimeout(timeout);
+     * }
+     * } else
+     */ {
       fetchHeader();
     }
 
