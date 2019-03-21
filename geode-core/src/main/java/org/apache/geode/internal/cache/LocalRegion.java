@@ -421,7 +421,7 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
   /**
    * Used for serializing netSearch and netLoad on a per key basis. CM <Object, Future>
    */
-  private final ConcurrentMap getFutures = new ConcurrentHashMap();
+  private final ConcurrentMap<Object, Future> getFutures = new ConcurrentHashMap<>();
 
   /**
    * TODO: This boolean needs to be made true if the test needs to receive a synchronous callback
@@ -1474,9 +1474,10 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
     @Retained
     Object result = null;
     FutureResult thisFuture = new FutureResult(this.stopper);
-    Future otherFuture = (Future) this.getFutures.putIfAbsent(keyInfo.getKey(), thisFuture);
+    Future otherFuture = this.getFutures.putIfAbsent(keyInfo.getKey(), thisFuture);
     // only one thread can get their future into the map for this key at a time
     if (otherFuture != null) {
+      thisFuture = null;
       try {
         Object[] valueAndVersion = (Object[]) otherFuture.get();
         if (valueAndVersion != null) {
@@ -1548,13 +1549,15 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
       }
       // findObjectInSystem does not call conditionalCopy
     } finally {
-      if (result != null) {
-        VersionTag tag = clientEvent == null ? null : clientEvent.getVersionTag();
-        thisFuture.set(new Object[] {result, tag});
-      } else {
-        thisFuture.set(null);
+      if (thisFuture != null) {
+        if (result != null) {
+          VersionTag tag = clientEvent == null ? null : clientEvent.getVersionTag();
+          thisFuture.set(new Object[] {result, tag});
+        } else {
+          thisFuture.set(null);
+        }
+        this.getFutures.remove(keyInfo.getKey());
       }
-      this.getFutures.remove(keyInfo.getKey());
     }
     if (!disableCopyOnRead) {
       result = conditionalCopy(result);
