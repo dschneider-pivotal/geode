@@ -49,6 +49,7 @@ import org.apache.geode.distributed.internal.membership.InternalDistributedMembe
 import org.apache.geode.distributed.internal.membership.MemberAttributes;
 import org.apache.geode.distributed.internal.membership.MembershipManager;
 import org.apache.geode.i18n.LogWriterI18n;
+import org.apache.geode.internal.OSProcess;
 import org.apache.geode.internal.Version;
 import org.apache.geode.internal.alerting.AlertingService;
 import org.apache.geode.internal.alerting.NullAlertingService;
@@ -90,6 +91,9 @@ public class LonerDistributionManager implements DistributionManager {
   public LonerDistributionManager(InternalDistributedSystem system, InternalLogWriter logger) {
     this.system = system;
     this.logger = logger;
+    this.stats = new DistributionStats(system, OSProcess.getId());
+    DistributionStats.enableClockStats = system.getConfig().getEnableTimeStatistics();
+
     this.localAddress = generateMemberId();
     this.allIds = Collections.singleton(localAddress);
     this.viewMembers = new ArrayList<>(allIds);
@@ -130,7 +134,7 @@ public class LonerDistributionManager implements DistributionManager {
   private ConcurrentMap<InternalDistributedMember, InternalDistributedMember> canonicalIds =
       new ConcurrentHashMap<>();
   @Immutable
-  private static final DummyDMStats stats = new DummyDMStats();
+  private final DistributionStats stats;
   private final ExecutorService executor =
       LoggingExecutors.newCachedThreadPool("LonerDistributionManagerThread", false);
 
