@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.CacheClosedException;
 import org.apache.geode.cache.execute.FunctionContext;
@@ -92,7 +94,8 @@ public class GetMemberInformationFunction implements InternalFunction {
 
       SSLConfig sslConfig = SSLConfigurationFactory.getSSLConfigForComponent(config,
           SecurableCommunicationChannel.WEB);
-      memberInfo.setSsl(sslConfig.isEnabled());
+      memberInfo.setWebSSL(sslConfig.isEnabled());
+      memberInfo.setSecured(StringUtils.isNotBlank(config.getSecurityManager()));
       memberInfo.setGroups(config.getGroups());
       memberInfo.setLogFilePath(config.getLogFile().getCanonicalPath());
       memberInfo.setStatArchiveFilePath(config.getStatisticArchiveFile().getCanonicalPath());

@@ -42,7 +42,6 @@ import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.CancelException;
 import org.apache.geode.annotations.internal.MakeNotStatic;
-import org.apache.geode.cache.CacheFactory;
 import org.apache.geode.cache.GemFireCache;
 import org.apache.geode.cache.client.internal.locator.ClientConnectionRequest;
 import org.apache.geode.cache.client.internal.locator.ClientReplacementRequest;
@@ -69,6 +68,7 @@ import org.apache.geode.internal.admin.remote.DistributionLocatorId;
 import org.apache.geode.internal.cache.GemFireCacheImpl;
 import org.apache.geode.internal.cache.HttpService;
 import org.apache.geode.internal.cache.InternalCache;
+import org.apache.geode.internal.cache.InternalCacheBuilder;
 import org.apache.geode.internal.cache.tier.sockets.TcpServerFactory;
 import org.apache.geode.internal.cache.wan.WANServiceProvider;
 import org.apache.geode.internal.logging.InternalLogWriter;
@@ -89,7 +89,9 @@ import org.apache.geode.management.internal.JmxManagerLocator;
 import org.apache.geode.management.internal.JmxManagerLocatorRequest;
 import org.apache.geode.management.internal.api.LocatorClusterManagementService;
 import org.apache.geode.management.internal.configuration.domain.SharedConfigurationStatus;
+import org.apache.geode.management.internal.configuration.handlers.ClusterManagementServiceInfoRequestHandler;
 import org.apache.geode.management.internal.configuration.handlers.SharedConfigurationStatusRequestHandler;
+import org.apache.geode.management.internal.configuration.messages.ClusterManagementServiceInfoRequest;
 import org.apache.geode.management.internal.configuration.messages.SharedConfigurationStatusRequest;
 import org.apache.geode.management.internal.configuration.messages.SharedConfigurationStatusResponse;
 
@@ -669,7 +671,8 @@ public class InternalLocator extends Locator implements ConnectListener, LogConf
     InternalCache internalCache = GemFireCacheImpl.getInstance();
     if (internalCache == null) {
       logger.info("Creating cache for locator.");
-      this.myCache = (InternalCache) new CacheFactory(ds.getProperties()).create();
+      this.myCache = new InternalCacheBuilder(ds.getProperties())
+          .create((InternalDistributedSystem) ds);
       internalCache = this.myCache;
     } else {
       logger.info("Using existing cache for locator.");
@@ -708,14 +711,23 @@ public class InternalLocator extends Locator implements ConnectListener, LogConf
         new ImmutablePair<>(HttpService.CLUSTER_MANAGEMENT_SERVICE_CONTEXT_PARAM,
             clusterManagementService);
 
-    myCache.getHttpService().ifPresent(x -> {
-      try {
-        x.addWebApplication("/geode-management", gemfireManagementWar, securityServiceAttr,
-            cmServiceAttr);
-      } catch (Throwable e) {
-        logger.warn("Unable to start geode-management service: {}", e.getMessage());
-      }
-    });
+    if (Boolean.getBoolean(ClusterManagementService.FEATURE_FLAG)) {
+      logger.info(
+          "System Property " + ClusterManagementService.FEATURE_FLAG
+              + "=true Geode Management API is enabled.");
+      myCache.getHttpService().ifPresent(x -> {
+        try {
+          x.addWebApplication("/geode-management", gemfireManagementWar, securityServiceAttr,
+              cmServiceAttr);
+        } catch (Throwable e) {
+          logger.warn("Unable to start geode-management service: {}", e.getMessage());
+        }
+      });
+    } else {
+      logger.info(
+          "System Property " + ClusterManagementService.FEATURE_FLAG
+              + "=false Geode Management API is disabled.");
+    }
   }
 
   /**
@@ -1419,7 +1431,7 @@ public class InternalLocator extends Locator implements ConnectListener, LogConf
   }
 
   private void startConfigurationPersistenceService() {
-    installSharedConfigHandler();
+    installRequestHandlers();
 
     if (!config.getEnableClusterConfiguration()) {
       logger.info("Cluster configuration service is disabled");
@@ -1466,11 +1478,17 @@ public class InternalLocator extends Locator implements ConnectListener, LogConf
     }
   }
 
-  private void installSharedConfigHandler() {
+  private void installRequestHandlers() {
     if (!this.handler.isHandled(SharedConfigurationStatusRequest.class)) {
       this.handler.addHandler(SharedConfigurationStatusRequest.class,
           new SharedConfigurationStatusRequestHandler());
       logger.info("SharedConfigStatusRequestHandler installed");
+    }
+
+    if (!this.handler.isHandled(ClusterManagementServiceInfoRequest.class)) {
+      this.handler.addHandler(ClusterManagementServiceInfoRequest.class,
+          new ClusterManagementServiceInfoRequestHandler());
+      logger.info("ClusterManagementServiceInfoRequestHandler installed");
     }
   }
 

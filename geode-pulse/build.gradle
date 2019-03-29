@@ -117,7 +117,6 @@ dependencies {
   uiTestCompile(project(':geode-junit')) {
     exclude module: 'geode-core'
   }
-  uiTestCompile(project(':geode-json'))
   uiTestCompile(project(':geode-pulse:geode-pulse-test'))
   uiTestCompile('org.seleniumhq.selenium:selenium-remote-driver')
 
@@ -161,9 +160,7 @@ artifacts {
 war {
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
   classpath configurations.runtimeClasspath
-  classpath project(':geode-core').webJar.archivePath
 }
-war.dependsOn(':geode-core:webJar')
 uiTest.dependsOn war
 uiTest.finalizedBy rootProject.combineReports
 rootProject.combineReports.mustRunAfter uiTest

@@ -144,11 +144,11 @@ dependencies {
   gfshDependencies(platform(project(':boms:geode-all-bom')))
 
   archives project(':geode-common')
-  archives project(':geode-json')
   archives project(':geode-core')
   archives project(':geode-connectors')
   archives project(':geode-lucene')
   archives project(':geode-redis')
+  archives project(':geode-memcached')
   archives project(':geode-old-client-support')
   archives project(':geode-protobuf')
   archives project(':geode-protobuf-messages')
@@ -291,8 +291,12 @@ def cp = {
 
   // then add all the dependencies of the dependent jars
   def depJars = configurations.archives.dependencies.collect {
-    it.dependencyProject.findAll { !(it.name.contains('geode-web') || it.name.contains('geode-pulse')) }
-      .collect { it.configurations.runtimeClasspath.collect { it.getName() }.findAll { !(
+    it.dependencyProject.findAll {
+      !(it.name.contains('geode-web') ||
+        it.name.contains('geode-pulse'))
+    }.collect { it.configurations.runtimeClasspath.collect { it.getName() }.findAll { !(
+        it.contains('geode-all-bom') ||
+
         // exclude mx4j, once the deprecated code is deleted we can remove these entirely
         it.contains('commons-digester') ||
         it.contains('commons-modeler') ||
@@ -334,9 +338,6 @@ task configureGfshDepsJar(dependsOn: configurations.gfshDependencies.dependencie
   inputs.files {
     configureDepsJar
   }
-  inputs.files {
-    project(':geode-core').webJar
-  }
 
   def output = project.buildDir.toPath().resolve('reports').resolve('gfsh_deps_jar_cp.txt')
   outputs.file {
@@ -344,8 +345,9 @@ task configureGfshDepsJar(dependsOn: configurations.gfshDependencies.dependencie
   }
   doLast {
     def classpath = configureDepsJar.outputs.files.singleFile.text + ' ' +
-        project(':geode-core').webJar.archiveName + ' ' +
-        configurations.gfshDependencies.collect { it.getName() }.flatten().join(' ')
+        configurations.gfshDependencies.collect { it.getName() }.findAll {
+          !it.contains('geode-all-bom')
+        }.flatten().unique().join(' ')
     output.write(classpath)
   }
 }
@@ -475,8 +477,6 @@ distributions {
       into ('lib') {
         from project(':geode-common').configurations.runtimeClasspath
         from project(':geode-common').configurations.archives.allArtifacts.files
-        from project(':geode-json').configurations.runtimeClasspath
-        from project(':geode-json').configurations.archives.allArtifacts.files
         from project(':geode-wan').configurations.runtimeClasspath
         from project(':geode-wan').configurations.archives.allArtifacts.files
         from project(':geode-cq').configurations.runtimeClasspath
@@ -487,6 +487,8 @@ distributions {
         from project(':geode-lucene').configurations.archives.allArtifacts.files
         from project(':geode-redis').configurations.runtimeClasspath
         from project(':geode-redis').configurations.runtimeClasspath.allArtifacts.files
+        from project(':geode-memcached').configurations.runtimeClasspath
+        from project(':geode-memcached').configurations.runtimeClasspath.allArtifacts.files
         from project(':geode-connectors').configurations.runtimeClasspath
         from project(':geode-connectors').configurations.archives.allArtifacts.files
         from project(':geode-old-client-support').configurations.runtimeClasspath
@@ -502,7 +504,6 @@ distributions {
 
         //These tasks are included as closures (wrapped in {}) because gradle may evaluate
         //this CopySpec before it evaluates the geode-core build file.
-        from { project(':geode-core').webJar }
         from { project(':geode-core').raJar }
         from { project(':geode-core').jcaJar }
 

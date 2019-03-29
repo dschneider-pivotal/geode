@@ -23,6 +23,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import org.apache.geode.CancelCriterion;
 import org.apache.geode.LogWriter;
 import org.apache.geode.Statistics;
@@ -41,6 +43,7 @@ import org.apache.geode.internal.cache.GemFireCacheImpl;
 import org.apache.geode.internal.cache.TXManagerImpl;
 import org.apache.geode.internal.security.SecurableCommunicationChannel;
 import org.apache.geode.internal.security.SecurityService;
+import org.apache.geode.internal.statistics.StatisticsManager;
 import org.apache.geode.pdx.PdxInstanceFactory;
 import org.apache.geode.pdx.internal.TypeRegistry;
 
@@ -80,6 +83,7 @@ public class Fakes {
     Statistics stats = mock(Statistics.class);
     TXManagerImpl txManager = mock(TXManagerImpl.class);
     QueryMonitor queryMonitor = mock(QueryMonitor.class);
+    StatisticsManager statisticsManager = mock(StatisticsManager.class);
 
     InternalDistributedMember member;
     member = new InternalDistributedMember("localhost", 5555);
@@ -100,6 +104,7 @@ public class Fakes {
     when(cache.getTxManager()).thenReturn(txManager);
     when(cache.getLogger()).thenReturn(logger);
     when(cache.getQueryMonitor()).thenReturn(queryMonitor);
+    when(cache.getMeterRegistry()).thenReturn(new SimpleMeterRegistry());
 
     when(system.getDistributedMember()).thenReturn(member);
     when(system.getConfig()).thenReturn(config);
@@ -108,9 +113,10 @@ public class Fakes {
     when(system.getClock()).thenReturn(clock);
     when(system.getLogWriter()).thenReturn(logger);
     when(system.getSecurityService()).thenReturn(mock(SecurityService.class));
+    when(system.getCache()).thenReturn(cache);
+    when(system.getStatisticsManager()).thenReturn(statisticsManager);
     when(system.createAtomicStatistics(any(), any(), anyLong())).thenReturn(stats);
     when(system.createAtomicStatistics(any(), any())).thenReturn(stats);
-    when(system.getCache()).thenReturn(cache);
 
     when(distributionManager.getId()).thenReturn(member);
     when(distributionManager.getDistributionManagerId()).thenReturn(member);
@@ -119,6 +125,9 @@ public class Fakes {
     when(distributionManager.getCancelCriterion()).thenReturn(systemCancelCriterion);
     when(distributionManager.getCache()).thenReturn(cache);
     when(distributionManager.getExistingCache()).thenReturn(cache);
+
+    when(statisticsManager.createAtomicStatistics(any(), any(), anyLong())).thenReturn(stats);
+    when(statisticsManager.createAtomicStatistics(any(), any())).thenReturn(stats);
 
     return cache;
   }

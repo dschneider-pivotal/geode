@@ -385,7 +385,7 @@ public class InternalDistributedSystem extends DistributedSystem
    */
   private InternalLocator startedLocator;
 
-  private List<ResourceEventsListener> resourceListeners;
+  private final List<ResourceEventsListener> resourceListeners = new CopyOnWriteArrayList<>();
 
   private final boolean disableManagement = Boolean.getBoolean(DISABLE_MANAGEMENT_PROPERTY);
 
@@ -910,7 +910,6 @@ public class InternalDistributedSystem extends DistributedSystem
       throw ex;
     }
 
-    resourceListeners = new CopyOnWriteArrayList<>();
     this.reconnected = this.attemptingToReconnect;
     this.attemptingToReconnect = false;
   }
@@ -1666,6 +1665,8 @@ public class InternalDistributedSystem extends DistributedSystem
           } // synchronized (this)
         } // synchronized (GemFireCache.class)
 
+        securityService.close();
+
         if (!isShutdownHook) {
           shutdownListeners = doDisconnects(attemptingToReconnect);
         }
@@ -2065,6 +2066,14 @@ public class InternalDistributedSystem extends DistributedSystem
       synchronized (connectListeners) {
         connectListeners.add(listener);
         return existingSystems;
+      }
+    }
+  }
+
+  public static void removeConnectListener(ConnectListener listener) {
+    synchronized (existingSystemsLock) {
+      synchronized (connectListeners) {
+        connectListeners.remove(listener);
       }
     }
   }
