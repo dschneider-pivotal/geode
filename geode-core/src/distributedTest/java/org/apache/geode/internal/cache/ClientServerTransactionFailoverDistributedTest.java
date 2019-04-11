@@ -353,7 +353,7 @@ public class ClientServerTransactionFailoverDistributedTest implements Serializa
     }
   }
 
-  @Test
+  // @Test
   public void txCommitGetsAppliedOnAllTheReplicasAfterHostIsShutDownAndIfOneOfTheNodeHasCommitted()
       throws Exception {
     getBlackboard().initBlackboard();
