@@ -270,7 +270,7 @@ public class ConnectionManagerJUnitTest {
 
     {
       // make sure a thread local connection that has been passivated can idle-expire
-      conn1.passivate(true);
+      manager.passivate(conn1, true);
 
       long elapsedMillis = factory.waitWhile(() -> factory.destroys < 1);
       Assert.assertEquals(5, factory.creates);
@@ -761,7 +761,7 @@ public class ConnectionManagerJUnitTest {
             conn = borrow(i);
           } else {
             if (i != 0) {
-              conn.activate();
+              manager.activate(conn);
             }
           }
           try {
@@ -775,7 +775,7 @@ public class ConnectionManagerJUnitTest {
             if (!threadLocal) {
               manager.returnConnection(conn);
             } else {
-              conn.passivate(true);
+              manager.passivate(conn, true);
             }
           }
         }
