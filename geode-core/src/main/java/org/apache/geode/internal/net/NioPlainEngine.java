@@ -35,9 +35,16 @@ public class NioPlainEngine implements NioFilter {
 
   int lastReadPosition;
   int lastProcessedPosition;
+  final int minimumBufferSize;
 
 
-  public NioPlainEngine() {}
+  public NioPlainEngine() {
+    this(0);
+  }
+
+  public NioPlainEngine(int minimumBufferSize) {
+    this.minimumBufferSize = minimumBufferSize;
+  }
 
   @Override
   public ByteBuffer wrap(ByteBuffer buffer) {
@@ -56,7 +63,11 @@ public class NioPlainEngine implements NioFilter {
     ByteBuffer buffer = wrappedBuffer;
 
     if (buffer == null) {
-      buffer = Buffers.acquireBuffer(bufferType, amount, stats);
+      int bufferSize = amount;
+      if (bufferSize < minimumBufferSize) {
+        bufferSize = minimumBufferSize;
+      }
+      buffer = Buffers.acquireBuffer(bufferType, bufferSize, stats);
       buffer.clear();
       lastProcessedPosition = 0;
       lastReadPosition = 0;

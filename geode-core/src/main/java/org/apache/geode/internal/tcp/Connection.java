@@ -1132,7 +1132,9 @@ public class Connection implements Runnable {
       if (!sharedResource) {
         setReceiveBufferSize(channel.socket(), this.owner.getConduit().tcpBufferSize);
       } else {
-        setReceiveBufferSize(channel.socket(), SMALL_BUFFER_SIZE); // make small since only
+        // prefer standard size buffer
+        setReceiveBufferSize(channel.socket(), this.owner.getConduit().tcpBufferSize);
+        // setReceiveBufferSize(channel.socket(), SMALL_BUFFER_SIZE); // make small since only
         // receive ack messages
       }
       setSendBufferSize(channel.socket());
@@ -1853,7 +1855,7 @@ public class Connection implements Runnable {
       ioFilter = getConduit().getSocketCreator().handshakeSSLSocketChannel(channel, engine,
           getConduit().idleConnectionTimeout, clientSocket, inputBuffer, getConduit().getStats());
     } else {
-      ioFilter = new NioPlainEngine();
+      ioFilter = new NioPlainEngine(getConduit().tcpBufferSize);
     }
   }
 
