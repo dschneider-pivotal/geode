@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.apache.geode.annotations.internal.MakeNotStatic;
 import org.apache.geode.distributed.internal.DMStats;
 import org.apache.geode.internal.Assert;
+import org.apache.geode.internal.logging.LogService;
 
 public class Buffers {
   /**
@@ -96,6 +97,8 @@ public class Buffers {
         }
         ref = bufferQueue.poll();
       }
+      LogService.getLogger().info("DEBUG allocating direct byte buffer of size: " + size,
+          new RuntimeException("STACK"));
       result = ByteBuffer.allocateDirect(size);
     } else {
       // if we are using heap buffers then don't bother with keeping them around
