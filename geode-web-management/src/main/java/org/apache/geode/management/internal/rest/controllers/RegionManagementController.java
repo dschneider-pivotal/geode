@@ -15,8 +15,13 @@
 
 package org.apache.geode.management.internal.rest.controllers;
 
+import static org.apache.geode.cache.configuration.RegionConfig.REGION_CONFIG_ENDPOINT;
 import static org.apache.geode.management.internal.rest.controllers.AbstractManagementController.MANAGEMENT_API_VERSION;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +29,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import org.apache.geode.cache.configuration.RegionConfig;
 import org.apache.geode.management.api.ClusterManagementResult;
@@ -32,18 +38,36 @@ import org.apache.geode.management.api.ClusterManagementResult;
 @RequestMapping(MANAGEMENT_API_VERSION)
 public class RegionManagementController extends AbstractManagementController {
 
+  @ApiOperation(value = "create regions")
+  @ApiResponses({@ApiResponse(code = 200, message = "OK."),
+      @ApiResponse(code = 401, message = "Invalid Username or Password."),
+      @ApiResponse(code = 403, message = "Insufficient privileges for operation."),
+      @ApiResponse(code = 409, message = "Region already exist."),
+      @ApiResponse(code = 500, message = "GemFire throws an error or exception.")})
   @PreAuthorize("@securityService.authorize('DATA', 'MANAGE')")
-  @RequestMapping(method = RequestMethod.POST, value = "/regions")
+  @RequestMapping(method = RequestMethod.POST, value = REGION_CONFIG_ENDPOINT)
   public ResponseEntity<ClusterManagementResult> createRegion(
       @RequestBody RegionConfig regionConfig) {
     ClusterManagementResult result =
-        clusterManagementService.create(regionConfig, "cluster");
+        clusterManagementService.create(regionConfig);
     return new ResponseEntity<>(result,
         result.isSuccessful() ? HttpStatus.CREATED : HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/ping")
-  public ResponseEntity<String> ping() {
-    return new ResponseEntity<>("pong", HttpStatus.OK);
+  @PreAuthorize("@securityService.authorize('CLUSTER', 'READ')")
+  @RequestMapping(method = RequestMethod.GET, value = REGION_CONFIG_ENDPOINT)
+  public ResponseEntity<ClusterManagementResult> listRegion(
+      @RequestParam(required = false) String id,
+      @RequestParam(required = false) String group) {
+    RegionConfig filter = new RegionConfig();
+    if (StringUtils.isNotBlank(id)) {
+      filter.setName(id);
+    }
+    if (StringUtils.isNotBlank(group)) {
+      filter.setGroup(group);
+    }
+    ClusterManagementResult result = clusterManagementService.list(filter);
+    return new ResponseEntity<>(result,
+        result.isSuccessful() ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

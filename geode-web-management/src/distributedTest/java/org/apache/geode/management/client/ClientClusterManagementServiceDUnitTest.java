@@ -16,6 +16,11 @@
 package org.apache.geode.management.client;
 
 
+import static org.apache.geode.test.junit.assertions.ClusterManagementResultAssert.assertManagementResult;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,18 +30,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.context.WebApplicationContext;
 
-import org.apache.geode.cache.RegionShortcut;
+import org.apache.geode.cache.configuration.CacheElement;
 import org.apache.geode.cache.configuration.RegionConfig;
+import org.apache.geode.cache.configuration.RegionType;
 import org.apache.geode.management.api.ClusterManagementResult;
 import org.apache.geode.management.api.ClusterManagementService;
-import org.apache.geode.management.internal.RestTemplateResponseErrorHandler;
-import org.apache.geode.management.internal.rest.BaseLocatorContextLoader;
+import org.apache.geode.management.internal.rest.LocatorWebContext;
 import org.apache.geode.management.internal.rest.PlainLocatorContextLoader;
 import org.apache.geode.test.dunit.rules.ClusterStartupRule;
 import org.apache.geode.test.dunit.rules.MemberVM;
@@ -46,7 +47,6 @@ import org.apache.geode.test.dunit.rules.MemberVM;
     loader = PlainLocatorContextLoader.class)
 @WebAppConfiguration
 public class ClientClusterManagementServiceDUnitTest {
-  private static final ResponseErrorHandler ERROR_HANDLER = new RestTemplateResponseErrorHandler();
 
   @Autowired
   private WebApplicationContext webApplicationContext;
@@ -56,34 +56,44 @@ public class ClientClusterManagementServiceDUnitTest {
 
   private MemberVM server1;
   private ClusterManagementService client;
+  private LocatorWebContext webContext;
 
   @Before
   public void before() {
     cluster.setSkipLocalDistributedSystemCleanup(true);
-    MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-        .build();
-    MockMvcClientHttpRequestFactory requestFactory = new MockMvcClientHttpRequestFactory(mockMvc);
-    client = ClusterManagementServiceProvider.getService(requestFactory);
-
-    server1 = cluster.startServerVM(0,
-        BaseLocatorContextLoader.getLocatorFromContext(webApplicationContext).getPort());
+    webContext = new LocatorWebContext(webApplicationContext);
+    client = ClusterManagementServiceProvider.getService(webContext.getRequestFactory());
+    server1 = cluster.startServerVM(0, webContext.getLocator().getPort());
   }
 
   @Test
   @WithMockUser
-  public void createRegion() {
+  public void createAndListRegion() {
     RegionConfig region = new RegionConfig();
     region.setName("customer");
-    region.setType(RegionShortcut.REPLICATE);
+    region.setType(RegionType.REPLICATE);
 
-    ClusterManagementResult result = client.create(region, "");
+    ClusterManagementResult result = client.create(region);
 
-    // This all fails in light of running this test repeatedly as a stress test. Until we introduce
-    // idempotency and/or the ability to call client.delete we can't do this. But it will get fixed
-    // assertThat(result.isSuccessful()).isTrue();
+    // in StressNewTest, this will be run multiple times without restarting the locator
+    assertManagementResult(result).hasStatusCode(ClusterManagementResult.StatusCode.OK,
+        ClusterManagementResult.StatusCode.ENTITY_EXISTS);
 
-    // Not implemented yet
-    // result = client.delete(region, "");
-    // assertThat(result.isSuccessful()).isTrue();
+    // list region when regions are not created in a group
+    RegionConfig noFilter = new RegionConfig();
+    ClusterManagementResult list = client.list(noFilter);
+    List<CacheElement> regions = list.getResult();
+    assertThat(regions.size()).isEqualTo(1);
+    RegionConfig cacheElement = (RegionConfig) regions.get(0);
+    assertThat(cacheElement.getId()).isEqualTo("customer");
+    assertThat(cacheElement.getType()).isEqualTo("REPLICATE");
+    assertThat(cacheElement.getConfigGroup()).isEqualTo("cluster");
+  }
+
+
+  @Test
+  @WithMockUser
+  public void sanityCheck() {
+    assertThat(client.isConnected()).isTrue();
   }
 }

@@ -15,14 +15,10 @@
 
 package org.apache.geode.management.internal.rest;
 
-import static org.hamcrest.Matchers.is;
+import static org.apache.geode.test.junit.assertions.ClusterManagementResultAssert.assertManagementResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,13 +27,13 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import org.apache.geode.cache.RegionShortcut;
 import org.apache.geode.cache.configuration.RegionConfig;
+import org.apache.geode.cache.configuration.RegionType;
+import org.apache.geode.management.api.ClusterManagementResult;
+import org.apache.geode.management.api.ClusterManagementService;
+import org.apache.geode.management.client.ClusterManagementServiceProvider;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(locations = {"classpath*:WEB-INF/geode-management-servlet.xml"},
@@ -45,17 +41,18 @@ import org.apache.geode.cache.configuration.RegionConfig;
 @WebAppConfiguration
 public class RegionManagementIntegrationTest {
 
-  static RequestPostProcessor POST_PROCESSOR = new StandardRequestPostProcessor();
-
   @Autowired
   private WebApplicationContext webApplicationContext;
 
-  private MockMvc mockMvc;
+  // needs to be used together with any BaseLocatorContextLoader
+  private LocatorWebContext context;
+
+  private ClusterManagementService client;
 
   @Before
   public void before() {
-    mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-        .build();
+    context = new LocatorWebContext(webApplicationContext);
+    client = ClusterManagementServiceProvider.getService(context.getRequestFactory());
   }
 
   @Test
@@ -63,25 +60,43 @@ public class RegionManagementIntegrationTest {
   public void sanityCheck() throws Exception {
     RegionConfig regionConfig = new RegionConfig();
     regionConfig.setName("customers");
-    regionConfig.setType(RegionShortcut.REPLICATE);
+    regionConfig.setType(RegionType.REPLICATE);
 
-    ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(regionConfig);
+    assertManagementResult(client.create(regionConfig))
+        .failed()
+        .hasStatusCode(ClusterManagementResult.StatusCode.ERROR)
+        .containsStatusMessage("no members found in cluster to create cache element");
+  }
 
-    mockMvc.perform(post("/v2/regions")
-        .with(POST_PROCESSOR)
-        .content(json))
-        .andExpect(status().isInternalServerError())
-        .andExpect(jsonPath("$.statusCode", is("ERROR")))
-        .andExpect(jsonPath("$.statusMessage",
-            is("no members found to create cache element")));
+  @Test
+  @WithMockUser
+  public void invalidType() throws Exception {
+    RegionConfig regionConfig = new RegionConfig();
+    regionConfig.setName("customers");
+    regionConfig.setType("LOCAL");
+
+    assertManagementResult(client.create(regionConfig))
+        .failed()
+        .hasStatusCode(ClusterManagementResult.StatusCode.ILLEGAL_ARGUMENT)
+        .containsStatusMessage("Type LOCAL is not supported in Management V2 API.");
+  }
+
+  @Test
+  public void invalidGroup() throws Exception {
+    RegionConfig regionConfig = new RegionConfig();
+    regionConfig.setName("customers");
+    regionConfig.setGroup("cluster");
+
+    assertManagementResult(client.create(regionConfig))
+        .failed()
+        .hasStatusCode(ClusterManagementResult.StatusCode.ILLEGAL_ARGUMENT)
+        .containsStatusMessage("cluster is a reserved group name");
   }
 
   @Test
   @WithMockUser
   public void ping() throws Exception {
-    mockMvc.perform(get("/v2/ping")
-        .with(POST_PROCESSOR))
+    context.perform(get("/v2/ping"))
         .andExpect(content().string("pong"));
   }
 }

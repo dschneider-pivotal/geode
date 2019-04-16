@@ -34,7 +34,7 @@ import org.apache.geode.cache.configuration.CacheConfig;
 import org.apache.geode.cache.configuration.RegionConfig;
 import org.apache.geode.distributed.ConfigurationPersistenceService;
 import org.apache.geode.distributed.DistributedMember;
-import org.apache.geode.distributed.internal.DistributionManager;
+import org.apache.geode.internal.cache.InternalCache;
 import org.apache.geode.management.api.ClusterManagementResult;
 import org.apache.geode.management.internal.cli.functions.CliFunctionResult;
 import org.apache.geode.management.internal.exceptions.EntityExistsException;
@@ -42,23 +42,23 @@ import org.apache.geode.management.internal.exceptions.EntityExistsException;
 public class LocatorClusterManagementServiceTest {
 
   private LocatorClusterManagementService service;
-  private DistributionManager distributionManager;
+  private InternalCache cache;
   private ConfigurationPersistenceService persistenceService;
   private RegionConfig regionConfig;
   private ClusterManagementResult result;
 
   @Before
   public void before() throws Exception {
-    distributionManager = mock(DistributionManager.class);
+    cache = mock(InternalCache.class);
     persistenceService = mock(ConfigurationPersistenceService.class);
-    service = spy(new LocatorClusterManagementService(distributionManager, persistenceService));
+    service = spy(new LocatorClusterManagementService(cache, persistenceService));
     regionConfig = new RegionConfig();
   }
 
   @Test
   public void persistenceIsNull() throws Exception {
-    service = new LocatorClusterManagementService(distributionManager, null);
-    result = service.create(regionConfig, "cluster");
+    service = new LocatorClusterManagementService(cache, null);
+    result = service.create(regionConfig);
     assertThat(result.isSuccessful()).isFalse();
     assertThat(result.getStatusMessage())
         .contains("Cluster configuration service needs to be enabled");
@@ -71,14 +71,14 @@ public class LocatorClusterManagementServiceTest {
     cacheConfig.getRegions().add(regionConfig);
     when(persistenceService.getCacheConfig("cluster", true)).thenReturn(cacheConfig);
 
-    assertThatThrownBy(() -> service.create(regionConfig, "cluster"))
+    assertThatThrownBy(() -> service.create(regionConfig))
         .isInstanceOf(EntityExistsException.class)
         .hasMessageContaining("cache element test already exists");
   }
 
   @Test
   public void validationFailed() throws Exception {
-    assertThatThrownBy(() -> service.create(regionConfig, "cluster"))
+    assertThatThrownBy(() -> service.create(regionConfig))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Name of the region has to be specified");
   }
@@ -87,11 +87,11 @@ public class LocatorClusterManagementServiceTest {
   public void noMemberFound() throws Exception {
     regionConfig.setName("test");
     when(persistenceService.getCacheConfig("cluster", true)).thenReturn(new CacheConfig());
-    doReturn(Collections.emptySet()).when(service).findMembers(any(), any());
-    result = service.create(regionConfig, "cluster");
+    doReturn(Collections.emptySet()).when(service).findMembers(any());
+    result = service.create(regionConfig);
     assertThat(result.isSuccessful()).isFalse();
     assertThat(result.getStatusMessage())
-        .contains("no members found to create cache element");
+        .contains("no members found in cluster to create cache element");
   }
 
   @Test
@@ -101,12 +101,11 @@ public class LocatorClusterManagementServiceTest {
     functionResults.add(new CliFunctionResult("member2", false, "failed"));
     doReturn(functionResults).when(service).executeAndGetFunctionResult(any(), any(), any());
 
-    doReturn(Collections.singleton(mock(DistributedMember.class))).when(service).findMembers(any(),
-        any());
+    doReturn(Collections.singleton(mock(DistributedMember.class))).when(service).findMembers(any());
 
     when(persistenceService.getCacheConfig("cluster", true)).thenReturn(new CacheConfig());
     regionConfig.setName("test");
-    result = service.create(regionConfig, "cluster");
+    result = service.create(regionConfig);
     assertThat(result.isSuccessful()).isFalse();
     assertThat(result.getStatusMessage())
         .contains("Failed to apply the update on all members");

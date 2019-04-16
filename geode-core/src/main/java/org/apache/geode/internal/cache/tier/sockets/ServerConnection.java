@@ -743,7 +743,15 @@ public abstract class ServerConnection implements Runnable {
   private boolean clientDisconnectedCleanly = false;
   private Throwable clientDisconnectedException;
   private int failureCount = 0;
-  boolean processMessages = true;
+  private volatile boolean processMessages = true;
+
+  public boolean getProcessMessages() {
+    return processMessages;
+  }
+
+  public void setProcessMessages(boolean newValue) {
+    processMessages = newValue;
+  }
 
   protected void doHandshake() {
     // hitesh:to create new connection handshake
@@ -773,14 +781,12 @@ public abstract class ServerConnection implements Runnable {
     }
     Message message;
     message = BaseCommand.readRequest(this);
-    synchronized (serverConnectionCollection) {
-      if (serverConnectionCollection.isTerminating) {
-        // Client is being disconnected, don't try to process message.
-        this.processMessages = false;
-        return;
-      }
-      serverConnectionCollection.connectionsProcessing.incrementAndGet();
+    if (!serverConnectionCollection.incrementConnectionsProcessing()) {
+      // Client is being disconnected, don't try to process message.
+      this.processMessages = false;
+      return;
     }
+
     ThreadState threadState = null;
     try {
       if (message != null) {
@@ -842,7 +848,8 @@ public abstract class ServerConnection implements Runnable {
           } else if (uniqueId == 0) {
             logger.debug("No unique ID yet. {}, {}", messageType, this.getName());
           } else {
-            logger.error("Failed to bind the subject of uniqueId {} for message {} with {}",
+            logger.warn(
+                "Failed to bind the subject of uniqueId {} for message {} with {} : Possible re-authentication required",
                 uniqueId, messageType, this.getName());
             throw new AuthenticationRequiredException("Failed to find the authenticated user.");
           }
@@ -1205,6 +1212,8 @@ public abstract class ServerConnection implements Runnable {
       } catch (IOException ex) {
         logger.warn(ex.toString() + " : Unexpected Exception");
         setClientDisconnectedException(ex);
+      } catch (AuthenticationRequiredException ex) {
+        logger.warn(ex.toString() + " : Unexpected Exception");
       } finally {
         getAcceptor().releaseTLCommBuffer();
         // DistributedSystem.releaseThreadsSockets();

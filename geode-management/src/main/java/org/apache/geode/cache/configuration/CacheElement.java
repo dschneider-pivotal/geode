@@ -20,21 +20,47 @@ package org.apache.geode.cache.configuration;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlTransient;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.apache.commons.lang3.StringUtils;
+
 import org.apache.geode.annotations.Experimental;
 import org.apache.geode.lang.Identifiable;
 
 @Experimental
-public interface CacheElement extends Identifiable<String>, Serializable {
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "class")
+public abstract class CacheElement implements Identifiable<String>, Serializable {
+  private String group;
 
-  static <T extends CacheElement> boolean exists(List<T> list, String id) {
+  public static <T extends CacheElement> boolean exists(List<T> list, String id) {
     return list.stream().anyMatch(o -> o.getId().equals(id));
   }
 
-  static <T extends CacheElement> T findElement(List<T> list, String id) {
+  public static <T extends CacheElement> T findElement(List<T> list, String id) {
     return list.stream().filter(o -> o.getId().equals(id)).findFirst().orElse(null);
   }
 
-  static <T extends CacheElement> void removeElement(List<T> list, String id) {
+  public static <T extends CacheElement> void removeElement(List<T> list, String id) {
     list.removeIf(t -> t.getId().equals(id));
+  }
+
+  @XmlTransient
+  public String getGroup() {
+    return group;
+  }
+
+  @XmlTransient
+  @JsonIgnore
+  public String getConfigGroup() {
+    if (StringUtils.isBlank(group)) {
+      return "cluster";
+    }
+    return group;
+  }
+
+  public void setGroup(String group) {
+    this.group = group;
   }
 }

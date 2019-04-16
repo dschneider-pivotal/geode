@@ -336,6 +336,7 @@ javadoc/org/apache/geode/cache/configuration/RegionAttributesType.html
 javadoc/org/apache/geode/cache/configuration/RegionConfig.Entry.html
 javadoc/org/apache/geode/cache/configuration/RegionConfig.Index.html
 javadoc/org/apache/geode/cache/configuration/RegionConfig.html
+javadoc/org/apache/geode/cache/configuration/RegionType.html
 javadoc/org/apache/geode/cache/configuration/ResourceManagerType.html
 javadoc/org/apache/geode/cache/configuration/SerializationRegistrationType.Instantiator.html
 javadoc/org/apache/geode/cache/configuration/SerializationRegistrationType.Serializer.html
@@ -705,6 +706,10 @@ javadoc/org/apache/geode/management/client/ClusterManagementServiceProvider.html
 javadoc/org/apache/geode/management/client/package-frame.html
 javadoc/org/apache/geode/management/client/package-summary.html
 javadoc/org/apache/geode/management/client/package-tree.html
+javadoc/org/apache/geode/management/configuration/MemberConfig.html
+javadoc/org/apache/geode/management/configuration/package-frame.html
+javadoc/org/apache/geode/management/configuration/package-summary.html
+javadoc/org/apache/geode/management/configuration/package-tree.html
 javadoc/org/apache/geode/management/membership/ClientMembership.html
 javadoc/org/apache/geode/management/membership/ClientMembershipEvent.html
 javadoc/org/apache/geode/management/membership/ClientMembershipListener.html
@@ -904,13 +909,13 @@ lib/geode-cq-0.0.0.jar
 lib/geode-dependencies.jar
 lib/geode-jca-0.0.0.rar
 lib/geode-lucene-0.0.0.jar
-lib/geode-redis-0.0.0.jar
-lib/geode-memcached-0.0.0.jar
 lib/geode-management-0.0.0.jar
+lib/geode-memcached-0.0.0.jar
 lib/geode-old-client-support-0.0.0.jar
 lib/geode-protobuf-0.0.0.jar
 lib/geode-protobuf-messages-0.0.0.jar
 lib/geode-rebalancer-0.0.0.jar
+lib/geode-redis-0.0.0.jar
 lib/geode-wan-0.0.0.jar
 lib/gfsh-dependencies.jar
 lib/grumpy-core-0.2.2.jar
@@ -977,6 +982,7 @@ lib/spring-core-4.3.20.RELEASE.jar
 lib/spring-expression-4.3.20.RELEASE.jar
 lib/spring-shell-1.2.0.RELEASE.jar
 lib/spring-web-4.3.20.RELEASE.jar
+lib/swagger-annotations-1.5.20.jar
 tools/ClientProtocol/geode-protobuf-messages-definitions-0.0.0.zip
 tools/Extensions/geode-web-0.0.0.war
 tools/Extensions/geode-web-api-0.0.0.war

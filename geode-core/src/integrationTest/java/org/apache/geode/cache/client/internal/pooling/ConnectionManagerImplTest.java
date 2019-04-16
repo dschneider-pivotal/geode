@@ -22,6 +22,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+<<<<<<< HEAD
+=======
+import static org.mockito.Mockito.spy;
+>>>>>>> origin/develop
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -183,6 +187,22 @@ public class ConnectionManagerImplTest {
   }
 
   @Test
+  public void borrowConnectionWillSchedulePrefillIfUnderMinimumConnections() {
+    when(connectionFactory.createClientToServerConnection(any())).thenReturn(null);
+    doNothing().when(backgroundProcessor).execute(any());
+
+    pingInterval = 20000000; // set it high to prevent prefill retry
+    connectionManager = spy(createDefaultConnectionManager());
+    connectionManager.start(backgroundProcessor);
+    assertThatThrownBy(() -> connectionManager.borrowConnection(timeout))
+        .isInstanceOf(NoAvailableServersException.class);
+    assertThat(connectionManager.getConnectionCount()).isEqualTo(0);
+
+    verify(connectionManager, times(2)).startBackgroundPrefill();
+    connectionManager.close(false);
+  }
+
+  @Test
   public void borrowConnectionGivesUpWhenShuttingDown() {
     int maxConnections = 1;
     Connection connection = mock(Connection.class);
@@ -215,7 +235,7 @@ public class ConnectionManagerImplTest {
         cancelCriterion, poolStats);
     connectionManager.start(backgroundProcessor);
 
-    // reach max connection count so we can't create anew connection and end up in the wait loop
+    // reach max connection count so we can't create a new connection and end up in the wait loop
     connectionManager.borrowConnection(timeout);
     assertThat(connectionManager.getConnectionCount()).isEqualTo(maxConnections);
 
@@ -226,7 +246,7 @@ public class ConnectionManagerImplTest {
   }
 
   @Test
-  public void borrowWithServerLocationCanBreakMaxConnectionContract() {
+  public void borrowWithServerLocationBreaksMaxConnectionContract() {
     int maxConnections = 2;
 
     ServerLocation serverLocation1 = mock(ServerLocation.class);
@@ -355,7 +375,7 @@ public class ConnectionManagerImplTest {
 
   @Test
   public void exchangeCreatesNewConnectionIfNoneAreAvailable() {
-    Set excluded = Collections.EMPTY_SET;
+    Set<ServerLocation> excluded = Collections.emptySet();
 
     ServerLocation serverLocation1 = mock(ServerLocation.class);
     Connection connection1 = mock(Connection.class);
@@ -387,7 +407,7 @@ public class ConnectionManagerImplTest {
   @Test
   public void exchangeBreaksMaxConnectionContractWhenNoConnectionsAreAvailable() {
     int maxConnections = 2;
-    Set excluded = Collections.EMPTY_SET;
+    Set<ServerLocation> excluded = Collections.emptySet();
 
     ServerLocation serverLocation1 = mock(ServerLocation.class);
     Connection connection1 = mock(Connection.class);
@@ -433,7 +453,7 @@ public class ConnectionManagerImplTest {
 
   @Test
   public void exchangeReturnsExistingConnectionIfOneExists() {
-    Set excluded = Collections.emptySet();
+    Set<ServerLocation> excluded = Collections.emptySet();
 
     ServerLocation serverLocation1 = mock(ServerLocation.class);
     Connection connection1 = mock(Connection.class);
@@ -461,81 +481,6 @@ public class ConnectionManagerImplTest {
     heldConnection2 = connectionManager.exchangeConnection(heldConnection1, excluded, timeout);
     assertThat(heldConnection2.getServer()).isEqualTo(connection2.getServer());
     assertThat(connectionManager.getConnectionCount()).isEqualTo(2);
-
-    connectionManager.close(false);
-  }
-
-  @Test
-  public void activateActivatesConnection() {
-    Connection connection = mock(Connection.class);
-    ServerLocation serverLocation = mock(ServerLocation.class);
-    when(connectionFactory.createClientToServerConnection(serverLocation, false))
-        .thenReturn(connection);
-
-    connectionManager = createDefaultConnectionManager();
-    connectionManager.start(backgroundProcessor);
-
-    Connection heldConnection = connectionManager.borrowConnection(serverLocation, timeout, false);
-    connectionManager.passivate(heldConnection, false);
-    connectionManager.activate(heldConnection);
-
-    assertThat(((PooledConnection) heldConnection).isActive()).isTrue();
-
-    connectionManager.close(false);
-  }
-
-  @Test
-  public void activateThrowsIfConnectionIsAlreadyActive() {
-    Connection connection = mock(Connection.class);
-    ServerLocation serverLocation = mock(ServerLocation.class);
-    when(connectionFactory.createClientToServerConnection(serverLocation, false))
-        .thenReturn(connection);
-
-    connectionManager = createDefaultConnectionManager();
-    connectionManager.start(backgroundProcessor);
-
-    Connection heldConnection = connectionManager.borrowConnection(serverLocation, timeout, false);
-
-    assertThatThrownBy(() -> connectionManager.activate(heldConnection))
-        .isInstanceOf(InternalGemFireException.class)
-        .hasMessageContaining("Connection already active");
-
-    connectionManager.close(false);
-  }
-
-  @Test
-  public void passivatePassivatesConnection() {
-    Connection connection = mock(Connection.class);
-    ServerLocation serverLocation = mock(ServerLocation.class);
-    when(connectionFactory.createClientToServerConnection(serverLocation, false))
-        .thenReturn(connection);
-
-    connectionManager = createDefaultConnectionManager();
-    connectionManager.start(backgroundProcessor);
-
-    Connection heldConnection = connectionManager.borrowConnection(serverLocation, timeout, false);
-    connectionManager.passivate(heldConnection, false);
-
-    assertThat(((PooledConnection) heldConnection).isActive()).isFalse();
-
-    connectionManager.close(false);
-  }
-
-  @Test
-  public void passivateThrowsWhenConnectionIsNotActive() {
-    Connection connection = mock(Connection.class);
-    ServerLocation serverLocation = mock(ServerLocation.class);
-    when(connectionFactory.createClientToServerConnection(serverLocation, false))
-        .thenReturn(connection);
-
-    connectionManager = createDefaultConnectionManager();
-    connectionManager.start(backgroundProcessor);
-
-    Connection heldConnection = connectionManager.borrowConnection(serverLocation, timeout, false);
-    connectionManager.passivate(heldConnection, false);
-    assertThatThrownBy(() -> connectionManager.passivate(heldConnection, false))
-        .isInstanceOf(InternalGemFireException.class)
-        .hasMessageContaining("Connection not active");
 
     connectionManager.close(false);
   }

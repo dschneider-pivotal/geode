@@ -32,15 +32,10 @@ public interface ClusterManagementService {
    * the configuration in the cluster configuration if persistence is enabled.
    *
    * @param config this holds the configuration attributes of the element to be created on the
-   *        cluster
-   * @param group the server group to which this config applies
+   *        cluster, as well as the group this config belongs to
    * @see CacheElement
    */
-  ClusterManagementResult create(CacheElement config, String group);
-
-  default ClusterManagementResult create(CacheElement config) {
-    return create(config, null);
-  }
+  ClusterManagementResult create(CacheElement config);
 
   /**
    * This method will delete the element on all the applicable members in the cluster and update the
@@ -48,15 +43,11 @@ public interface ClusterManagementService {
    *
    * @param config this holds the configuration attributes of the element to be deleted on the
    *        cluster
-   * @param group the server group to which this config applies
    * @throws IllegalArgumentException, NoMemberException, EntityExistsException
    * @see CacheElement
    */
-  ClusterManagementResult delete(CacheElement config, String group);
+  ClusterManagementResult delete(CacheElement config);
 
-  default ClusterManagementResult delete(CacheElement config) {
-    return delete(config, null);
-  }
 
   /**
    * This method will update the element on all the applicable members in the cluster and persist
@@ -64,18 +55,15 @@ public interface ClusterManagementService {
    *
    * @param config this holds the configuration attributes of the element to be updated on the
    *        cluster
-   * @param group the server group to which this config applies
    * @throws IllegalArgumentException, NoMemberException, EntityExistsException
    * @see CacheElement
    */
-  ClusterManagementResult update(CacheElement config, String group);
+  ClusterManagementResult update(CacheElement config);
 
-  default ClusterManagementResult update(CacheElement config) {
-    return update(config, null);
-  }
+  ClusterManagementResult list(CacheElement config);
 
   /**
-   * Test to see if this instance of ClsuterManagmentService retrieved from the client side is
+   * Test to see if this instance of ClusterManagementService retrieved from the client side is
    * properly connected to the locator or not
    *
    * @return true if connected

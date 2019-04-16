@@ -14,6 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+evaluationDependsOn(':geode-core')
+
+apply from: "${rootDir}/${scriptDir}/standard-subproject-configuration.gradle"
 apply plugin: 'war'
 
 apply from: "${project.projectDir}/../gradle/publish.gradle"

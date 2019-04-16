@@ -111,7 +111,7 @@ public interface ConnectionManager {
    * @throws ServerOperationException if creating a connection fails due to authentication issues
    * @return a new connection to the pool to a server that is not in the list of excluded servers
    */
-  Connection exchangeConnection(Connection conn, Set/* <ServerLocation> */ excludedServers,
+  Connection exchangeConnection(Connection conn, Set<ServerLocation> excludedServers,
       long aquireTimeout) throws AllConnectionsInUseException;
 
   /**
@@ -120,20 +120,4 @@ public interface ConnectionManager {
   int getConnectionCount();
 
   void emergencyClose();
-
-  /**
-   * Used to active a thread local connection
-   *
-   * @throws InternalGemFireException when the connection is already active
-   */
-  void activate(Connection conn);
-
-  /**
-   * Used to passivate a thread local connection
-   *
-   * @throws InternalGemFireException when the connection is already passive
-   */
-  void passivate(Connection conn, boolean accessed);
-
-  Connection getConnection(Connection conn);
 }

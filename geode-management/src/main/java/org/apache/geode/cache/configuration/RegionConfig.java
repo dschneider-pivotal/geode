@@ -29,8 +29,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.apache.geode.annotations.Experimental;
-import org.apache.geode.cache.RegionShortcut;
 import org.apache.geode.management.api.RestfulEndpoint;
 
 
@@ -151,7 +152,10 @@ import org.apache.geode.management.api.RestfulEndpoint;
 @XmlType(name = "region-type", namespace = "http://geode.apache.org/schema/cache",
     propOrder = {"regionAttributes", "indexes", "entries", "regionElements", "regions"})
 @Experimental
-public class RegionConfig implements CacheElement, RestfulEndpoint {
+public class RegionConfig extends CacheElement implements RestfulEndpoint {
+
+  public static final String REGION_CONFIG_ENDPOINT = "/regions";
+
   @XmlElement(name = "region-attributes", namespace = "http://geode.apache.org/schema/cache")
   protected RegionAttributesType regionAttributes;
   @XmlElement(name = "index", namespace = "http://geode.apache.org/schema/cache")
@@ -176,7 +180,7 @@ public class RegionConfig implements CacheElement, RestfulEndpoint {
 
   @Override
   public String getEndpoint() {
-    return "/regions";
+    return REGION_CONFIG_ENDPOINT;
   }
 
   public RegionAttributesType getRegionAttributes() {
@@ -219,53 +223,20 @@ public class RegionConfig implements CacheElement, RestfulEndpoint {
 
   /**
    * Gets the value of the entry property.
-   *
-   * <p>
-   * This accessor method returns a reference to the live list,
-   * not a snapshot. Therefore any modification you make to the
-   * returned list will be present inside the JAXB object.
-   * This is why there is not a <CODE>set</CODE> method for the entry property.
-   *
-   * <p>
-   * For example, to add a new item, do as follows:
-   *
-   * <pre>
-   * getEntries().add(newItem);
-   * </pre>
-   *
-   *
-   * <p>
-   * Objects of the following type(s) are allowed in the list
-   * {@link RegionConfig.Entry }
-   *
-   *
+   * Currently, users can not create regions with initial entries using management v2 api.
+   * this entry list will be ignored when creating the region
    */
   public List<Entry> getEntries() {
     if (entries == null) {
-      entries = new ArrayList<Entry>();
+      entries = new ArrayList<>();
     }
     return this.entries;
   }
 
   /**
-   * Gets the value of the any property.
-   *
-   * <p>
-   * This accessor method returns a reference to the live list,
-   * not a snapshot. Therefore any modification you make to the
-   * returned list will be present inside the JAXB object.
-   * This is why there is not a <CODE>set</CODE> method for the any property.
-   *
-   * <p>
-   * For example, to add a new item, do as follows:
-   *
-   * <pre>
-   * getCustomRegionElements().add(newItem);
-   * </pre>
-   *
-   *
-   * <p>
-   * Objects of the following type(s) are allowed in the list
+   * Gets the list of custom region elements
+   * Currently, users can not create regions with custom region elements using management v2 api.
+   * this cache element list will be ignored when creating the region
    */
   public List<CacheElement> getCustomRegionElements() {
     if (regionElements == null) {
@@ -275,31 +246,13 @@ public class RegionConfig implements CacheElement, RestfulEndpoint {
   }
 
   /**
-   * Gets the value of the region property.
-   *
-   * <p>
-   * This accessor method returns a reference to the live list,
-   * not a snapshot. Therefore any modification you make to the
-   * returned list will be present inside the JAXB object.
-   * This is why there is not a <CODE>set</CODE> method for the region property.
-   *
-   * <p>
-   * For example, to add a new item, do as follows:
-   *
-   * <pre>
-   * getRegions().add(newItem);
-   * </pre>
-   *
-   *
-   * <p>
-   * Objects of the following type(s) are allowed in the list
-   * {@link RegionConfig }
-   *
-   *
+   * Gets the list of the sub regions
+   * Currently, users can not create regions with sub regions using management v2 api.
+   * This sub region list will be ignored when creating the region.
    */
   public List<RegionConfig> getRegions() {
     if (regions == null) {
-      regions = new ArrayList<RegionConfig>();
+      regions = new ArrayList<>();
     }
     return this.regions;
   }
@@ -324,7 +277,7 @@ public class RegionConfig implements CacheElement, RestfulEndpoint {
    */
   public void setName(String value) throws IllegalArgumentException {
     if (value == null) {
-      throw new IllegalArgumentException("Region name cannot be null");
+      return;
     }
 
     boolean regionPrefixedWithSlash = value.startsWith("/");
@@ -357,9 +310,15 @@ public class RegionConfig implements CacheElement, RestfulEndpoint {
    * {@link String }
    *
    */
-  public void setType(RegionShortcut regionShortcut) {
-    if (regionShortcut != null) {
-      this.type = regionShortcut.name();
+  public void setType(RegionType regionType) {
+    if (regionType != null) {
+      setType(regionType.name());
+    }
+  }
+
+  public void setType(String regionType) {
+    if (regionType != null) {
+      this.type = regionType.toUpperCase();
       setShortcutAttributes();
     }
   }
@@ -372,6 +331,11 @@ public class RegionConfig implements CacheElement, RestfulEndpoint {
     switch (type) {
       case "PARTITION": {
         regionAttributes.setDataPolicy(RegionAttributesDataPolicy.PARTITION);
+        break;
+      }
+      case "REPLICATE": {
+        regionAttributes.setDataPolicy(RegionAttributesDataPolicy.REPLICATE);
+        regionAttributes.setScope(RegionAttributesScope.DISTRIBUTED_ACK);
         break;
       }
       case "PARTITION_REDUNDANT": {
@@ -403,14 +367,12 @@ public class RegionConfig implements CacheElement, RestfulEndpoint {
         regionAttributes.setDataPolicy(RegionAttributesDataPolicy.PERSISTENT_PARTITION);
         regionAttributes.setLruHeapPercentage(EnumActionDestroyOverflow.OVERFLOW_TO_DISK);
         break;
-
       }
       case "PARTITION_REDUNDANT_PERSISTENT_OVERFLOW": {
         regionAttributes.setDataPolicy(RegionAttributesDataPolicy.PERSISTENT_PARTITION);
         regionAttributes.setRedundantCopy("1");
         regionAttributes.setLruHeapPercentage(EnumActionDestroyOverflow.OVERFLOW_TO_DISK);
         break;
-
       }
       case "PARTITION_HEAP_LRU": {
         regionAttributes.setDataPolicy(RegionAttributesDataPolicy.PARTITION);
@@ -424,11 +386,7 @@ public class RegionConfig implements CacheElement, RestfulEndpoint {
         regionAttributes.setLruHeapPercentage(EnumActionDestroyOverflow.LOCAL_DESTROY);
         break;
       }
-      case "REPLICATE": {
-        regionAttributes.setDataPolicy(RegionAttributesDataPolicy.REPLICATE);
-        regionAttributes.setScope(RegionAttributesScope.DISTRIBUTED_ACK);
-        break;
-      }
+
       case "REPLICATE_PERSISTENT": {
         regionAttributes.setDataPolicy(RegionAttributesDataPolicy.PERSISTENT_REPLICATE);
         regionAttributes.setScope(RegionAttributesScope.DISTRIBUTED_ACK);
@@ -504,6 +462,7 @@ public class RegionConfig implements CacheElement, RestfulEndpoint {
   }
 
   @Override
+  @JsonIgnore
   public String getId() {
     return getName();
   }
@@ -675,7 +634,7 @@ public class RegionConfig implements CacheElement, RestfulEndpoint {
    *
    */
   @XmlAccessorType(XmlAccessType.FIELD)
-  public static class Index implements CacheElement, Serializable {
+  public static class Index extends CacheElement {
     @XmlAttribute(name = "name", required = true)
     protected String name;
     @XmlAttribute(name = "expression")

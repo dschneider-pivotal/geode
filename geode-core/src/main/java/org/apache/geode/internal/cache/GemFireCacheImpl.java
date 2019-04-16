@@ -600,6 +600,7 @@ public class GemFireCacheImpl implements InternalCache, InternalClientCache, Has
   private Optional<HttpService> httpService = Optional.ofNullable(null);
 
   private final MeterRegistry meterRegistry;
+  private final Set<MeterRegistry> meterSubregistries;
 
   static {
     // this works around jdk bug 6427854, reported in ticket #44434
@@ -774,12 +775,14 @@ public class GemFireCacheImpl implements InternalCache, InternalClientCache, Has
    */
   GemFireCacheImpl(boolean isClient, PoolFactory poolFactory,
       InternalDistributedSystem internalDistributedSystem, CacheConfig cacheConfig,
-      boolean useAsyncEventListeners, TypeRegistry typeRegistry, MeterRegistry meterRegistry) {
+      boolean useAsyncEventListeners, TypeRegistry typeRegistry, MeterRegistry meterRegistry,
+      Set<MeterRegistry> meterSubregistries) {
     this.isClient = isClient;
     this.poolFactory = poolFactory;
     this.cacheConfig = cacheConfig; // do early for bug 43213
     this.pdxRegistry = typeRegistry;
     this.meterRegistry = meterRegistry;
+    this.meterSubregistries = meterSubregistries;
 
     // Synchronized to prevent a new cache from being created
     // before an old one has finished closing
@@ -947,6 +950,11 @@ public class GemFireCacheImpl implements InternalCache, InternalClientCache, Has
   @Override
   public MeterRegistry getMeterRegistry() {
     return meterRegistry;
+  }
+
+  @Override
+  public Set<MeterRegistry> getMeterSubregistries() {
+    return meterSubregistries;
   }
 
   @Override
@@ -2023,6 +2031,7 @@ public class GemFireCacheImpl implements InternalCache, InternalClientCache, Has
   @Override
   public ClientMetadataService getClientMetadataService() {
     this.stopper.checkCancelInProgress(null);
+
     return this.clientMetadataService;
   }
 
@@ -2624,14 +2633,20 @@ public class GemFireCacheImpl implements InternalCache, InternalClientCache, Has
     return (Set) this.dm.getAdminMemberSet();
   }
 
+  @SuppressWarnings("unchecked")
+  private Set<DistributedMember> asDistributedMemberSet(
+      Set<InternalDistributedMember> internalDistributedMembers) {
+    return (Set<DistributedMember>) (Set) internalDistributedMembers;
+  }
+
   @Override
   public Set<DistributedMember> getMembers(Region region) {
     if (region instanceof DistributedRegion) {
       DistributedRegion distributedRegion = (DistributedRegion) region;
-      return (Set<DistributedMember>) distributedRegion.getDistributionAdvisor().adviseCacheOp();
+      return asDistributedMemberSet(distributedRegion.getDistributionAdvisor().adviseCacheOp());
     } else if (region instanceof PartitionedRegion) {
       PartitionedRegion partitionedRegion = (PartitionedRegion) region;
-      return (Set<DistributedMember>) partitionedRegion.getRegionAdvisor().adviseAllPRNodes();
+      return asDistributedMemberSet(partitionedRegion.getRegionAdvisor().adviseAllPRNodes());
     } else {
       return Collections.emptySet();
     }
