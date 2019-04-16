@@ -601,9 +601,9 @@ public class Message {
 
         int msgLen = (int) (headerLen + totalPartLen);
 
-        if (msgLen > maxMessageSize) {
+        if (msgLen > this.maxMessageSize) {
           throw new MessageTooLargeException("Message size (" + msgLen
-              + ") exceeds gemfire.client.max-message-size setting (" + maxMessageSize + ")");
+              + ") exceeds gemfire.client.max-message-size setting (" + this.maxMessageSize + ")");
         }
 
         commBuffer.clear();

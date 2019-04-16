@@ -399,7 +399,7 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
   /**
    * Used for serializing netSearch and netLoad on a per key basis. CM <Object, Future>
    */
-  private final ConcurrentMap<Object, Future> getFutures = new ConcurrentHashMap<>();
+  private final ConcurrentMap getFutures = new ConcurrentHashMap();
 
   /**
    * TODO: This boolean needs to be made true if the test needs to receive a synchronous callback
@@ -1545,7 +1545,6 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
     Future otherFuture = (Future) getFutures.putIfAbsent(keyInfo.getKey(), thisFuture);
     // only one thread can get their future into the map for this key at a time
     if (otherFuture != null) {
-      thisFuture = null;
       try {
         Object[] valueAndVersion = (Object[]) otherFuture.get();
         if (valueAndVersion != null) {
