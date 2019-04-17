@@ -22,7 +22,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.apache.geode.annotations.internal.MakeNotStatic;
 import org.apache.geode.distributed.internal.DMStats;
 import org.apache.geode.internal.Assert;
-import org.apache.geode.internal.logging.LogService;
 
 public class Buffers {
   /**
@@ -88,7 +87,6 @@ public class Buffers {
           if (alreadySeen == null) {
             alreadySeen = new IdentityHashMap<>();
           }
-          LogService.getLogger().info("DEBUG returning small buffer of size " + bb.capacity());
           if (alreadySeen.put(ref, ref) != null) {
             // if it returns non-null then we have already seen this item
             // so we have worked all the way through the queue once.
@@ -97,10 +95,6 @@ public class Buffers {
           }
         }
         ref = bufferQueue.poll();
-      }
-      if (size != 32768) {
-        LogService.getLogger().info("DEBUG allocating direct byte buffer of size: " + size,
-            new RuntimeException("STACK"));
       }
       result = ByteBuffer.allocateDirect(size);
     } else {
