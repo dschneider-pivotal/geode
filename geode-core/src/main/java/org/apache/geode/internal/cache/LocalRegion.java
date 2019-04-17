@@ -5912,9 +5912,7 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
         }
       }
       if (lockForCQ) {
-        synchronized (regionEntryObject) {
-          routing = filterProfile.getLocalFilterRouting(event);
-        }
+        routing = getLocalFilterRoutingWhileSynced(event, filterProfile, regionEntryObject);
       } else {
         routing = filterProfile.getLocalFilterRouting(event);
       }
@@ -5928,6 +5926,13 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
         logger.debug("clearing CQ routing for event that's in conflict");
       }
       routing.clearCQRouting();
+    }
+  }
+
+  private FilterInfo getLocalFilterRoutingWhileSynced(InternalCacheEvent event,
+      FilterProfile filterProfile, Object regionEntryObject) {
+    synchronized (regionEntryObject) {
+      return filterProfile.getLocalFilterRouting(event);
     }
   }
 
