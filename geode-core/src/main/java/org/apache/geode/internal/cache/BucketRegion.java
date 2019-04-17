@@ -442,27 +442,27 @@ public class BucketRegion extends DistributedRegion implements Bucket {
    * thread needs to acquire lock of CM first.
    */
   public void removeAndNotifyKeys(Object[] keys) {
-    final boolean isTraceEnabled = logger.isTraceEnabled();
-
-    synchronized (allKeysMap) {
-      for (Object key : keys) {
-        LockObject lockValue = allKeysMap.remove(key);
-        if (lockValue != null) {
-          // let current thread become the monitor of the key object
-          synchronized (lockValue) {
-            lockValue.setRemoved();
-            if (isTraceEnabled) {
-              long waitTime = System.currentTimeMillis() - lockValue.lockedTimeStamp;
-              logger.trace("LockKeys: remove key {}, notifyAll for {}. It waited {}", key,
-                  lockValue, waitTime);
-            }
-            if (lockValue.isSomeoneWaiting()) {
-              lockValue.notifyAll();
-            }
-          }
-        }
-      } // for
-    }
+    // final boolean isTraceEnabled = logger.isTraceEnabled();
+    //
+    // synchronized (allKeysMap) {
+    // for (Object key : keys) {
+    // LockObject lockValue = allKeysMap.remove(key);
+    // if (lockValue != null) {
+    // // let current thread become the monitor of the key object
+    // synchronized (lockValue) {
+    // lockValue.setRemoved();
+    // if (isTraceEnabled) {
+    // long waitTime = System.currentTimeMillis() - lockValue.lockedTimeStamp;
+    // logger.trace("LockKeys: remove key {}, notifyAll for {}. It waited {}", key,
+    // lockValue, waitTime);
+    // }
+    // if (lockValue.isSomeoneWaiting()) {
+    // lockValue.notifyAll();
+    // }
+    // }
+    // }
+    // } // for
+    // }
   }
 
   /**
@@ -471,37 +471,38 @@ public class BucketRegion extends DistributedRegion implements Bucket {
    * successfully save its keys into CM.
    */
   public boolean waitUntilLocked(Object[] keys) {
-    final boolean isDebugEnabled = logger.isDebugEnabled();
-
-    final String title = "BucketRegion.waitUntilLocked:";
-    while (true) {
-      LockObject foundLock = searchAndLock(keys);
-
-      if (foundLock != null) {
-        synchronized (foundLock) {
-          try {
-            while (!foundLock.isRemoved()) {
-              partitionedRegion.checkReadiness();
-              foundLock.wait(1000);
-              // primary could be changed by prRebalancing while waiting here
-              checkForPrimary();
-            }
-          } catch (InterruptedException e) {
-            // TODO this isn't a localizable string and it's being logged at info level
-            if (isDebugEnabled) {
-              logger.debug("{} interrupted while waiting for {}", title, foundLock);
-            }
-          }
-          if (isDebugEnabled) {
-            long waitTime = System.currentTimeMillis() - foundLock.lockedTimeStamp;
-            logger.debug("{} waited {} ms to lock {}", title, waitTime, foundLock);
-          }
-        }
-      } else {
-        // now the keys have been locked by this thread
-        return true;
-      } // to lock and process
-    } // while
+    return true;
+    // final boolean isDebugEnabled = logger.isDebugEnabled();
+    //
+    // final String title = "BucketRegion.waitUntilLocked:";
+    // while (true) {
+    // LockObject foundLock = searchAndLock(keys);
+    //
+    // if (foundLock != null) {
+    // synchronized (foundLock) {
+    // try {
+    // while (!foundLock.isRemoved()) {
+    // partitionedRegion.checkReadiness();
+    // foundLock.wait(1000);
+    // // primary could be changed by prRebalancing while waiting here
+    // checkForPrimary();
+    // }
+    // } catch (InterruptedException e) {
+    // // TODO this isn't a localizable string and it's being logged at info level
+    // if (isDebugEnabled) {
+    // logger.debug("{} interrupted while waiting for {}", title, foundLock);
+    // }
+    // }
+    // if (isDebugEnabled) {
+    // long waitTime = System.currentTimeMillis() - foundLock.lockedTimeStamp;
+    // logger.debug("{} waited {} ms to lock {}", title, waitTime, foundLock);
+    // }
+    // }
+    // } else {
+    // // now the keys have been locked by this thread
+    // return true;
+    // } // to lock and process
+    // } // while
   }
 
   // Entry (Put/Create) rules
