@@ -15,10 +15,12 @@
 package org.apache.geode.internal.cache.persistence;
 
 import static java.lang.Thread.sleep;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.geode.internal.cache.TombstoneService.EXPIRED_TOMBSTONE_LIMIT_DEFAULT;
 import static org.apache.geode.internal.cache.TombstoneService.REPLICATE_TOMBSTONE_TIMEOUT_DEFAULT;
 import static org.apache.geode.test.awaitility.GeodeAwaitility.await;
+import static org.apache.geode.test.awaitility.GeodeAwaitility.getTimeout;
 import static org.apache.geode.test.dunit.IgnoredException.addIgnoredException;
 import static org.apache.geode.test.dunit.VM.getAllVMs;
 import static org.apache.geode.test.dunit.VM.getController;
@@ -53,6 +55,7 @@ import org.apache.geode.cache.DiskStore;
 import org.apache.geode.cache.DiskStoreFactory;
 import org.apache.geode.cache.PartitionAttributesFactory;
 import org.apache.geode.cache.Region;
+import org.apache.geode.cache.RegionDestroyedException;
 import org.apache.geode.cache.RegionFactory;
 import org.apache.geode.cache.Scope;
 import org.apache.geode.distributed.internal.ClusterDistributionManager;
@@ -87,9 +90,11 @@ import org.apache.geode.test.junit.categories.PersistenceTest;
 
 @Category(PersistenceTest.class)
 @RunWith(JUnitParamsRunner.class)
+@SuppressWarnings("serial")
 public class PersistentRVVRecoveryDUnitTest extends PersistentReplicatedTestBase {
 
   private static final int TEST_REPLICATED_TOMBSTONE_TIMEOUT = 1_000;
+  private static final long TIMEOUT_MILLIS = getTimeout().getValueInMS();
 
   @Rule
   public DistributedRestoreSystemProperties restoreSystemProperties =
@@ -241,7 +246,9 @@ public class PersistentRVVRecoveryDUnitTest extends PersistentReplicatedTestBase
 
     region.getDiskStore().forceCompaction();
 
-    assertThat(tombstoneService.forceBatchExpirationForTests(entryCount / 2)).isTrue();
+    assertThat(
+        tombstoneService.forceBatchExpirationForTests(entryCount / 2, TIMEOUT_MILLIS, MILLISECONDS))
+            .isTrue();
     assertThat(getTombstoneCount(region)).isEqualTo(entryCount / 2);
 
     // After expiring, we should have an oplog available for compaction.
@@ -274,17 +281,20 @@ public class PersistentRVVRecoveryDUnitTest extends PersistentReplicatedTestBase
       }
     });
 
-    try (IgnoredException e = addIgnoredException(DiskAccessException.class)) {
-      // Force expiration, with our test hook that should close the cache
-      tombstoneService = getCache().getTombstoneService();
-      tombstoneService.forceBatchExpirationForTests(entryCount / 4);
+    addIgnoredException(DiskAccessException.class);
+    addIgnoredException(RegionDestroyedException.class);
 
-      getCache().close();
+    // Force expiration, with our test hook that should close the cache
+    tombstoneService = getCache().getTombstoneService();
+    assertThat(
+        tombstoneService.forceBatchExpirationForTests(entryCount / 4, TIMEOUT_MILLIS, MILLISECONDS))
+            .isTrue();
 
-      // Restart again, and make sure the tombstones are in fact removed
-      region = createRegion(vm0);
-      assertThat(getTombstoneCount(region)).isEqualTo(entryCount / 4);
-    }
+    getCache().close();
+
+    // Restart again, and make sure the tombstones are in fact removed
+    region = createRegion(vm0);
+    assertThat(getTombstoneCount(region)).isEqualTo(entryCount / 4);
   }
 
   /**
@@ -372,6 +382,8 @@ public class PersistentRVVRecoveryDUnitTest extends PersistentReplicatedTestBase
     VM vm1 = getVM(1);
 
     vm0.invoke(() -> {
+      getCache();
+
       PartitionAttributesFactory<String, String> partitionAttributesFactory =
           new PartitionAttributesFactory<>();
       partitionAttributesFactory.setRedundantCopies(1);
@@ -392,6 +404,8 @@ public class PersistentRVVRecoveryDUnitTest extends PersistentReplicatedTestBase
     // Create a cache and region, do an update to change the version no. and
     // restart the cache and region.
     vm1.invoke(() -> {
+      getCache();
+
       PartitionAttributesFactory<String, String> partitionAttributesFactory =
           new PartitionAttributesFactory<>();
       partitionAttributesFactory.setRedundantCopies(1);
@@ -700,6 +714,8 @@ public class PersistentRVVRecoveryDUnitTest extends PersistentReplicatedTestBase
   }
 
   private void createRegionWithAsyncPersistence(VM vm) {
+    getCache();
+
     File dir = getDiskDirForVM(vm);
     dir.mkdirs();
 
@@ -721,6 +737,8 @@ public class PersistentRVVRecoveryDUnitTest extends PersistentReplicatedTestBase
   }
 
   private InternalRegion createRegion(VM vm0) {
+    getCache();
+
     File dir = getDiskDirForVM(vm0);
     dir.mkdirs();
 
@@ -759,6 +777,8 @@ public class PersistentRVVRecoveryDUnitTest extends PersistentReplicatedTestBase
   }
 
   private Region createAsyncRegionWithSmallQueue(VM vm0) {
+    getCache();
+
     File dir = getDiskDirForVM(vm0);
     dir.mkdirs();
 

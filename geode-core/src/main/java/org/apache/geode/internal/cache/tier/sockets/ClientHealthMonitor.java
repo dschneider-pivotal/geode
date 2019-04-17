@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package org.apache.geode.internal.cache.tier.sockets;
 
 import java.net.InetAddress;
@@ -19,17 +20,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.CancelException;
 import org.apache.geode.SystemFailure;
+import org.apache.geode.annotations.VisibleForTesting;
 import org.apache.geode.annotations.internal.MakeNotStatic;
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
 import org.apache.geode.internal.Version;
@@ -56,21 +61,15 @@ public class ClientHealthMonitor {
       "geode.client-health-monitor-interval";
 
   /**
-   * The map of known clients
-   *
-   * Accesses must be locked by _clientHeartbeatsLock
+   * The map of known clients and last time seen.
    */
-  private Map<ClientProxyMembershipID, Long> _clientHeartbeats = Collections.emptyMap();
-
-  /**
-   * An object used to lock the map of known clients
-   */
-  private final Object _clientHeartbeatsLock = new Object();
+  private ConcurrentMap<ClientProxyMembershipID, AtomicLong> clientHeartbeats =
+      new ConcurrentHashMap<>();
 
   /**
    * THe GemFire <code>Cache</code>
    */
-  private final InternalCache _cache;
+  private final InternalCache cache;
 
   public int getMaximumTimeBetweenPings() {
     return maximumTimeBetweenPings;
@@ -81,13 +80,13 @@ public class ClientHealthMonitor {
   /**
    * A thread that validates client connections
    */
-  private final ClientHealthMonitorThread _clientMonitor;
+  private final ClientHealthMonitorThread clientMonitor;
 
   /**
    * The singleton <code>CacheClientNotifier</code> instance
    */
   @MakeNotStatic
-  static ClientHealthMonitor _instance;
+  private static ClientHealthMonitor instance;
 
   /**
    * Reference count in the event that multiple cache servers are using the health monitor
@@ -147,7 +146,7 @@ public class ClientHealthMonitor {
   public static ClientHealthMonitor getInstance(InternalCache cache, int maximumTimeBetweenPings,
       CacheClientNotifierStats stats) {
     createInstance(cache, maximumTimeBetweenPings, stats);
-    return _instance;
+    return instance;
   }
 
   /**
@@ -156,7 +155,7 @@ public class ClientHealthMonitor {
    * @return the singleton <code>ClientHealthMonitor</code> instance
    */
   public static ClientHealthMonitor getInstance() {
-    return _instance;
+    return instance;
   }
 
   /**
@@ -164,16 +163,16 @@ public class ClientHealthMonitor {
    */
   public static synchronized void shutdownInstance() {
     refCount--;
-    if (_instance == null)
+    if (instance == null)
       return;
     if (refCount > 0)
       return;
-    _instance.shutdown();
+    instance.shutdown();
 
     boolean interrupted = false; // Don't clear, let join fail if already interrupted
     try {
-      if (_instance._clientMonitor != null) {
-        _instance._clientMonitor.join();
+      if (instance.clientMonitor != null) {
+        instance.clientMonitor.join();
       }
     } catch (InterruptedException e) {
       interrupted = true;
@@ -185,7 +184,7 @@ public class ClientHealthMonitor {
         Thread.currentThread().interrupt();
       }
     }
-    _instance = null;
+    instance = null;
     refCount = 0;
   }
 
@@ -195,24 +194,16 @@ public class ClientHealthMonitor {
    * @param proxyID The id of the client to be registered
    */
   public void registerClient(ClientProxyMembershipID proxyID) {
-    boolean registerClient = false;
-    synchronized (_clientHeartbeatsLock) {
-      Map<ClientProxyMembershipID, Long> oldClientHeartbeats = this._clientHeartbeats;
-      if (!oldClientHeartbeats.containsKey(proxyID)) {
-        Map<ClientProxyMembershipID, Long> newClientHeartbeats = new HashMap<>(oldClientHeartbeats);
-        newClientHeartbeats.put(proxyID, System.currentTimeMillis());
-        this._clientHeartbeats = newClientHeartbeats;
-        registerClient = true;
-      }
-    }
-
-    if (registerClient) {
-      if (this.stats != null) {
-        this.stats.incClientRegisterRequests();
-      }
-      if (logger.isDebugEnabled()) {
-        logger.debug("ClientHealthMonitor: Registering client with member id {}",
-            proxyID);
+    if (!clientHeartbeats.containsKey(proxyID)) {
+      if (null == clientHeartbeats.putIfAbsent(proxyID,
+          new AtomicLong(System.currentTimeMillis()))) {
+        // don't do this in computeIfAbsent because segment is locked while logging/stats
+        if (stats != null) {
+          stats.incClientRegisterRequests();
+        }
+        if (logger.isDebugEnabled()) {
+          logger.debug("ClientHealthMonitor: Registering client with member id {}", proxyID);
+        }
       }
     }
   }
@@ -224,30 +215,18 @@ public class ClientHealthMonitor {
    */
   private void unregisterClient(ClientProxyMembershipID proxyID, boolean clientDisconnectedCleanly,
       Throwable clientDisconnectException) {
-    boolean unregisterClient = false;
-    synchronized (_clientHeartbeatsLock) {
-      Map<ClientProxyMembershipID, Long> oldClientHeartbeats = this._clientHeartbeats;
-      if (oldClientHeartbeats.containsKey(proxyID)) {
-        unregisterClient = true;
-        Map<ClientProxyMembershipID, Long> newClientHeartbeats = new HashMap<>(oldClientHeartbeats);
-        newClientHeartbeats.remove(proxyID);
-        this._clientHeartbeats = newClientHeartbeats;
-      }
-    }
-
-    if (unregisterClient) {
+    if (clientHeartbeats.remove(proxyID) != null) {
       if (clientDisconnectedCleanly) {
         if (logger.isDebugEnabled()) {
-          logger.debug("ClientHealthMonitor: Unregistering client with member id {}",
-              proxyID);
+          logger.debug("ClientHealthMonitor: Unregistering client with member id {}", proxyID);
         }
       } else {
         logger.warn("ClientHealthMonitor: Unregistering client with member id {} due to: {}",
-            new Object[] {proxyID, clientDisconnectException == null ? "Unknown reason"
-                : clientDisconnectException.getLocalizedMessage()});
+            proxyID, clientDisconnectException == null ? "Unknown reason"
+                : clientDisconnectException.getLocalizedMessage());
       }
-      if (this.stats != null) {
-        this.stats.incClientUnRegisterRequests();
+      if (stats != null) {
+        stats.incClientUnRegisterRequests();
       }
       expireTXStates(proxyID);
     }
@@ -261,7 +240,7 @@ public class ClientHealthMonitor {
    *        <code>CacheClientProxy</code>).
    * @param clientDisconnectedCleanly Whether the client disconnected cleanly or crashed
    */
-  public void unregisterClient(ClientProxyMembershipID proxyID, AcceptorImpl acceptor,
+  void unregisterClient(ClientProxyMembershipID proxyID, AcceptorImpl acceptor,
       boolean clientDisconnectedCleanly, Throwable clientDisconnectException) {
     unregisterClient(proxyID, clientDisconnectedCleanly, clientDisconnectException);
     // Unregister any CacheClientProxy instances associated with this member id
@@ -282,7 +261,7 @@ public class ClientHealthMonitor {
    * provide a test hook to track client transactions to be removed
    */
   public Set<TXId> getScheduledToBeRemovedTx() {
-    final TXManagerImpl txMgr = (TXManagerImpl) this._cache.getCacheTransactionManager();
+    final TXManagerImpl txMgr = (TXManagerImpl) cache.getCacheTransactionManager();
     return txMgr.getScheduledToBeRemovedTx();
   }
 
@@ -293,12 +272,17 @@ public class ClientHealthMonitor {
    *
    */
   private void expireTXStates(ClientProxyMembershipID proxyID) {
-    final TXManagerImpl txMgr = (TXManagerImpl) this._cache.getCacheTransactionManager();
-    final Set<TXId> txIds =
-        txMgr.getTransactionsForClient((InternalDistributedMember) proxyID.getDistributedMember());
-    if (this._cache.isClosed()) {
+    if (cache.isClosed()) {
       return;
     }
+
+    final TXManagerImpl txMgr = (TXManagerImpl) cache.getCacheTransactionManager();
+    if (null == txMgr) {
+      return;
+    }
+
+    final Set<TXId> txIds =
+        txMgr.getTransactionsForClient((InternalDistributedMember) proxyID.getDistributedMember());
     if (!txIds.isEmpty()) {
       txMgr.expireDisconnectedClientTransactions(txIds, true);
     }
@@ -333,7 +317,7 @@ public class ClientHealthMonitor {
    * @param proxyID The id of the client to be updated
    * @param connection The thread processing client requests
    */
-  public void removeConnection(ClientProxyMembershipID proxyID, ServerConnection connection) {
+  void removeConnection(ClientProxyMembershipID proxyID, ServerConnection connection) {
     synchronized (proxyIdConnections) {
       ServerConnectionCollection collection = proxyIdConnections.get(proxyID);
       if (collection != null) {
@@ -351,18 +335,19 @@ public class ClientHealthMonitor {
    * @param proxyID The id of the client from which the ping was received
    */
   public void receivedPing(ClientProxyMembershipID proxyID) {
-    if (this._clientMonitor == null) {
+    if (clientMonitor == null) {
       return;
     }
+
     if (logger.isTraceEnabled()) {
       logger.trace("ClientHealthMonitor: Received ping from client with member id {}", proxyID);
     }
-    synchronized (_clientHeartbeatsLock) {
-      if (!this._clientHeartbeats.containsKey(proxyID)) {
-        registerClient(proxyID);
-      } else {
-        this._clientHeartbeats.put(proxyID, Long.valueOf(System.currentTimeMillis()));
-      }
+
+    AtomicLong heartbeat = clientHeartbeats.get(proxyID);
+    if (null == heartbeat) {
+      registerClient(proxyID);
+    } else {
+      heartbeat.set(System.currentTimeMillis());
     }
   }
 
@@ -381,14 +366,13 @@ public class ClientHealthMonitor {
     synchronized (proxyIdConnections) {
       for (Map.Entry<ClientProxyMembershipID, ServerConnectionCollection> entry : proxyIdConnections
           .entrySet()) {
-        ClientProxyMembershipID proxyID = entry.getKey();// proxyID
-        // includes FQDN
+        // proxyID includes FQDN
+        ClientProxyMembershipID proxyID = entry.getKey();
         if (filterProxies == null || filterProxies.contains(proxyID)) {
           String membershipID = null;
           Set<ServerConnection> connections = entry.getValue().getConnections();
           int socketPort = 0;
           InetAddress socketAddress = null;
-          /// *
           // Get data from one.
           for (ServerConnection sc : connections) {
             socketPort = sc.getSocketPort();
@@ -396,9 +380,8 @@ public class ClientHealthMonitor {
             membershipID = sc.getMembershipID();
             break;
           }
-          // */
           int connectionCount = connections.size();
-          String clientString = null;
+          String clientString;
           if (socketAddress == null) {
             clientString = "client member id=" + membershipID;
           } else {
@@ -406,21 +389,12 @@ public class ClientHealthMonitor {
                 + socketAddress.getHostAddress() + " client port=" + socketPort
                 + " client member id=" + membershipID;
           }
-          Object[] data = null;
-          data = map.get(membershipID);
+          Object[] data = map.get(membershipID);
           if (data == null) {
-            map.put(membershipID, new Object[] {clientString, Integer.valueOf(connectionCount)});
+            map.put(membershipID, new Object[] {clientString, connectionCount});
           } else {
-            data[1] = Integer.valueOf(((Integer) data[1]).intValue() + connectionCount);
+            data[1] = (Integer) data[1] + connectionCount;
           }
-          /*
-           * Note: all client addresses are same... Iterator serverThreads = ((Set)
-           * entry.getValue()).iterator(); while (serverThreads.hasNext()) { ServerConnection
-           * connection = (ServerConnection) serverThreads.next(); InetAddress clientAddress =
-           * connection.getClientAddress(); logger.severe("getConnectedClients: proxyID=" + proxyID
-           * + " clientAddress=" + clientAddress + " FQDN=" + clientAddress.getCanonicalHostName());
-           * }
-           */
         }
       }
 
@@ -443,10 +417,11 @@ public class ClientHealthMonitor {
         CacheClientStatus cci = new CacheClientStatus(proxyID);
         Set<ServerConnection> connections = entry.getValue().getConnections();
         if (connections != null) {
-          String memberId = null;
+          String memberId;
           for (ServerConnection sc : connections) {
             if (sc.isClientServerConnection()) {
-              memberId = sc.getMembershipID(); // each ServerConnection has the same member id
+              // each ServerConnection has the same member id
+              memberId = sc.getMembershipID();
               cci.setMemberId(memberId);
               cci.setNumberOfConnections(connections.size());
               result.put(proxyID, cci);
@@ -465,21 +440,21 @@ public class ClientHealthMonitor {
     // so weed those out.
     synchronized (proxyIdConnections) {
       for (Map.Entry<ClientProxyMembershipID, CacheClientStatus> entry : allClients.entrySet()) {
-        ClientProxyMembershipID proxyID = entry.getKey();// proxyID
-        // includes FQDN
+        // proxyID includes FQDN
+        ClientProxyMembershipID proxyID = entry.getKey();
         CacheClientStatus cci = entry.getValue();
         ServerConnectionCollection collection = proxyIdConnections.get(proxyID);
         Set<ServerConnection> connections = collection != null ? collection.getConnections() : null;
         if (connections != null) {
           String memberId = null;
           cci.setNumberOfConnections(connections.size());
-          List socketPorts = new ArrayList();
-          List socketAddresses = new ArrayList();
+          List<Integer> socketPorts = new ArrayList<>();
+          List<InetAddress> socketAddresses = new ArrayList<>();
           for (ServerConnection sc : connections) {
-            socketPorts.add(Integer.valueOf(sc.getSocketPort()));
+            socketPorts.add(sc.getSocketPort());
             socketAddresses.add(sc.getSocketAddress());
-            memberId = sc.getMembershipID(); // each ServerConnection has the
-            // same member id
+            // each ServerConnection has the same member id
+            memberId = sc.getMembershipID();
           }
           cci.setMemberId(memberId);
           cci.setSocketPorts(socketPorts);
@@ -508,9 +483,9 @@ public class ClientHealthMonitor {
     return connectedIncomingGateways;
   }
 
-  protected boolean cleanupClientThreads(ClientProxyMembershipID proxyID, boolean timedOut) {
+  private boolean cleanupClientThreads(ClientProxyMembershipID proxyID, boolean timedOut) {
     boolean result = false;
-    Set serverConnections = null;
+    Set<ServerConnection> serverConnections = null;
     synchronized (proxyIdConnections) {
       ServerConnectionCollection collection = proxyIdConnections.remove(proxyID);
       if (collection != null) {
@@ -518,10 +493,9 @@ public class ClientHealthMonitor {
       }
     }
     {
-      if (serverConnections != null) { // fix for bug 35343
+      if (serverConnections != null) {
         result = true;
-        for (Iterator it = serverConnections.iterator(); it.hasNext();) {
-          ServerConnection serverConnection = (ServerConnection) it.next();
+        for (ServerConnection serverConnection : serverConnections) {
           serverConnection.handleTermination(timedOut);
         }
       }
@@ -546,19 +520,18 @@ public class ClientHealthMonitor {
     }
   }
 
-  protected void validateThreads(ClientProxyMembershipID proxyID) {
+  private void validateThreads(ClientProxyMembershipID proxyID) {
     Set<ServerConnection> serverConnections;
     synchronized (proxyIdConnections) {
       ServerConnectionCollection collection = proxyIdConnections.get(proxyID);
       serverConnections =
           collection != null ? new HashSet<>(collection.getConnections()) : Collections.emptySet();
     }
-    // release sync and operation on copy to fix bug 37675
+    // release sync and operation on copy
     for (ServerConnection serverConnection : serverConnections) {
       if (serverConnection.hasBeenTimedOutOnClient()) {
         logger.warn("{} is being terminated because its client timeout of {} has expired.",
-            new Object[] {serverConnection,
-                Integer.valueOf(serverConnection.getClientReadTimeout())});
+            serverConnection, serverConnection.getClientReadTimeout());
         try {
           serverConnection.handleTermination(true);
           // Not all the code in a ServerConnection correctly
@@ -583,10 +556,10 @@ public class ClientHealthMonitor {
    *
    *         Test hook only.
    */
+  @VisibleForTesting
   Map<ClientProxyMembershipID, Long> getClientHeartbeats() {
-    synchronized (this._clientHeartbeatsLock) {
-      return new HashMap<>(this._clientHeartbeats);
-    }
+    return clientHeartbeats.entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().get()));
   }
 
   /**
@@ -594,8 +567,8 @@ public class ClientHealthMonitor {
    */
   protected synchronized void shutdown() {
     // Stop the client monitor
-    if (this._clientMonitor != null) {
-      this._clientMonitor.stopMonitoring();
+    if (clientMonitor != null) {
+      clientMonitor.stopMonitoring();
     }
   }
 
@@ -608,10 +581,10 @@ public class ClientHealthMonitor {
   protected static synchronized void createInstance(InternalCache cache,
       int maximumTimeBetweenPings, CacheClientNotifierStats stats) {
     refCount++;
-    if (_instance != null) {
+    if (instance != null) {
       return;
     }
-    _instance = new ClientHealthMonitor(cache, maximumTimeBetweenPings, stats);
+    instance = new ClientHealthMonitor(cache, maximumTimeBetweenPings, stats);
   }
 
   /**
@@ -624,25 +597,25 @@ public class ClientHealthMonitor {
   private ClientHealthMonitor(InternalCache cache, int maximumTimeBetweenPings,
       CacheClientNotifierStats stats) {
     // Set the Cache
-    this._cache = cache;
+    this.cache = cache;
     this.maximumTimeBetweenPings = maximumTimeBetweenPings;
 
-    this.monitorInterval = Long.getLong(CLIENT_HEALTH_MONITOR_INTERVAL_PROPERTY,
+    monitorInterval = Long.getLong(CLIENT_HEALTH_MONITOR_INTERVAL_PROPERTY,
         DEFAULT_CLIENT_MONITOR_INTERVAL_IN_MILLIS);
-    logger.debug("Setting monitorInterval to {}", this.monitorInterval);
+    logger.debug("Setting monitorInterval to {}", monitorInterval);
 
     if (maximumTimeBetweenPings > 0) {
       if (logger.isDebugEnabled()) {
         logger.debug("{}: Initializing client health monitor thread", this);
       }
-      this._clientMonitor = new ClientHealthMonitorThread(maximumTimeBetweenPings);
-      this._clientMonitor.start();
+      clientMonitor = new ClientHealthMonitorThread(maximumTimeBetweenPings);
+      clientMonitor.start();
     } else {
       // LOG:CONFIG: changed from config to info
       logger.info(
           "Client health monitor thread disabled due to maximumTimeBetweenPings setting: {}",
           maximumTimeBetweenPings);
-      this._clientMonitor = null;
+      clientMonitor = null;
     }
 
     this.stats = stats;
@@ -658,20 +631,20 @@ public class ClientHealthMonitor {
     return "ClientHealthMonitor@" + Integer.toHexString(System.identityHashCode(this));
   }
 
-  public ServerConnectionCollection getProxyIdCollection(ClientProxyMembershipID proxyID) {
+  private ServerConnectionCollection getProxyIdCollection(ClientProxyMembershipID proxyID) {
     return JavaWorkarounds.computeIfAbsent(proxyIdConnections, proxyID,
         key -> new ServerConnectionCollection());
   }
 
-  public Map<ClientProxyMembershipID, MutableInt> getCleanupProxyIdTable() {
+  Map<ClientProxyMembershipID, MutableInt> getCleanupProxyIdTable() {
     return cleanupProxyIdTable;
   }
 
-  public Map<ServerSideHandshake, MutableInt> getCleanupTable() {
+  Map<ServerSideHandshake, MutableInt> getCleanupTable() {
     return cleanupTable;
   }
 
-  public int getNumberOfClientsAtOrAboveVersion(Version version) {
+  private int getNumberOfClientsAtOrAboveVersion(Version version) {
     int number = 0;
     for (int i = version.ordinal(); i < numOfClientsPerVersion.length(); i++) {
       number += numOfClientsPerVersion.get(i);
@@ -691,8 +664,9 @@ public class ClientHealthMonitor {
     boolean timedOut(long current, long lastHeartbeat, long interval);
   }
 
+  @VisibleForTesting
   void testUseCustomHeartbeatCheck(HeartbeatTimeoutCheck check) {
-    _clientMonitor.overrideHeartbeatTimeoutCheck(check);
+    clientMonitor.overrideHeartbeatTimeoutCheck(check);
   }
 
   /**
@@ -703,7 +677,7 @@ public class ClientHealthMonitor {
     private HeartbeatTimeoutCheck checkHeartbeat = (long currentTime, long lastHeartbeat,
         long allowedInterval) -> currentTime - lastHeartbeat > allowedInterval;
 
-    protected void overrideHeartbeatTimeoutCheck(HeartbeatTimeoutCheck newCheck) {
+    void overrideHeartbeatTimeoutCheck(HeartbeatTimeoutCheck newCheck) {
       checkHeartbeat = newCheck;
     }
 
@@ -711,12 +685,12 @@ public class ClientHealthMonitor {
      * The maximum time allowed between pings before determining the client has died and
      * interrupting its sockets.
      */
-    protected final int _maximumTimeBetweenPings;
+    final int _maximumTimeBetweenPings;
 
     /**
      * Whether the monitor is stopped
      */
-    protected volatile boolean _isStopped = false;
+    volatile boolean _isStopped = false;
 
     /**
      * Constructor.
@@ -724,14 +698,14 @@ public class ClientHealthMonitor {
      * @param maximumTimeBetweenPings The maximum time allowed between pings before determining the
      *        client has died and interrupting its sockets
      */
-    protected ClientHealthMonitorThread(int maximumTimeBetweenPings) {
+    ClientHealthMonitorThread(int maximumTimeBetweenPings) {
       super("ClientHealthMonitor Thread");
 
       // Set the client connection timeout
-      this._maximumTimeBetweenPings = maximumTimeBetweenPings;
+      _maximumTimeBetweenPings = maximumTimeBetweenPings;
       // LOG:CONFIG: changed from config to info
       logger.info("ClientHealthMonitorThread maximum allowed time between pings: {}",
-          this._maximumTimeBetweenPings);
+          _maximumTimeBetweenPings);
       if (maximumTimeBetweenPings == 0) {
         if (logger.isDebugEnabled()) {
           logger.debug("zero ping interval detected", new Exception(
@@ -747,8 +721,8 @@ public class ClientHealthMonitor {
       if (logger.isDebugEnabled()) {
         logger.debug("{}: Stopping monitoring", ClientHealthMonitor.this);
       }
-      this._isStopped = true;
-      this.interrupt();
+      _isStopped = true;
+      interrupt();
       if (logger.isDebugEnabled()) {
         logger.debug("{}: Stopped dispatching", ClientHealthMonitor.this);
       }
@@ -760,7 +734,7 @@ public class ClientHealthMonitor {
      * @return whether the dispatcher is stopped
      */
     protected boolean isStopped() {
-      return this._isStopped;
+      return _isStopped;
     }
 
     /**
@@ -773,7 +747,7 @@ public class ClientHealthMonitor {
         logger.debug("{}: Beginning to monitor clients", ClientHealthMonitor.this);
       }
 
-      while (!this._isStopped) {
+      while (!_isStopped) {
         SystemFailure.checkFailure();
         try {
           Thread.sleep(monitorInterval);
@@ -789,20 +763,19 @@ public class ClientHealthMonitor {
 
           // Iterate through the clients and verify that they are all still
           // alive
-          for (Iterator i = getClientHeartbeats().entrySet().iterator(); i.hasNext();) {
-            Map.Entry entry = (Map.Entry) i.next();
-            ClientProxyMembershipID proxyID = (ClientProxyMembershipID) entry.getKey();
+          for (Map.Entry<ClientProxyMembershipID, Long> entry : getClientHeartbeats().entrySet()) {
+            ClientProxyMembershipID proxyID = entry.getKey();
             // Validate all ServerConnection threads. If a thread has been
             // processing a message for more than the socket timeout time,
             // close it it since the client will have timed out and resent.
             validateThreads(proxyID);
 
-            Long latestHeartbeatValue = (Long) entry.getValue();
+            Long latestHeartbeatValue = entry.getValue();
             // Compare the current value with the current time if it is not null
             // If it is null, that means that the client was just registered
             // and has not done a heartbeat yet.
             if (latestHeartbeatValue != null) {
-              long latestHeartbeat = latestHeartbeatValue.longValue();
+              long latestHeartbeat = latestHeartbeatValue;
               if (logger.isTraceEnabled()) {
                 logger.trace(
                     "{} ms have elapsed since the latest heartbeat for client with member id {}",
@@ -810,7 +783,7 @@ public class ClientHealthMonitor {
               }
 
               if (checkHeartbeat.timedOut(currentTime, latestHeartbeat,
-                  this._maximumTimeBetweenPings)) {
+                  _maximumTimeBetweenPings)) {
                 // This client has been idle for too long. Determine whether
                 // any of its ServerConnection threads are currently processing
                 // a message. If so, let it go. If not, disconnect it.
@@ -818,8 +791,7 @@ public class ClientHealthMonitor {
                   if (cleanupClientThreads(proxyID, true)) {
                     logger.warn(
                         "Monitoring client with member id {}. It had been {} ms since the latest heartbeat. Max interval is {}. Terminated client.",
-                        new Object[] {entry.getKey(), currentTime - latestHeartbeat,
-                            this._maximumTimeBetweenPings});
+                        entry.getKey(), currentTime - latestHeartbeat, _maximumTimeBetweenPings);
                   }
                 } else {
                   if (logger.isDebugEnabled()) {
@@ -839,7 +811,7 @@ public class ClientHealthMonitor {
           }
         } catch (InterruptedException e) {
           // no need to reset the bit; we're exiting
-          if (this._isStopped) {
+          if (_isStopped) {
             break;
           }
           logger.warn("Unexpected interrupt, exiting", e);
@@ -847,7 +819,7 @@ public class ClientHealthMonitor {
         } catch (Exception e) {
           // An exception occurred while monitoring the clients. If the monitor
           // is not stopped, log it and continue processing.
-          if (!this._isStopped) {
+          if (!_isStopped) {
             logger.fatal(ClientHealthMonitor.this.toString() + ": An unexpected Exception occurred",
                 e);
           }
