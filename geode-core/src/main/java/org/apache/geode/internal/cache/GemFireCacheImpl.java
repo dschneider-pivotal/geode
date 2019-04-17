@@ -394,6 +394,10 @@ public class GemFireCacheImpl implements InternalCache, InternalClientCache, Has
    * outnumber the mutative operations such as add, remove.
    */
   private final List<CacheServerImpl> allCacheServers = new CopyOnWriteArrayList<>();
+  /**
+   * This list has all the cache servers that are not gateway receivers
+   */
+  private final List<CacheServer> cacheServersNotGatewayReceivers = new CopyOnWriteArrayList<>();
 
   /**
    * Controls updates to the list of all gateway senders
@@ -2565,6 +2569,7 @@ public class GemFireCacheImpl implements InternalCache, InternalClientCache, Has
         }
       }
       this.allCacheServers.remove(cacheServer);
+      cacheServersNotGatewayReceivers.remove(cacheServer);
       stoppedCacheServer = true;
     }
     if (stoppedCacheServer) {
@@ -3720,6 +3725,9 @@ public class GemFireCacheImpl implements InternalCache, InternalClientCache, Has
 
     CacheServerImpl cacheServer = new CacheServerImpl(this, isGatewayReceiver);
     this.allCacheServers.add(cacheServer);
+    if (!isGatewayReceiver) {
+      cacheServersNotGatewayReceivers.add(cacheServer);
+    }
 
     sendAddCacheServerProfileMessage();
     return cacheServer;
@@ -3728,6 +3736,7 @@ public class GemFireCacheImpl implements InternalCache, InternalClientCache, Has
   @Override
   public boolean removeCacheServer(CacheServer cacheServer) {
     boolean removed = this.allCacheServers.remove(cacheServer);
+    cacheServersNotGatewayReceivers.remove(cacheServer);
     sendRemoveCacheServerProfileMessage();
     return removed;
   }
@@ -3932,22 +3941,7 @@ public class GemFireCacheImpl implements InternalCache, InternalClientCache, Has
 
   @Override
   public List<CacheServer> getCacheServers() {
-    List<CacheServer> cacheServersWithoutReceiver = null;
-    if (!this.allCacheServers.isEmpty()) {
-      for (CacheServerImpl cacheServer : this.allCacheServers) {
-        // If CacheServer is a GatewayReceiver, don't return as part of CacheServers
-        if (!cacheServer.isGatewayReceiver()) {
-          if (cacheServersWithoutReceiver == null) {
-            cacheServersWithoutReceiver = new ArrayList<>();
-          }
-          cacheServersWithoutReceiver.add(cacheServer);
-        }
-      }
-    }
-    if (cacheServersWithoutReceiver == null) {
-      cacheServersWithoutReceiver = Collections.emptyList();
-    }
-    return cacheServersWithoutReceiver;
+    return this.cacheServersNotGatewayReceivers;
   }
 
   @Override
