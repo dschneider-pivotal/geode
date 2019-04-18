@@ -19,7 +19,6 @@ package com.pedjak.gradle.plugins.dockerizedtest
 import com.pedjak.gradle.plugins.dockerizedtest.DockerizedTestExtension
 import com.pedjak.gradle.plugins.dockerizedtest.ExitCodeTolerantExecHandle
 import com.pedjak.gradle.plugins.dockerizedtest.WorkerSemaphore
-import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.process.internal.*
@@ -28,7 +27,6 @@ import org.gradle.process.internal.streams.OutputStreamsForwarder
 import java.util.concurrent.Executor
 
 class DockerizedJavaExecHandleBuilder extends JavaExecHandleBuilder {
-    protected final FileCollectionFactory fileCollectionFactory
 
     def streamsHandler
     def executor
@@ -37,14 +35,8 @@ class DockerizedJavaExecHandleBuilder extends JavaExecHandleBuilder {
 
     private final WorkerSemaphore workersSemaphore
 
-    DockerizedJavaExecHandleBuilder(DockerizedTestExtension extension,
-                                    FileResolver fileResolver,
-                                    FileCollectionFactory fileCollectionFactory,
-                                    Executor executor,
-                                    BuildCancellationToken buildCancellationToken,
-                                    WorkerSemaphore workersSemaphore) {
-        super(fileResolver, fileCollectionFactory, executor, buildCancellationToken)
-        this.fileCollectionFactory = fileCollectionFactory
+    DockerizedJavaExecHandleBuilder(DockerizedTestExtension extension, FileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken, WorkerSemaphore workersSemaphore) {
+        super(fileResolver, executor, buildCancellationToken)
         this.extension = extension
         this.executor = executor
         this.buildCancellationToken = buildCancellationToken
