@@ -2597,12 +2597,23 @@ public abstract class InternalDataSerializer extends DataSerializer {
   private static final ThreadLocalByteArrayCache threadLocalByteArrayCache =
       new ThreadLocalByteArrayCache(65535);
 
+  /**
+   * Returns a byte array for use by the calling thread.
+   * The returned byte array may be longer than minimumLength.
+   * The byte array belongs to the calling thread but callers must
+   * be careful to not call other methods that may also use this
+   * byte array.
+   */
+  public static byte[] getThreadLocalByteArray(int minimumLength) {
+    return threadLocalByteArrayCache.get(minimumLength);
+  }
+
   private static String readStringBytesFromDataInput(DataInput dataInput, int len)
       throws IOException {
     if (logger.isTraceEnabled(LogMarker.SERIALIZER_VERBOSE)) {
       logger.trace(LogMarker.SERIALIZER_VERBOSE, "Reading STRING_BYTES of len={}", len);
     }
-    byte[] buf = threadLocalByteArrayCache.get(len);
+    byte[] buf = getThreadLocalByteArray(len);
     dataInput.readFully(buf, 0, len);
     return new String(buf, 0, 0, len); // intentionally using deprecated constructor
   }
