@@ -14,8 +14,6 @@
  */
 package org.apache.geode.cache.client.internal;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.net.SocketTimeoutException;
 
 import org.apache.logging.log4j.Logger;
@@ -23,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.geode.InternalGemFireError;
 import org.apache.geode.cache.client.ServerConnectivityException;
 import org.apache.geode.cache.client.ServerOperationException;
+import org.apache.geode.internal.ByteArrayDataInput;
 import org.apache.geode.internal.HeapDataOutputStream;
 import org.apache.geode.internal.Version;
 import org.apache.geode.internal.cache.PutAllPartialResultException;
@@ -161,7 +160,7 @@ public abstract class AbstractOp implements Op {
         return;
       }
       byte[] bytes = ((ConnectionImpl) cnx).decryptBytes(partBytes);
-      DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bytes));
+      ByteArrayDataInput dis = new ByteArrayDataInput(bytes);
       cnx.setConnectionID(dis.readLong());
     }
   }

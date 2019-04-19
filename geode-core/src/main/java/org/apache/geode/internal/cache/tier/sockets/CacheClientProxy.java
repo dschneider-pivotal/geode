@@ -14,8 +14,6 @@
  */
 package org.apache.geode.internal.cache.tier.sockets;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -71,6 +69,7 @@ import org.apache.geode.distributed.DistributedMember;
 import org.apache.geode.distributed.internal.ClusterDistributionManager;
 import org.apache.geode.distributed.internal.DistributionConfig;
 import org.apache.geode.distributed.internal.InternalDistributedSystem;
+import org.apache.geode.internal.ByteArrayDataInput;
 import org.apache.geode.internal.SystemTimer;
 import org.apache.geode.internal.SystemTimer.SystemTimerTask;
 import org.apache.geode.internal.Version;
@@ -2934,7 +2933,7 @@ public class CacheClientProxy implements ClientSession {
       // This is a debugging method so ignore all exceptions like
       // ClassNotFoundException
       try {
-        DataInputStream dis = new DataInputStream(new ByteArrayInputStream(serializedBytes));
+        ByteArrayDataInput dis = new ByteArrayDataInput(serializedBytes);
         deserializedObject = DataSerializer.readObject(dis);
       } catch (Exception e) {
       }
