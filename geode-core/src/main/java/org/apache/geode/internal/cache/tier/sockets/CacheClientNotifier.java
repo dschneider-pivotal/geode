@@ -103,6 +103,7 @@ import org.apache.geode.internal.cache.ha.HARegionQueue;
 import org.apache.geode.internal.cache.ha.ThreadIdentifier;
 import org.apache.geode.internal.cache.tier.CommunicationMode;
 import org.apache.geode.internal.cache.tier.MessageType;
+import org.apache.geode.internal.cache.tier.sockets.ClientProxyMembershipID.CanonicalKey;
 import org.apache.geode.internal.cache.versions.VersionTag;
 import org.apache.geode.internal.logging.InternalLogWriter;
 import org.apache.geode.internal.logging.LogService;
@@ -1434,6 +1435,7 @@ public class CacheClientNotifier {
         }
       }
     }
+    canonicalClientIds.clear();
 
     if (noActiveServer() && ccnSingleton != null) {
       ccnSingleton = null;
@@ -1473,7 +1475,9 @@ public class CacheClientNotifier {
   protected void addClientProxy(CacheClientProxy proxy) throws IOException {
     // this._logger.info(String.format("%s", "adding client proxy " + proxy));
     getCache(); // ensure cache reference is up to date so firstclient state is correct
-    this._clientProxies.put(proxy.getProxyID(), proxy);
+    ClientProxyMembershipID proxyID = proxy.getProxyID();
+    this._clientProxies.put(proxyID, proxy);
+    canonicalClientIds.put(proxyID.getCanonicalKey(), proxyID);
     // Remove this proxy from the init proxy list.
     removeClientInitProxy(proxy);
     this._connectionListener.queueAdded(proxy.getProxyID());
@@ -1492,11 +1496,13 @@ public class CacheClientNotifier {
   }
 
   protected void addClientInitProxy(CacheClientProxy proxy) throws IOException {
-    this._initClientProxies.put(proxy.getProxyID(), proxy);
+    ClientProxyMembershipID proxyID = proxy.getProxyID();
+    this._initClientProxies.put(proxyID, proxy);
   }
 
   protected void removeClientInitProxy(CacheClientProxy proxy) throws IOException {
-    this._initClientProxies.remove(proxy.getProxyID());
+    ClientProxyMembershipID proxyID = proxy.getProxyID();
+    this._initClientProxies.remove(proxyID);
   }
 
   protected boolean isProxyInInitializationMode(CacheClientProxy proxy) throws IOException {
@@ -1620,6 +1626,7 @@ public class CacheClientNotifier {
     // Exception("stack trace")));
     ClientProxyMembershipID client = proxy.getProxyID();
     this._clientProxies.remove(client);
+    this.canonicalClientIds.remove(client.getCanonicalKey());
     this._connectionListener.queueRemoved();
     this.getCache().cleanupForClient(this, client);
     if (!(proxy.clientConflation == Handshake.CONFLATION_ON)) {
@@ -2051,6 +2058,9 @@ public class CacheClientNotifier {
   private final ConcurrentMap/* <ClientProxyMembershipID, CacheClientProxy> */ _initClientProxies =
       new ConcurrentHashMap();
 
+  private final ConcurrentMap<CanonicalKey, ClientProxyMembershipID> canonicalClientIds =
+      new ConcurrentHashMap<>();
+
   private final HashSet<ClientProxyMembershipID> timedOutDurableClientProxies =
       new HashSet<ClientProxyMembershipID>();
 
@@ -2231,5 +2241,17 @@ public class CacheClientNotifier {
         }
       }
     }
+  }
+
+  public ClientProxyMembershipID getCanonicalId(ClientProxyMembershipID proxyID) {
+    CanonicalKey key = proxyID.getCanonicalKey();
+    ClientProxyMembershipID result = canonicalClientIds.get(key);
+    if (result == null) {
+      result = canonicalClientIds.putIfAbsent(key, proxyID);
+      if (result == null) {
+        result = proxyID;
+      }
+    }
+    return result;
   }
 }

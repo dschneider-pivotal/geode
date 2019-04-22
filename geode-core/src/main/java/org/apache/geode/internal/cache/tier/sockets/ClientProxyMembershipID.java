@@ -135,6 +135,10 @@ public class ClientProxyMembershipID
     return Arrays.equals(this.identity, that.identity);
   }
 
+  private int canonicalHashCode() {
+    return Arrays.hashCode(identity);
+  }
+
   /**
    * Return true if "that" can be used in place of "this" when canonicalizing.
    */
@@ -146,6 +150,46 @@ public class ClientProxyMembershipID
       return false;
     }
     return Arrays.equals(this.identity, that.identity);
+  }
+
+  private transient CanonicalKey canonicalKey;
+
+  public CanonicalKey getCanonicalKey() {
+    CanonicalKey result = canonicalKey;
+    if (result == null) {
+      result = new CanonicalKey(this);
+      canonicalKey = result;
+    }
+    return result;
+  }
+
+  /**
+   * Use this as a key on a hashed collection to lookup
+   * canonical instances of ClientProxyMembershipID.
+   * It basically gives us a hashCode and equals that
+   * only pays attention to uniqueId and identity.
+   */
+  public static class CanonicalKey {
+    private final ClientProxyMembershipID id;
+    private final int hashCode;
+
+    public CanonicalKey(ClientProxyMembershipID id) {
+      this.id = id;
+      this.hashCode = id.canonicalHashCode();
+    }
+
+    @Override
+    public int hashCode() {
+      return this.hashCode;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (!(other instanceof CanonicalKey)) {
+        return false;
+      }
+      return id.isCanonicalEquals(((CanonicalKey) other).id);
+    }
   }
 
   boolean isSameDSMember(ClientProxyMembershipID that) {
@@ -374,6 +418,10 @@ public class ClientProxyMembershipID
   private ClientProxyMembershipID canonicalReference() {
     CacheClientNotifier ccn = CacheClientNotifier.getInstance();
     if (ccn != null) {
+      ClientProxyMembershipID canonicalId = ccn.getCanonicalId(this);
+      if (canonicalId != null) {
+        return canonicalId;
+      }
       CacheClientProxy cp = ccn.getClientProxy(this, true);
       if (cp != null) {
         if (this.isCanonicalEquals(cp.getProxyID())) {
