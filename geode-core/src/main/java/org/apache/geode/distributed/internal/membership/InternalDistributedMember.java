@@ -42,13 +42,16 @@ import org.apache.geode.distributed.internal.ClusterDistributionManager;
 import org.apache.geode.distributed.internal.DistributionAdvisor.ProfileId;
 import org.apache.geode.distributed.internal.DistributionConfig;
 import org.apache.geode.distributed.internal.ServerLocation;
+import org.apache.geode.distributed.internal.membership.gms.GMSMember;
 import org.apache.geode.internal.Assert;
 import org.apache.geode.internal.DataSerializableFixedID;
 import org.apache.geode.internal.InternalDataSerializer;
 import org.apache.geode.internal.OSProcess;
 import org.apache.geode.internal.Version;
+import org.apache.geode.internal.cache.FilterRoutingInfo.DistributedMemberWithSerializedBytes;
 import org.apache.geode.internal.cache.versions.VersionSource;
 import org.apache.geode.internal.net.SocketCreator;
+import org.apache.geode.internal.tcp.ByteBufferInputStream;
 
 /**
  * This is the fundamental representation of a member of a GemFire distributed system.
@@ -1314,6 +1317,37 @@ public class InternalDistributedMember implements DistributedMember, Externaliza
     @Override
     public String toString() {
       return "InternalDistributedMemberWrapper [mbr=" + mbr + "]";
+    }
+  }
+
+  /**
+   * Basically reads the same data as _readEssentialData but instead
+   * of immediately deserializing the data, it compares it to the serialized data
+   * in myId. If it is not equal to myId then these bytes can just be skipped
+   * and null is returned. If it is equal then a canonical InternalDistributedMember
+   * is returned.
+   */
+  public static InternalDistributedMember readCanonicalOrSkip(ByteBufferInputStream byteBufferIn,
+      DistributedMemberWithSerializedBytes myId) throws IOException, ClassNotFoundException {
+    int startPos = byteBufferIn.position();
+    int inetAddressLength = InternalDataSerializer.readArrayLength(byteBufferIn);
+    if (inetAddressLength > 0) {
+      byteBufferIn.skipBytes(inetAddressLength);
+    }
+    byteBufferIn.skipBytes(4 + 1 + 1); // port is an int, flags is a byte, vmKind is a byte
+    InternalDataSerializer.skipString(byteBufferIn); // uniqueTag string
+    InternalDataSerializer.skipString(byteBufferIn); // name string
+    if (InternalDataSerializer.getVersionForDataStream(byteBufferIn)
+        .compareTo(Version.GFE_90) == 0) {
+      GMSMember.skipAdditionalData(byteBufferIn); // netMbr
+    }
+    int endPos = byteBufferIn.position();
+    // startPos..endPos is the sequence of serialized bytes of the InternalDistributedMember
+    if (byteBufferIn.getBuffer().equals(startPos, endPos, myId.getSerializedBytes())) {
+      return myId.getDistributedMember();
+    } else {
+      // not equal to myId
+      return null;
     }
   }
 }

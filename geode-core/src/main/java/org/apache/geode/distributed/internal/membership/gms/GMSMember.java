@@ -30,6 +30,7 @@ import org.apache.geode.distributed.internal.membership.NetMember;
 import org.apache.geode.internal.DataSerializableFixedID;
 import org.apache.geode.internal.InternalDataSerializer;
 import org.apache.geode.internal.Version;
+import org.apache.geode.internal.tcp.ByteBufferInputStream;
 
 /**
  * This is the fundamental representation of a member of a GemFire distributed system.
@@ -568,6 +569,10 @@ public class GMSMember implements NetMember, DataSerializableFixedID {
     } catch (EOFException e) {
       // some IDs do not have UUID or membership weight information
     }
+  }
+
+  public static void skipAdditionalData(ByteBufferInputStream byteBufferIn) {
+    byteBufferIn.skipBytes(8 + 8 + 1);
   }
 
   private String formatUUID() {

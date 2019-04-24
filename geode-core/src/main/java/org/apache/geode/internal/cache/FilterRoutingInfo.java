@@ -22,10 +22,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.geode.DataSerializer;
 import org.apache.geode.InternalGemFireError;
 import org.apache.geode.annotations.Immutable;
+import org.apache.geode.annotations.internal.MakeNotStatic;
 import org.apache.geode.distributed.DistributedMember;
 import org.apache.geode.distributed.internal.InternalDistributedSystem;
 import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
@@ -35,6 +37,7 @@ import org.apache.geode.internal.InternalDataSerializer;
 import org.apache.geode.internal.ObjToByteArraySerializer;
 import org.apache.geode.internal.Version;
 import org.apache.geode.internal.VersionedDataSerializable;
+import org.apache.geode.internal.tcp.ByteBufferInputStream;
 
 /**
  * This class is used to hold the information about the servers and their Filters (CQs and Interest
@@ -217,21 +220,71 @@ public class FilterRoutingInfo implements VersionedDataSerializable {
   /** DataSerializable methods */
   @Override
   public void fromData(DataInput in) throws IOException, ClassNotFoundException {
-    DistributedMember myID = null;
+    InternalDistributedMember myID = null;
     InternalCache cache = GemFireCacheImpl.getInstance();
     if (cache != null) {
       myID = cache.getMyId();
     }
     int size = in.readInt();
     for (int i = 0; i < size; i++) {
-      InternalDistributedMember member = InternalDistributedMember.readEssentialData(in);
+      InternalDistributedMember member = readInternalDistributedMember(in, myID);
       FilterInfo fInfo = new FilterInfo();
       InternalDataSerializer.invokeFromData(fInfo, in);
       // we only need to retain the recipient's entry
+      if (member == null) {
+        continue;
+      }
       if (myID == null || myID.equals(member)) {
         this.serverFilterInfo.put(member, fInfo);
       }
     }
+  }
+
+  public static class DistributedMemberWithSerializedBytes {
+    private final InternalDistributedMember distributedMember;
+    private final byte[] serializedBytes;
+
+    public DistributedMemberWithSerializedBytes(InternalDistributedMember distributedMember)
+        throws IOException {
+      this.distributedMember = distributedMember;
+      this.serializedBytes = createSerializedBytes(distributedMember);
+    }
+
+    public InternalDistributedMember getDistributedMember() {
+      return distributedMember;
+    }
+
+    public byte[] getSerializedBytes() {
+      return serializedBytes;
+    }
+
+    private static byte[] createSerializedBytes(InternalDistributedMember distributedMember)
+        throws IOException {
+      HeapDataOutputStream hdos = new HeapDataOutputStream((Version) null);
+      distributedMember.writeEssentialData(hdos);
+      return hdos.toByteArray();
+    }
+  }
+
+  @MakeNotStatic
+  private static final AtomicReference<DistributedMemberWithSerializedBytes> myIdCache =
+      new AtomicReference<>();
+
+  private InternalDistributedMember readInternalDistributedMember(DataInput in,
+      InternalDistributedMember myID) throws ClassNotFoundException, IOException {
+    InternalDistributedMember result;
+    if (myID == null || !(in instanceof ByteBufferInputStream)) {
+      result = InternalDistributedMember.readEssentialData(in);
+    } else {
+      ByteBufferInputStream byteBufferIn = (ByteBufferInputStream) in;
+      DistributedMemberWithSerializedBytes cachedMyId = myIdCache.get();
+      if (cachedMyId == null || cachedMyId.getDistributedMember() != myID) {
+        cachedMyId = new DistributedMemberWithSerializedBytes(myID);
+        myIdCache.set(cachedMyId);
+      }
+      result = InternalDistributedMember.readCanonicalOrSkip(byteBufferIn, cachedMyId);
+    }
+    return result;
   }
 
   @Override

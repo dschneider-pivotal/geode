@@ -108,6 +108,7 @@ import org.apache.geode.internal.cache.tier.sockets.Part;
 import org.apache.geode.internal.lang.ClassUtils;
 import org.apache.geode.internal.logging.LogService;
 import org.apache.geode.internal.logging.log4j.LogMarker;
+import org.apache.geode.internal.tcp.ByteBufferInputStream;
 import org.apache.geode.internal.util.DscodeHelper;
 import org.apache.geode.internal.util.concurrent.CopyOnWriteHashMap;
 import org.apache.geode.pdx.NonPortableClassException;
@@ -2623,6 +2624,31 @@ public abstract class InternalDataSerializer extends DataSerializer {
 
   public static String readString(DataInput in, byte header) throws IOException {
     return readString(in, DscodeHelper.toDSCODE(header));
+  }
+
+  public static void skipString(ByteBufferInputStream in) throws IOException {
+    DSCODE dscode = DscodeHelper.toDSCODE(in.readByte());
+    switch (dscode) {
+      case STRING_BYTES:
+      case STRING:
+        in.skipBytes(in.readUnsignedShort());
+        return;
+      case NULL_STRING:
+        return;
+      case HUGE_STRING_BYTES:
+        in.skipBytes(in.readInt());
+        return;
+      case HUGE_STRING: {
+        // skip to bytes for each char
+        // don't do *2 to prevent overflow
+        int hugeStringLength = in.readInt();
+        in.skipBytes(hugeStringLength);
+        in.skipBytes(hugeStringLength);
+        return;
+      }
+      default:
+        throw new IOException("Unknown String header " + dscode);
+    }
   }
 
   /**

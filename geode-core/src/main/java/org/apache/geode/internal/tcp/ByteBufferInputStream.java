@@ -117,6 +117,12 @@ public class ByteBufferInputStream extends InputStream
     void sendTo(ByteBuffer out);
 
     void sendTo(DataOutput out) throws IOException;
+
+    /**
+     * Returns true if the sequence of byte from startPos to endPos
+     * are equals to the given array of bytes.
+     */
+    boolean equals(int startPos, int endPos, byte[] bytes);
   }
 
   public static class ByteSourceFactory {
@@ -374,6 +380,32 @@ public class ByteBufferInputStream extends InputStream
     @Override
     public ByteBuffer getBackingByteBuffer() {
       return this.bb;
+    }
+
+    @Override
+    public boolean equals(int startPos, int endPos, byte[] bytes) {
+      if ((endPos - startPos) != bytes.length) {
+        return false;
+      }
+      if (this.bb.hasArray()) {
+        byte[] myBytes = this.bb.array();
+        int i = this.bb.arrayOffset() + startPos;
+        for (int j = 0; j < bytes.length; j++) {
+          if (myBytes[i] != bytes[j]) {
+            return false;
+          }
+          i++;
+        }
+      } else {
+        int i = startPos;
+        for (int j = 0; j < bytes.length; j++) {
+          if (this.get(i) != bytes[j]) {
+            return false;
+          }
+          i++;
+        }
+      }
+      return true;
     }
   }
 
@@ -782,6 +814,21 @@ public class ByteBufferInputStream extends InputStream
     @Override
     public ByteBuffer getBackingByteBuffer() {
       return null;
+    }
+
+    @Override
+    public boolean equals(int startPos, int endPos, byte[] bytes) {
+      if ((endPos - startPos) != bytes.length) {
+        return false;
+      }
+      int i = startPos;
+      for (int j = 0; j < bytes.length; j++) {
+        if (this.chunk.readDataByte(i) != bytes[j]) {
+          return false;
+        }
+        i++;
+      }
+      return true;
     }
   }
 
