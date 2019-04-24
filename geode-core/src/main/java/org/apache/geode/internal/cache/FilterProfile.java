@@ -1066,15 +1066,17 @@ public class FilterProfile implements DataSerializableFixedID {
   public FilterRoutingInfo getFilterRoutingInfoPart1(CacheEvent event, Profile[] peerProfiles,
       Set cacheOpRecipients) {
     // early out if there are no cache servers in the system
-    boolean anyServers = false;
-    for (int i = 0; i < peerProfiles.length; i++) {
-      if (((CacheProfile) peerProfiles[i]).hasCacheServer) {
-        anyServers = true;
-        break;
+    if (!this.localProfile.hasCacheServer) {
+      boolean anyServers = false;
+      for (int i = 0; i < peerProfiles.length; i++) {
+        if (((CacheProfile) peerProfiles[i]).hasCacheServer) {
+          anyServers = true;
+          break;
+        }
       }
-    }
-    if (!anyServers && !this.localProfile.hasCacheServer) {
-      return null;
+      if (!anyServers) {
+        return null;
+      }
     }
 
     FilterRoutingInfo frInfo = null;
