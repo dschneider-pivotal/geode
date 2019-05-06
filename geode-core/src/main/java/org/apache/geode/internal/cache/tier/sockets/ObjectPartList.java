@@ -108,7 +108,7 @@ public class ObjectPartList implements DataSerializableFixedID, Releasable {
 
   public void addObjectPartForAbsentKey(Object key, Object value) {
     // ObjectPartList is for clients < version 6.5.0, which didn't support this setting
-    throw new IllegalAccessError("inappropriate use of ObjectPartList");
+    throw new IllegalStateException("inappropriate use of ObjectPartList");
   }
 
 
