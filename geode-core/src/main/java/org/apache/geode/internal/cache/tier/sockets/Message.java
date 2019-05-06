@@ -400,8 +400,9 @@ public class Message {
       v = null;
     }
 
+
     // do NOT close the HeapDataOutputStream
-    HeapDataOutputStream hdos = new HeapDataOutputStream(this.chunkSize, v);
+    HeapDataOutputStream hdos = ServerConnection.allocatePart(this.chunkSize, v);
     try {
       BlobHelper.serializeTo(o, hdos);
     } catch (IOException ex) {

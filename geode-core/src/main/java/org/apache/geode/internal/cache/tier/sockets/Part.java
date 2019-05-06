@@ -75,7 +75,7 @@ public class Part {
   public void clear() {
     if (this.part != null) {
       if (this.part instanceof HeapDataOutputStream) {
-        ((HeapDataOutputStream) this.part).close();
+        ServerConnection.releasePart((HeapDataOutputStream) this.part);
       }
       this.part = null;
     }

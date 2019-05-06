@@ -1178,6 +1178,7 @@ public abstract class ServerConnection implements Runnable {
   @Override
   public void run() {
     setOwner();
+    initializeThreadLocalPartCache();
 
     if (getAcceptor().isSelector()) {
       boolean finishedMessage = false;
@@ -1236,6 +1237,69 @@ public abstract class ServerConnection implements Runnable {
       }
     }
   }
+
+  private static final ThreadLocal<PartCache> partCacheReference = new ThreadLocal<>();
+
+  /**
+   * Used to cache HeapDataOutputStreams used by Parts.
+   * The cache is kept as a thread local on a thread being used by a ServerConnection instance.
+   */
+  public static class PartCache {
+    private int idx = -1;
+    private static final int MAX_CACHE_SIZE = 7;
+    private final HeapDataOutputStream[] hdosCache = new HeapDataOutputStream[MAX_CACHE_SIZE];
+
+    public HeapDataOutputStream poll() {
+      if (idx < 0) {
+        return null;
+      }
+      HeapDataOutputStream result = hdosCache[idx];
+      hdosCache[idx] = null;
+      idx--;
+      return result;
+    }
+
+    public void offer(HeapDataOutputStream hdos) {
+      if (idx < hdosCache.length - 1) {
+        idx++;
+        hdos.reset();
+        hdosCache[idx] = hdos;
+      } else {
+        hdos.close();
+      }
+    }
+  }
+
+  /**
+   * Ensure that the calling thread has a PartCache
+   */
+  private void initializeThreadLocalPartCache() {
+    if (partCacheReference.get() == null) {
+      partCacheReference.set(new PartCache());
+    }
+  }
+
+  public static HeapDataOutputStream allocatePart(int allocSize, Version version) {
+    PartCache partCache = partCacheReference.get();
+    HeapDataOutputStream result = null;
+    if (partCache != null) {
+      result = partCache.poll();
+    }
+    if (result == null) {
+      result = new HeapDataOutputStream(allocSize, version);
+    }
+    return result;
+  }
+
+  public static void releasePart(HeapDataOutputStream hdos) {
+    PartCache partCache = partCacheReference.get();
+    if (partCache == null) {
+      hdos.close();
+    } else {
+      partCache.offer(hdos);
+    }
+  }
+
 
   /**
    * Register this connection with the given selector for read events. Note that switch the channel
