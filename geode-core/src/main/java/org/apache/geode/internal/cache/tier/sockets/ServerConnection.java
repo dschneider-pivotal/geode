@@ -31,7 +31,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
@@ -1250,7 +1249,8 @@ public abstract class ServerConnection implements Runnable {
     private int idx = -1;
     private static final int MAX_CACHE_SIZE = 7;
     private final HeapDataOutputStream[] hdosCache = new HeapDataOutputStream[MAX_CACHE_SIZE];
-    private final HashMap<Integer, ArrayList<byte[]>> byteArrayCache = new HashMap<>();
+    private static final int MAX_CACHED_BYTE_ARRAY_SIZE = 1024;
+    private final ArrayList<byte[]>[] byteArrayCache = new ArrayList[MAX_CACHED_BYTE_ARRAY_SIZE];
 
     public HeapDataOutputStream pollHeapDataOutputStream() {
       if (idx < 0) {
@@ -1273,7 +1273,10 @@ public abstract class ServerConnection implements Runnable {
     }
 
     public byte[] pollByteArray(int length) {
-      ArrayList<byte[]> listOfByteArrays = byteArrayCache.get(length);
+      if (length > MAX_CACHED_BYTE_ARRAY_SIZE - 1) {
+        return null;
+      }
+      ArrayList<byte[]> listOfByteArrays = byteArrayCache[length];
       if (listOfByteArrays == null) {
         return null;
       }
@@ -1281,7 +1284,10 @@ public abstract class ServerConnection implements Runnable {
     }
 
     public void offer(byte[] byteArray) {
-      ArrayList<byte[]> listOfByteArrays = byteArrayCache.get(byteArray.length);
+      if (byteArray.length > MAX_CACHED_BYTE_ARRAY_SIZE - 1) {
+        return;
+      }
+      ArrayList<byte[]> listOfByteArrays = byteArrayCache[byteArray.length];
       if (listOfByteArrays == null) {
         listOfByteArrays = new ArrayList<>();
       }
@@ -1305,7 +1311,6 @@ public abstract class ServerConnection implements Runnable {
       result = partCache.pollByteArray(allocSize);
     }
     if (result == null && partCache != null) {
-      logger.info("DEBUG: allocating array of size: " + allocSize);
       result = new byte[allocSize];
     }
     return result;
