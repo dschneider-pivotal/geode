@@ -1313,7 +1313,8 @@ public abstract class ServerConnection implements Runnable {
     }
     if (result == null) {
       if (partCache != null) {
-        logger.info("DEBUG: allocating byte array of size: " + allocSize);
+        logger.info("DEBUG: allocating byte array of size: " + allocSize,
+            new RuntimeException("STACK"));
       }
       result = new byte[allocSize];
     }
