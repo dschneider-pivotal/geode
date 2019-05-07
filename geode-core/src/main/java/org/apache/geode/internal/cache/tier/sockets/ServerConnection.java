@@ -1277,7 +1277,7 @@ public abstract class ServerConnection implements Runnable {
         return null;
       }
       ArrayList<byte[]> listOfByteArrays = byteArrayCache[length];
-      if (listOfByteArrays == null) {
+      if (listOfByteArrays == null || listOfByteArrays.isEmpty()) {
         return null;
       }
       return listOfByteArrays.remove(listOfByteArrays.size() - 1);
@@ -1290,6 +1290,7 @@ public abstract class ServerConnection implements Runnable {
       ArrayList<byte[]> listOfByteArrays = byteArrayCache[byteArray.length];
       if (listOfByteArrays == null) {
         listOfByteArrays = new ArrayList<>();
+        byteArrayCache[byteArray.length] = listOfByteArrays;
       }
       listOfByteArrays.add(byteArray);
     }
