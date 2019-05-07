@@ -1305,6 +1305,7 @@ public abstract class ServerConnection implements Runnable {
       result = partCache.pollByteArray(allocSize);
     }
     if (result == null) {
+      logger.info("DEBUG: allocating array of size: " + allocSize);
       result = new byte[allocSize];
     }
     return result;
