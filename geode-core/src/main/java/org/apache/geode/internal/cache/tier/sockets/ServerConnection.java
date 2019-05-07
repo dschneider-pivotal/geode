@@ -1283,9 +1283,9 @@ public abstract class ServerConnection implements Runnable {
       return listOfByteArrays.remove(listOfByteArrays.size() - 1);
     }
 
-    public void offer(byte[] byteArray) {
+    public boolean offer(byte[] byteArray) {
       if (byteArray.length > MAX_CACHED_BYTE_ARRAY_SIZE - 1) {
-        return;
+        return false;
       }
       ArrayList<byte[]> listOfByteArrays = byteArrayCache[byteArray.length];
       if (listOfByteArrays == null) {
@@ -1293,6 +1293,7 @@ public abstract class ServerConnection implements Runnable {
         byteArrayCache[byteArray.length] = listOfByteArrays;
       }
       listOfByteArrays.add(byteArray);
+      return true;
     }
   }
 
@@ -1324,7 +1325,10 @@ public abstract class ServerConnection implements Runnable {
   public static void releasePart(byte[] byteArray) {
     PartCache partCache = partCacheReference.get();
     if (partCache != null) {
-      partCache.offer(byteArray);
+      if (partCache.offer(byteArray)) {
+        logger.info("DEBUG: returned byte array of size: " + byteArray.length,
+            new RuntimeException("STACK"));
+      }
     }
   }
 
