@@ -1313,10 +1313,6 @@ public abstract class ServerConnection implements Runnable {
       result = partCache.pollByteArray(allocSize);
     }
     if (result == null) {
-      if (partCache != null) {
-        logger.info("DEBUG: allocating byte array of size: " + allocSize,
-            new RuntimeException("STACK"));
-      }
       result = new byte[allocSize];
     }
     return result;
@@ -1325,10 +1321,7 @@ public abstract class ServerConnection implements Runnable {
   public static void releasePart(byte[] byteArray) {
     PartCache partCache = partCacheReference.get();
     if (partCache != null) {
-      if (partCache.offer(byteArray)) {
-        logger.info("DEBUG: returned byte array of size: " + byteArray.length,
-            new RuntimeException("STACK"));
-      }
+      partCache.offer(byteArray);
     }
   }
 

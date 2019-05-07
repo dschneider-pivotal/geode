@@ -64,24 +64,27 @@ public class Part {
   /** Is the payload (<code>part</code>) a serialized object? */
   private byte typeCode;
 
+  private boolean byteArrayReusable;
+
+
   public void init(byte[] v, byte tc) {
     if (tc == EMPTY_BYTEARRAY_CODE) {
       this.part = EMPTY_BYTE_ARRAY;
+      this.byteArrayReusable = false;
     } else {
       this.part = v;
+      this.byteArrayReusable = true;
     }
     this.typeCode = tc;
   }
 
   public void clear() {
     if (this.part != null) {
-      if (this.part instanceof HeapDataOutputStream) {
-        ServerConnection.releasePart((HeapDataOutputStream) this.part);
-      } else if (this.part instanceof byte[]) {
+      if (this.byteArrayReusable) {
         byte[] byteArray = (byte[]) this.part;
-        if (byteArray != EMPTY_BYTE_ARRAY && byteArray != TRUE && byteArray != FALSE) {
-          ServerConnection.releasePart(byteArray);
-        }
+        ServerConnection.releasePart(byteArray);
+      } else if (this.part instanceof HeapDataOutputStream) {
+        ServerConnection.releasePart((HeapDataOutputStream) this.part);
       }
       this.part = null;
     }
