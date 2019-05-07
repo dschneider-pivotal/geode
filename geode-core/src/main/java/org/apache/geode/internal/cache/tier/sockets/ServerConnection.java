@@ -30,6 +30,8 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
@@ -1248,8 +1250,9 @@ public abstract class ServerConnection implements Runnable {
     private int idx = -1;
     private static final int MAX_CACHE_SIZE = 7;
     private final HeapDataOutputStream[] hdosCache = new HeapDataOutputStream[MAX_CACHE_SIZE];
+    private final HashMap<Integer, ArrayList<byte[]>> byteArrayCache = new HashMap<>();
 
-    public HeapDataOutputStream poll() {
+    public HeapDataOutputStream pollHeapDataOutputStream() {
       if (idx < 0) {
         return null;
       }
@@ -1268,6 +1271,22 @@ public abstract class ServerConnection implements Runnable {
         hdos.close();
       }
     }
+
+    public byte[] pollByteArray(int length) {
+      ArrayList<byte[]> listOfByteArrays = byteArrayCache.get(length);
+      if (listOfByteArrays == null) {
+        return null;
+      }
+      return listOfByteArrays.remove(listOfByteArrays.size() - 1);
+    }
+
+    public void offer(byte[] byteArray) {
+      ArrayList<byte[]> listOfByteArrays = byteArrayCache.get(byteArray.length);
+      if (listOfByteArrays == null) {
+        listOfByteArrays = new ArrayList<>();
+      }
+      listOfByteArrays.add(byteArray);
+    }
   }
 
   /**
@@ -1279,11 +1298,30 @@ public abstract class ServerConnection implements Runnable {
     }
   }
 
+  public static byte[] allocatePartByteArray(int allocSize) {
+    PartCache partCache = partCacheReference.get();
+    byte[] result = null;
+    if (partCache != null) {
+      result = partCache.pollByteArray(allocSize);
+    }
+    if (result == null) {
+      result = new byte[allocSize];
+    }
+    return result;
+  }
+
+  public static void releasePart(byte[] byteArray) {
+    PartCache partCache = partCacheReference.get();
+    if (partCache != null) {
+      partCache.offer(byteArray);
+    }
+  }
+
   public static HeapDataOutputStream allocatePart(int allocSize, Version version) {
     PartCache partCache = partCacheReference.get();
     HeapDataOutputStream result = null;
     if (partCache != null) {
-      result = partCache.poll();
+      result = partCache.pollHeapDataOutputStream();
     }
     if (result == null) {
       result = new HeapDataOutputStream(allocSize, version);

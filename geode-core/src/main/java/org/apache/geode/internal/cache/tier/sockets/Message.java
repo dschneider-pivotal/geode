@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.SerializationException;
-import org.apache.geode.annotations.Immutable;
 import org.apache.geode.annotations.internal.MakeNotStatic;
 import org.apache.geode.distributed.internal.DistributionConfig;
 import org.apache.geode.internal.Assert;
@@ -105,29 +104,6 @@ public class Message {
   private static final byte MESSAGE_IS_RETRY_MASK = (byte) 0xFB;
 
   private static final int DEFAULT_CHUNK_SIZE = 1024;
-
-  @Immutable
-  private static final byte[] TRUE = defineTrue();
-  @Immutable
-  private static final byte[] FALSE = defineFalse();
-
-  private static byte[] defineTrue() {
-    try (HeapDataOutputStream hdos = new HeapDataOutputStream(10, null)) {
-      BlobHelper.serializeTo(Boolean.TRUE, hdos);
-      return hdos.toByteArray();
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  private static byte[] defineFalse() {
-    try (HeapDataOutputStream hdos = new HeapDataOutputStream(10, null)) {
-      BlobHelper.serializeTo(Boolean.FALSE, hdos);
-      return hdos.toByteArray();
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
 
   /**
    * The maximum size of an outgoing message. If the message is larger than this maximum, it may
@@ -344,8 +320,6 @@ public class Message {
   public void addObjPart(Object o, boolean zipValues) {
     if (o == null || o instanceof byte[]) {
       addRawPart((byte[]) o, false);
-    } else if (o instanceof Boolean) {
-      addRawPart((Boolean) o ? TRUE : FALSE, true);
     } else {
       serializeAndAddPart(o, zipValues);
     }
@@ -395,12 +369,18 @@ public class Message {
       throw new UnsupportedOperationException("zipValues no longer supported");
     }
 
+    if (o instanceof Boolean) {
+      this.messageModified = true;
+      Part part = this.partsList[this.currentPart];
+      part.setPartState((Boolean) o);
+      this.currentPart++;
+      return;
+    }
+
     Version v = this.version;
     if (this.version.equals(Version.CURRENT)) {
       v = null;
     }
-
-
     // do NOT close the HeapDataOutputStream
     HeapDataOutputStream hdos = ServerConnection.allocatePart(this.chunkSize, v);
     try {
@@ -901,7 +881,7 @@ public class Message {
       byte[] partBytes = null;
 
       if (partLen > 0) {
-        partBytes = new byte[partLen];
+        partBytes = ServerConnection.allocatePartByteArray(partLen);
         int alreadyReadBytes = cb.remaining();
         if (alreadyReadBytes > 0) {
           if (partLen < alreadyReadBytes) {

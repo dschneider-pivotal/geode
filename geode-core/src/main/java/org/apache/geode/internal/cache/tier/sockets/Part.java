@@ -29,6 +29,7 @@ import org.apache.geode.internal.HeapDataOutputStream;
 import org.apache.geode.internal.Version;
 import org.apache.geode.internal.offheap.AddressableMemoryManager;
 import org.apache.geode.internal.offheap.StoredObject;
+import org.apache.geode.internal.util.BlobHelper;
 
 /**
  * Represents one unit of information (essentially a <code>byte</code> array) in the wire protocol.
@@ -76,6 +77,11 @@ public class Part {
     if (this.part != null) {
       if (this.part instanceof HeapDataOutputStream) {
         ServerConnection.releasePart((HeapDataOutputStream) this.part);
+      } else if (this.part instanceof byte[]) {
+        byte[] byteArray = (byte[]) this.part;
+        if (byteArray != EMPTY_BYTE_ARRAY && byteArray != TRUE && byteArray != FALSE) {
+          ServerConnection.releasePart(byteArray);
+        }
       }
       this.part = null;
     }
@@ -103,6 +109,30 @@ public class Part {
     return this.typeCode == BYTE_CODE || this.typeCode == EMPTY_BYTEARRAY_CODE;
   }
 
+
+  @Immutable
+  private static final byte[] TRUE = defineTrue();
+  @Immutable
+  private static final byte[] FALSE = defineFalse();
+
+  private static byte[] defineTrue() {
+    try (HeapDataOutputStream hdos = new HeapDataOutputStream(10, null)) {
+      BlobHelper.serializeTo(Boolean.TRUE, hdos);
+      return hdos.toByteArray();
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  private static byte[] defineFalse() {
+    try (HeapDataOutputStream hdos = new HeapDataOutputStream(10, null)) {
+      BlobHelper.serializeTo(Boolean.FALSE, hdos);
+      return hdos.toByteArray();
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   public void setPartState(byte[] b, boolean isObject) {
     if (isObject) {
       this.typeCode = OBJECT_CODE;
@@ -126,6 +156,11 @@ public class Part {
       this.typeCode = BYTE_CODE;
       this.part = os;
     }
+  }
+
+  public void setPartState(Boolean b) {
+    this.typeCode = OBJECT_CODE;
+    this.part = b ? TRUE : FALSE;
   }
 
   public void setPartState(StoredObject so, boolean isObject) {
