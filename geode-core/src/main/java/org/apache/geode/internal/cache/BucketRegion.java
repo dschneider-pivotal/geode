@@ -1746,13 +1746,22 @@ public class BucketRegion extends DistributedRegion implements Bucket {
       super.invokePutCallbacks(eventType, event, callThem, notifyGateways);
     }
 
+    if (!event.isGenerateCallbacks()) {
+      return;
+    }
+    boolean needsPrEvent = (partitionedRegion.isInitialized() && callDispatchListenerEvent
+        && partitionedRegion.shouldDispatchListenerEvent())
+        || CacheClientNotifier.singletonHasClientProxies();
+    if (!needsPrEvent) {
+      return;
+    }
     @Released
-    final EntryEventImpl prevent = createEventForPR(event);
+    final EntryEventImpl prEvent = createEventForPR(event);
     try {
-      partitionedRegion.invokePutCallbacks(eventType, prevent,
+      partitionedRegion.invokePutCallbacks(eventType, prEvent,
           partitionedRegion.isInitialized() && callDispatchListenerEvent, false);
     } finally {
-      prevent.release();
+      prEvent.release();
     }
   }
 
