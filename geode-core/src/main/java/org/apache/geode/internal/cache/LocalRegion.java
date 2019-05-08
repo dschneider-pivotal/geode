@@ -4695,17 +4695,22 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
   /**
    * Called by a thread that is doing region initialization. Causes the initialization Latch to be
    * bypassed by this thread.
-   *
    */
   public static int setThreadInitLevelRequirement(int level) {
     int oldLevel = threadInitLevelRequirement();
-    if (level == AFTER_INITIAL_IMAGE) {
-      // if setting to default, just reset
-      initializationThread.remove();
-    } else {
+    if (oldLevel != level) {
       initializationThread.set(level);
     }
     return oldLevel;
+  }
+
+  /**
+   * Used to restore the ThreadInitLevelRequirement after setThreadInitLevelRequirement is called
+   *
+   * @param previousLevel the level returned by the previous call of setThreadInitLevelRequirement
+   */
+  public static void restoreThreadInitLevelRequirement(int previousLevel) {
+    initializationThread.set(previousLevel);
   }
 
   /**

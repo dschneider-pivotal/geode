@@ -1087,8 +1087,8 @@ public abstract class DistributedCacheOperation {
       }
 
       EntryLogger.setSource(this.getSender(), "p2p");
-      boolean resetOldLevel = true;
-      int oldLevel = LocalRegion.setThreadInitLevelRequirement(LocalRegion.BEFORE_INITIAL_IMAGE);
+      final int oldLevel =
+          LocalRegion.setThreadInitLevelRequirement(LocalRegion.BEFORE_INITIAL_IMAGE);
       try {
         if (dm.getDMType() == ClusterDistributionManager.ADMIN_ONLY_DM_TYPE) {
           // this was probably a multicast message
@@ -1117,9 +1117,7 @@ public abstract class DistributedCacheOperation {
         SystemFailure.checkFailure();
         thr = t;
       } finally {
-        if (resetOldLevel) {
-          LocalRegion.setThreadInitLevelRequirement(oldLevel);
-        }
+        LocalRegion.restoreThreadInitLevelRequirement(oldLevel);
         if (sendReply) {
           ReplyException rex = null;
           if (thr != null) {
