@@ -832,4 +832,15 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
   public Version[] getSerializationVersions() {
     return dsfidVersions;
   }
+
+  private transient ThreadIdentifier canonicalThreadId = null;
+
+  public ThreadIdentifier createThreadIdentifier() {
+    ThreadIdentifier result = this.canonicalThreadId;
+    if (result == null) {
+      result = new ThreadIdentifier(getMembershipID(), getThreadID());
+      this.canonicalThreadId = result;
+    }
+    return result;
+  }
 }
