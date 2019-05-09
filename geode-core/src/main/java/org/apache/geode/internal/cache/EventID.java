@@ -377,9 +377,10 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
   @Override
   public void fromData(DataInput di) throws IOException, ClassNotFoundException {
     this.membershipID = DataSerializer.readByteArray(di);
-    ByteBuffer eventIdParts = ByteBuffer.wrap(DataSerializer.readByteArray(di));
-    this.threadID = readEventIdPartsFromOptmizedByteArray(eventIdParts);
-    this.sequenceID = readEventIdPartsFromOptmizedByteArray(eventIdParts);
+    // We really don't need the overhead of a byte array for the following:
+    InternalDataSerializer.readArrayLength(di); // skip the array length
+    this.threadID = fillerArray.get(di.readByte()).read(di);
+    this.sequenceID = fillerArray.get(di.readByte()).read(di);
     this.bucketID = di.readInt();
     this.breadcrumbCounter = di.readByte();
   }
@@ -672,6 +673,14 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
      * @return - the long value of id (threadId or sequenceId).
      */
     public abstract long read(ByteBuffer buffer);
+
+    /**
+     * Reads the given data input and returns the value as long.
+     *
+     * @param dataInput - the DataInput containing the eventId parts which needs to be read
+     * @return - the long value of id (threadId or sequenceId).
+     */
+    public abstract long read(DataInput dataInput) throws IOException;
   }
 
   protected static class ByteEventIDByteArrayFiller extends AbstractEventIDByteArrayFiller {
@@ -704,6 +713,11 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
     public long read(ByteBuffer buffer) {
       long value = buffer.get();
       return value;
+    }
+
+    @Override
+    public long read(DataInput dataInput) throws IOException {
+      return dataInput.readByte();
     }
 
   }
@@ -739,6 +753,11 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
       long value = buffer.getShort();
       return value;
     }
+
+    @Override
+    public long read(DataInput dataInput) throws IOException {
+      return dataInput.readShort();
+    }
   }
 
   protected static class IntegerEventIDByteArrayFiller extends AbstractEventIDByteArrayFiller {
@@ -772,6 +791,11 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
       long value = buffer.getInt();
       return value;
     }
+
+    @Override
+    public long read(DataInput dataInput) throws IOException {
+      return dataInput.readInt();
+    }
   }
 
   protected static class LongEventIDByteArrayFiller extends AbstractEventIDByteArrayFiller {
@@ -804,6 +828,11 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
     public long read(ByteBuffer buffer) {
       long value = buffer.getLong();
       return value;
+    }
+
+    @Override
+    public long read(DataInput dataInput) throws IOException {
+      return dataInput.readLong();
     }
   }
 
