@@ -462,11 +462,11 @@ public class ConnectionStats implements MessageStats {
                */
               ///////////////////////////////////////////////////////////////////////
               f.createIntGauge("getsInProgress", "Current number of gets being executed", "gets"),
-              f.createLongCounter("gets", "Total number of gets completed successfully", "gets"),
               f.createLongCounter("getFailures", "Total number of get attempts that have failed",
                   "gets"),
               f.createLongCounter("getTimeouts", "Total number of get attempts that have timed out",
                   "gets"),
+              f.createLongCounter("gets", "Total number of gets completed successfully", "gets"),
               f.createLongCounter("getTime",
                   "Total amount of time, in nanoseconds spent doing gets", "nanoseconds"),
               f.createIntGauge("putsInProgress", "Current number of puts being executed", "puts"),
