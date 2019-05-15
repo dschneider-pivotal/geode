@@ -372,9 +372,9 @@ class RegionPerfStats extends CachePerfStats {
 
   @Override
   public void endPutAll(long start) {
-    //stats.incInt(putAllsId, 1);
+    stats.incInt(putAllsId, 1);
     if (enableClockStats) {
-      //stats.incLong(putAllTimeId, getClockTime() - start);
+      stats.incLong(putAllTimeId, getClockTime() - start);
     }
     cachePerfStats.endPutAll(start);
   }
