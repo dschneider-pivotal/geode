@@ -10432,7 +10432,7 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
   }
 
   boolean canStoreDataLocally() {
-    return getDataPolicy().withStorage();
+    return this.getDataPolicy().withStorage();
   }
 
   /**

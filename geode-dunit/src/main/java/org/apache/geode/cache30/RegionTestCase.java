@@ -1035,7 +1035,7 @@ public abstract class RegionTestCase extends JUnit4CacheTestCase {
     Region region = createRegion(name);
     region.put(key, value);
 
-    long beforeInvalidates = ((org.apache.geode.internal.cache.GemFireCacheImpl) getCache())
+    int beforeInvalidates = ((org.apache.geode.internal.cache.GemFireCacheImpl) getCache())
         .getCachePerfStats().getInvalidates();
     Region.Entry entry = region.getEntry(key);
     region.invalidate(key);
@@ -1043,7 +1043,7 @@ public abstract class RegionTestCase extends JUnit4CacheTestCase {
       assertNull(entry.getValue());
     }
     assertNull(region.get(key));
-    long afterInvalidates = ((org.apache.geode.internal.cache.GemFireCacheImpl) getCache())
+    int afterInvalidates = ((org.apache.geode.internal.cache.GemFireCacheImpl) getCache())
         .getCachePerfStats().getInvalidates();
     assertEquals("Invalidate CachePerfStats incorrect", beforeInvalidates + 1, afterInvalidates);
   }

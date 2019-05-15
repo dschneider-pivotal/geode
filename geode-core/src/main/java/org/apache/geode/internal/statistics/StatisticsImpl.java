@@ -241,14 +241,7 @@ public abstract class StatisticsImpl implements Statistics {
 
   @Override
   public int getInt(StatisticDescriptor descriptor) {
-    try {
-      return getInt(getIntId(descriptor));
-    } catch (IllegalArgumentException e) {
-      if (descriptor.getType() == long.class) {
-        return (int) getLong(descriptor);
-      }
-      throw e;
-    }
+    return getInt(getIntId(descriptor));
   }
 
   @Override

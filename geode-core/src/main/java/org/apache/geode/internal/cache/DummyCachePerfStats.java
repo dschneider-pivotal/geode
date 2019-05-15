@@ -72,18 +72,18 @@ public class DummyCachePerfStats extends CachePerfStats {
   }
 
   @Override
-  public long getDestroys() {
-    return 0L;
-  }
-
-  @Override
-  public long getCreates() {
+  public int getDestroys() {
     return 0;
   }
 
   @Override
-  public long getPuts() {
-    return 0L;
+  public int getCreates() {
+    return 0;
+  }
+
+  @Override
+  public int getPuts() {
+    return 0;
   }
 
   @Override
@@ -92,23 +92,23 @@ public class DummyCachePerfStats extends CachePerfStats {
   }
 
   @Override
-  public long getUpdates() {
+  public int getUpdates() {
     return 0;
   }
 
   @Override
-  public long getInvalidates() {
-    return 0l;
+  public int getInvalidates() {
+    return 0;
   }
 
   @Override
-  public long getGets() {
-    return 0L;
+  public int getGets() {
+    return 0;
   }
 
   @Override
-  public long getMisses() {
-    return 0L;
+  public int getMisses() {
+    return 0;
   }
 
   @Override

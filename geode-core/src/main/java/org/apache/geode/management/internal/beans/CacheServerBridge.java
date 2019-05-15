@@ -528,9 +528,9 @@ public class CacheServerBridge extends ServerBridge {
     if (stats != null) {
       status.setCpus(stats.getCpus());
       status.setNumOfCacheListenerCalls(stats.getNumOfCacheListenerCalls());
-      status.setNumOfGets((int) stats.getNumOfGets());
-      status.setNumOfMisses((int) stats.getNumOfMisses());
-      status.setNumOfPuts((int) stats.getNumOfPuts());
+      status.setNumOfGets(stats.getNumOfGets());
+      status.setNumOfMisses(stats.getNumOfMisses());
+      status.setNumOfPuts(stats.getNumOfPuts());
       status.setNumOfThreads(stats.getNumOfThreads());
       status.setProcessCpuTime(stats.getProcessCpuTime());
       status.setPoolStats(stats.getPoolStats());
