@@ -93,8 +93,7 @@ public class AvailableConnectionManager {
    */
   public void addFirst(PooledConnection connection, boolean accessed) {
     passivate(connection, accessed);
-    // connections.addFirst(connection);
-    connections.addLast(connection);
+    connections.addFirst(connection);
   }
 
   /**
