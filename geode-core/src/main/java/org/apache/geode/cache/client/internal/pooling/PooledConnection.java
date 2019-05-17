@@ -169,9 +169,7 @@ public class PooledConnection implements Connection {
         throw new InternalGemFireException("Connection not active");
       }
       this.active = false;
-      if (this.waitingToSwitch) {
-        notifyAll();
-      }
+      notifyAll();
       if (accessed) {
         this.lastAccessed = now; // do this while synchronized
       }
