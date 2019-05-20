@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.geode.annotations.Immutable;
 import org.apache.geode.annotations.internal.MakeNotStatic;
 import org.apache.geode.internal.Assert;
+import org.apache.geode.internal.ByteArrayDataInput;
 import org.apache.geode.internal.DSCODE;
 import org.apache.geode.internal.HeapDataOutputStream;
 import org.apache.geode.internal.Version;
@@ -385,10 +386,11 @@ public class Part {
     if (isBytes()) {
       return this.part;
     } else {
+      ByteArrayDataInput input = ServerConnection.allocatePartByteArrayDataInput();
       if (this.version != null) {
-        return CacheServerHelper.deserialize((byte[]) this.part, this.version, unzip);
+        return CacheServerHelper.deserialize((byte[]) this.part, this.version, unzip, input);
       } else {
-        return CacheServerHelper.deserialize((byte[]) this.part, unzip);
+        return CacheServerHelper.deserialize((byte[]) this.part, unzip, input);
       }
     }
   }

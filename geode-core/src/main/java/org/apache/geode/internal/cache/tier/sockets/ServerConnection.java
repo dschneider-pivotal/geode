@@ -1242,6 +1242,7 @@ public abstract class ServerConnection implements Runnable {
     private final HeapDataOutputStream[] hdosCache = new HeapDataOutputStream[MAX_CACHE_SIZE];
     private static final int MAX_CACHED_BYTE_ARRAY_SIZE = 1024;
     private final ArrayList<byte[]>[] byteArrayCache = new ArrayList[MAX_CACHED_BYTE_ARRAY_SIZE];
+    private final ByteArrayDataInput byteArrayDataInputCache = new ByteArrayDataInput();
 
     public HeapDataOutputStream pollHeapDataOutputStream() {
       if (idx < 0) {
@@ -1285,6 +1286,10 @@ public abstract class ServerConnection implements Runnable {
       }
       listOfByteArrays.add(byteArray);
       return true;
+    }
+
+    public ByteArrayDataInput getByteArrayDataInput() {
+      return byteArrayDataInputCache;
     }
   }
 
@@ -1334,6 +1339,15 @@ public abstract class ServerConnection implements Runnable {
       hdos.close();
     } else {
       partCache.offer(hdos);
+    }
+  }
+
+  public static ByteArrayDataInput allocatePartByteArrayDataInput() {
+    PartCache partCache = partCacheReference.get();
+    if (partCache != null) {
+      return partCache.getByteArrayDataInput();
+    } else {
+      return new ByteArrayDataInput();
     }
   }
 
