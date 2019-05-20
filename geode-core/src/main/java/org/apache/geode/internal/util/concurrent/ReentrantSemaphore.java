@@ -124,14 +124,12 @@ public class ReentrantSemaphore extends Semaphore {
 
   private boolean incHoldCount() {
     Integer count = holdCount.get();
+    int oldValue = 0;
     if (count != null) {
-      holdCount.set(Integer.valueOf(count.intValue() + 1));
-      return false;
+      oldValue = count.intValue();
     }
-    {
-      holdCount.set(Integer.valueOf(1));
-      return true;
-    }
+    holdCount.set(oldValue + 1);
+    return oldValue == 0;
   }
 
   private boolean decHoldCount() {
@@ -139,13 +137,12 @@ public class ReentrantSemaphore extends Semaphore {
     if (count == null) {
       return true;
     }
-    if (count.intValue() == 1) {
-      holdCount.remove();
+    int currentValue = count;
+    if (currentValue == 0) {
       return true;
-    } else {
-      holdCount.set(Integer.valueOf(count.intValue() - 1));
-      return false;
     }
+    holdCount.set(currentValue - 1);
+    return currentValue == 1;
   }
 
   public boolean tryAcquireMs(long timeout) throws InterruptedException {
