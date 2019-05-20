@@ -2092,7 +2092,6 @@ public class CacheClientNotifier {
     }
   }
 
-<<<<<<< HEAD
   public ClientProxyMembershipID getCanonicalId(ClientProxyMembershipID proxyID) {
     CanonicalKey key = proxyID.getCanonicalKey();
     ClientProxyMembershipID result = canonicalClientIds.get(key);
@@ -2103,7 +2102,8 @@ public class CacheClientNotifier {
       }
     }
     return result;
-=======
+  }
+  
   @VisibleForTesting
   public static CacheClientNotifierProvider singletonProvider() {
     return CacheClientNotifier::getInstance;
@@ -2120,6 +2120,5 @@ public class CacheClientNotifier {
     CacheClientNotifier get(InternalCache cache, CacheServerStats acceptorStats,
         int maximumMessageCount, int messageTimeToLive, ConnectionListener listener,
         OverflowAttributes overflowAttributes, boolean isGatewayReceiver);
->>>>>>> origin/develop
   }
 }
