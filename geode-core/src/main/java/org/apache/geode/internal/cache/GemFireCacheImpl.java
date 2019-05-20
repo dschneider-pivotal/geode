@@ -3961,11 +3961,7 @@ public class GemFireCacheImpl implements InternalCache, InternalClientCache, Has
 
   @Override
   public List<CacheServer> getCacheServers() {
-<<<<<<< HEAD
-    return this.cacheServersNotGatewayReceivers;
-=======
     return this.unmodifiableAllCacheServers;
->>>>>>> origin/develop
   }
 
   @Override
