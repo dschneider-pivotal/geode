@@ -2103,7 +2103,7 @@ public class CacheClientNotifier {
     }
     return result;
   }
-  
+
   @VisibleForTesting
   public static CacheClientNotifierProvider singletonProvider() {
     return CacheClientNotifier::getInstance;

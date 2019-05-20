@@ -651,6 +651,42 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
   }
 
   /**
+   * The token to indicate that given id ( threadId or sequenceId) is of type <code>Byte</code>
+   */
+  private static final byte EVENTID_BYTE = 0;
+  /**
+   * The token to indicate that given id ( threadId or sequenceId) is of type <code>Short</code>
+   */
+  private static final byte EVENTID_SHORT = 1;
+  /**
+   * The token to indicate that given id ( threadId or sequenceId) is of type <code>Integer</code>
+   */
+  static final byte EVENTID_INT = 2;
+  /**
+   * The token to indicate that given id ( threadId or sequenceId) is of type <code>Long</code>
+   */
+  static final byte EVENTID_LONG = 3;
+
+  public static int getEventIdPartByteCount(byte eventIdType) {
+    switch (eventIdType) {
+      case EVENTID_BYTE:
+        return 1;
+      case EVENTID_SHORT:
+        return 2;
+      case EVENTID_INT:
+        return 4;
+      case EVENTID_LONG:
+        return 8;
+      default:
+        throw new IllegalStateException("Unexpected EventIdPartType: " + eventIdType);
+    }
+  }
+
+  public static long readEventIdPart(byte[] eventIdPartsBytes, int startIdx, byte eventIdType) {
+    return fillerArray.get(eventIdType).read(eventIdPartsBytes, startIdx);
+  }
+
+  /**
    * Abstract helper class used to create optimized byte-array for the eventid, which will be sent
    * across the network.
    *
@@ -681,14 +717,15 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
      * @return - the long value of id (threadId or sequenceId).
      */
     public abstract long read(DataInput dataInput) throws IOException;
+
+    /**
+     * Reads bytes from the given byte array starting at the given index and
+     * return the value of those bytes as a long.
+     */
+    public abstract long read(byte[] eventIdPartsBytes, int startIdx);
   }
 
   protected static class ByteEventIDByteArrayFiller extends AbstractEventIDByteArrayFiller {
-    /**
-     * The token to indicate that given id ( threadId or sequenceId) is of type <code>Byte</code>
-     */
-    private static final byte EVENTID_BYTE = 0;
-
     /**
      * Writes the given 'id' to the given buffer as 'byte' preceeded by a token indicating that it
      * is written as 'byte' type.
@@ -720,14 +757,13 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
       return dataInput.readByte();
     }
 
+    @Override
+    public long read(byte[] eventIdPartsBytes, int startIdx) {
+      return eventIdPartsBytes[startIdx];
+    }
   }
 
   protected static class ShortEventIDByteArrayFiller extends AbstractEventIDByteArrayFiller {
-    /**
-     * The token to indicate that given id ( threadId or sequenceId) is of type <code>Short</code>
-     */
-    private static final byte EVENTID_SHORT = 1;
-
     /**
      * Writes the given 'id' to the given buffer as 'short' preceeded by a token indicating that it
      * is written as 'short' type.
@@ -758,14 +794,17 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
     public long read(DataInput dataInput) throws IOException {
       return dataInput.readShort();
     }
+
+    @Override
+    public long read(byte[] eventIdPartsBytes, int startIdx) {
+      long result = eventIdPartsBytes[startIdx] & 0xff;
+      result <<= 8;
+      result |= eventIdPartsBytes[startIdx + 1] & 0xff;
+      return result;
+    }
   }
 
   protected static class IntegerEventIDByteArrayFiller extends AbstractEventIDByteArrayFiller {
-    /**
-     * The token to indicate that given id ( threadId or sequenceId) is of type <code>Integer</code>
-     */
-    private static final byte EVENTID_INT = 2;
-
     /**
      * Writes the given 'id' to the given buffer as 'int' preceeded by a token indicating that it is
      * written as 'int' type.
@@ -796,14 +835,21 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
     public long read(DataInput dataInput) throws IOException {
       return dataInput.readInt();
     }
+
+    @Override
+    public long read(byte[] eventIdPartsBytes, int startIdx) {
+      long result = eventIdPartsBytes[startIdx] & 0xff;
+      result <<= 8;
+      result |= eventIdPartsBytes[startIdx + 1] & 0xff;
+      result <<= 8;
+      result |= eventIdPartsBytes[startIdx + 2] & 0xff;
+      result <<= 8;
+      result |= eventIdPartsBytes[startIdx + 3] & 0xff;
+      return result;
+    }
   }
 
   protected static class LongEventIDByteArrayFiller extends AbstractEventIDByteArrayFiller {
-    /**
-     * The token to indicate that given id ( threadId or sequenceId) is of type <code>Long</code>
-     */
-    private static final byte EVENTID_LONG = 3;
-
     /**
      * Writes the given 'id' to the given buffer as 'long' preceeded by a token indicating that it
      * is written as 'long' type.
@@ -833,6 +879,26 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
     @Override
     public long read(DataInput dataInput) throws IOException {
       return dataInput.readLong();
+    }
+
+    @Override
+    public long read(byte[] eventIdPartsBytes, int startIdx) {
+      long result = eventIdPartsBytes[startIdx] & 0xff;
+      result <<= 8;
+      result |= eventIdPartsBytes[startIdx + 1] & 0xff;
+      result <<= 8;
+      result |= eventIdPartsBytes[startIdx + 2] & 0xff;
+      result <<= 8;
+      result |= eventIdPartsBytes[startIdx + 3] & 0xff;
+      result <<= 8;
+      result |= eventIdPartsBytes[startIdx + 4] & 0xff;
+      result <<= 8;
+      result |= eventIdPartsBytes[startIdx + 5] & 0xff;
+      result <<= 8;
+      result |= eventIdPartsBytes[startIdx + 6] & 0xff;
+      result <<= 8;
+      result |= eventIdPartsBytes[startIdx + 7] & 0xff;
+      return result;
     }
   }
 

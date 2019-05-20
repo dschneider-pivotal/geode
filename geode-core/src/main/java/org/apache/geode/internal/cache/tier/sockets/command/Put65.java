@@ -17,7 +17,6 @@ package org.apache.geode.internal.cache.tier.sockets.command;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import org.apache.geode.InvalidDeltaException;
 import org.apache.geode.annotations.Immutable;
@@ -199,9 +198,13 @@ public class Put65 extends BaseCommand {
       return;
     }
 
-    final ByteBuffer eventIdPartsBuffer = ByteBuffer.wrap(eventPart.getSerializedForm());
-    final long threadId = EventID.readEventIdPartsFromOptmizedByteArray(eventIdPartsBuffer);
-    final long sequenceId = EventID.readEventIdPartsFromOptmizedByteArray(eventIdPartsBuffer);
+    byte[] eventIdPartsBytes = eventPart.getSerializedForm();
+    byte threadIdType = eventIdPartsBytes[0];
+    int threadIdByteCount = EventID.getEventIdPartByteCount(threadIdType);
+    final long threadId = EventID.readEventIdPart(eventIdPartsBytes, 1, threadIdType);
+    byte sequenceIdType = eventIdPartsBytes[1 + threadIdByteCount];
+    final long sequenceId =
+        EventID.readEventIdPart(eventIdPartsBytes, 2 + threadIdByteCount, sequenceIdType);
 
     final EventIDHolder clientEvent = new EventIDHolder(
         new EventID(serverConnection.getEventMemberIDByteArray(), threadId, sequenceId));
