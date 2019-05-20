@@ -339,4 +339,10 @@ public class IntegratedSecurityService implements SecurityService {
   public boolean isPeerSecurityRequired() {
     return true;
   }
+
+  @Override
+  public void authorizeWithKeyObject(Resource resource, Operation operation, String target,
+      Object key) {
+    authorize(resource, operation, target, key.toString());
+  }
 }

@@ -23,6 +23,8 @@ import org.apache.shiro.util.ThreadState;
 
 import org.apache.geode.security.PostProcessor;
 import org.apache.geode.security.ResourcePermission;
+import org.apache.geode.security.ResourcePermission.Operation;
+import org.apache.geode.security.ResourcePermission.Resource;
 import org.apache.geode.security.SecurityManager;
 
 /**
@@ -136,4 +138,8 @@ public class LegacySecurityService implements SecurityService {
   public PostProcessor getPostProcessor() {
     return null;
   }
+
+  @Override
+  public void authorizeWithKeyObject(Resource resource, Operation operation, String target,
+      Object key) {}
 }

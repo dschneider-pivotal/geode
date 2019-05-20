@@ -47,6 +47,8 @@ public interface SecurityService {
 
   void authorize(Resource resource, Operation operation, String target, String key);
 
+  void authorizeWithKeyObject(Resource resource, Operation operation, String target, Object key);
+
   void authorize(Resource resource, Operation operation, Target target, String key);
 
   void authorize(ResourcePermission context);
