@@ -27,11 +27,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.geode.DataSerializer;
 import org.apache.geode.InternalGemFireError;
 import org.apache.geode.annotations.Immutable;
+import org.apache.geode.annotations.VisibleForTesting;
 import org.apache.geode.annotations.internal.MutableForTesting;
 import org.apache.geode.cache.UnsupportedVersionException;
 import org.apache.geode.cache.client.ServerConnectivityException;
@@ -60,7 +62,7 @@ public class InternalDistributedMember implements DistributedMember, Externaliza
     DataSerializableFixedID, ProfileId, VersionSource<DistributedMember> {
   private static final long serialVersionUID = -2785249969777296507L;
 
-  // whether to show NetMember components in toString()
+  /** whether to show NetMember components in toString() */
   private static final boolean SHOW_NETMEMBER =
       Boolean.getBoolean(DistributionConfig.GEMFIRE_PREFIX + "show_netmembers");
 
@@ -650,27 +652,14 @@ public class InternalDistributedMember implements DistributedMember, Externaliza
 
     InetAddress myAddr = getInetAddress();
     InetAddress otherAddr = other.getInetAddress();
-    // Discard null cases
     if (myAddr == null && otherAddr == null) {
       return true;
-    } else if (myAddr == null) {
-      return false;
-    } else if (otherAddr == null) {
-      return false;
-    } else if (!myAddr.equals(otherAddr)) {
+    } else if (!Objects.equals(myAddr, otherAddr)) {
       return false;
     }
 
     if (!isPartial() && !other.isPartial()) {
-      String myName = getName();
-      String otherName = other.getName();
-      if (myName == null && otherName == null) {
-        // could be equal
-      } else if (myName == null) {
-        return false;
-      } else if (otherName == null) {
-        return false;
-      } else if (!myName.equals(otherName)) {
+      if (!Objects.equals(getName(), other.getName())) {
         return false;
       }
     }
@@ -684,11 +673,7 @@ public class InternalDistributedMember implements DistributedMember, Externaliza
           return false;
         } // else they're the same, so continue
       }
-    } else if (this.uniqueTag == null) {
-      return false;
-    } else if (other.uniqueTag == null) {
-      return false;
-    } else if (!this.uniqueTag.equals(other.uniqueTag)) {
+    } else if (!Objects.equals(this.uniqueTag, other.uniqueTag)) {
       return false;
     }
 
@@ -1291,6 +1276,15 @@ public class InternalDistributedMember implements DistributedMember, Externaliza
     return dsfidVersions;
   }
 
+  @VisibleForTesting
+  void setUniqueTag(String tag) {
+    uniqueTag = tag;
+  }
+
+  @VisibleForTesting
+  void setIsPartial(boolean value) {
+    isPartial = value;
+  }
 
   public static class InternalDistributedMemberWrapper {
     InternalDistributedMember mbr;

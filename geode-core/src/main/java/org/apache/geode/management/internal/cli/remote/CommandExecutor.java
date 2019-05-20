@@ -25,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.util.ReflectionUtils;
 
 import org.apache.geode.SystemFailure;
+import org.apache.geode.annotations.VisibleForTesting;
 import org.apache.geode.distributed.internal.InternalConfigurationPersistenceService;
 import org.apache.geode.internal.logging.LogService;
 import org.apache.geode.internal.util.ArgumentRedactor;
@@ -33,6 +34,7 @@ import org.apache.geode.management.cli.SingleGfshCommand;
 import org.apache.geode.management.cli.UpdateAllConfigurationGroupsMarker;
 import org.apache.geode.management.internal.cli.GfshParseResult;
 import org.apache.geode.management.internal.cli.exceptions.UserErrorException;
+import org.apache.geode.management.internal.cli.result.CommandResult;
 import org.apache.geode.management.internal.cli.result.model.InfoResultModel;
 import org.apache.geode.management.internal.cli.result.model.ResultModel;
 import org.apache.geode.management.internal.cli.result.model.TabularResultModel;
@@ -53,12 +55,20 @@ public class CommandExecutor {
 
   private Logger logger = LogService.getLogger();
 
-  // used by the product
+  /**
+   *
+   * @return always return ResultModel for online command, for offline command, return either
+   *         ResultModel or ExitShellRequest
+   */
   public Object execute(GfshParseResult parseResult) {
     return execute(null, parseResult);
   }
 
-  // used by the GfshParserRule to pass in a mock command
+  /**
+   * @return always return ResultModel for online command, for offline command, return either
+   *         ResultModel or ExitShellRequest
+   */
+  @VisibleForTesting
   public Object execute(Object command, GfshParseResult parseResult) {
     String userInput = parseResult.getUserInput();
     if (userInput != null) {
@@ -67,6 +77,20 @@ public class CommandExecutor {
 
     try {
       Object result = invokeCommand(command, parseResult);
+
+      // if some custom command returns Result instead of ResultModel, we need to turn that
+      // into ResultModel in order to be processed later on.
+      if (result instanceof CommandResult) {
+        result = ((CommandResult) result).getResultData();
+      } else if (result instanceof Result) {
+        Result customResult = (Result) result;
+        result = new ResultModel();
+        InfoResultModel info = ((ResultModel) result).addInfo();
+        while (customResult.hasNextLine()) {
+          info.addLine(customResult.nextLine());
+        }
+        customResult.resetToFirstLine();
+      }
 
       if (result == null) {
         return ResultModel.createError("Command returned null: " + parseResult);

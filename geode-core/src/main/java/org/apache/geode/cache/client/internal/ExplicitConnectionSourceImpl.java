@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package org.apache.geode.cache.client.internal;
 
 import java.net.InetSocketAddress;
@@ -167,11 +168,6 @@ public class ExplicitConnectionSourceImpl implements ConnectionSource {
       ServerQueueStatus status = cnx.getQueueStatus();
       return status.isNonRedundant() ? Boolean.FALSE : Boolean.TRUE;
     }
-
-    @Override
-    public boolean useThreadLocalConnection() {
-      return false;
-    }
   }
 
   private List<ServerLocation> findDurableQueues(Set<ServerLocation> excludedServers,
@@ -269,7 +265,7 @@ public class ExplicitConnectionSourceImpl implements ConnectionSource {
 
   @Override
   public ArrayList<ServerLocation> getAllServers() {
-    return new ArrayList<>(this.serverList);
+    return new ArrayList<>(serverList);
   }
 
   @Override

@@ -12,9 +12,9 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package org.apache.geode.management.internal.rest;
 
+import static org.apache.geode.test.util.ResourceUtils.createTempFileFromResource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -38,13 +38,13 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.Parameterized.UseParametersRunnerFactory;
 
+import org.apache.geode.internal.AvailablePortHelper;
 import org.apache.geode.test.compiler.JarBuilder;
 import org.apache.geode.test.junit.rules.gfsh.GfshExecution;
 import org.apache.geode.test.junit.rules.gfsh.GfshRule;
 import org.apache.geode.test.junit.rules.gfsh.GfshScript;
 import org.apache.geode.test.junit.rules.gfsh.internal.ProcessLogger;
 import org.apache.geode.test.junit.runners.CategoryWithParameterizedRunnerFactory;
-import org.apache.geode.util.test.TestUtil;
 
 @RunWith(Parameterized.class)
 @UseParametersRunnerFactory(CategoryWithParameterizedRunnerFactory.class)
@@ -68,49 +68,57 @@ public class StandaloneClientManagementAPIAcceptanceTest {
 
   @BeforeClass
   public static void beforeClass() {
-    /**
+    /*
      * This file was generated with:
      * keytool -genkey -dname "CN=localhost" -alias self -validity 3650 -keyalg EC \
      * -keystore trusted.keystore -keypass password -storepass password \
      * -ext san=ip:127.0.0.1,dns:localhost -storetype jks
      */
-    trustStorePath = TestUtil.getResourcePath(StandaloneClientManagementAPIAcceptanceTest.class,
-        "/ssl/trusted.keystore");
+    trustStorePath =
+        createTempFileFromResource(StandaloneClientManagementAPIAcceptanceTest.class,
+            "/ssl/trusted.keystore").getAbsolutePath();
     assertThat(trustStorePath).as("java file resource not found").isNotBlank();
   }
 
   @Test
-  @Parameterized.Parameters
   public void clientCreatesRegionUsingClusterManagementService() throws Exception {
     JarBuilder jarBuilder = new JarBuilder();
     String filePath =
-        TestUtil.getResourcePath(this.getClass(), "/ManagementClientTestCreateRegion.java");
+        createTempFileFromResource(this.getClass(), "/ManagementClientCreateRegion.java")
+            .getAbsolutePath();
     assertThat(filePath).as("java file resource not found").isNotBlank();
 
     File outputJar = new File(tempDir.getRoot(), "output.jar");
     jarBuilder.buildJar(outputJar, new File(filePath));
 
+    int[] availablePorts = AvailablePortHelper.getRandomAvailableTCPPorts(2);
+    int locatorPort = availablePorts[0];
+    int httpPort = availablePorts[1];
     GfshExecution startCluster =
-        GfshScript.of("start locator " + getSslParameters(),
-            "start server --locators=localhost[10334]")
+        GfshScript.of(String.format("start locator --port=%d --J=-Dgemfire.http-service-port=%d %s",
+            locatorPort,
+            httpPort,
+            getSslParameters()),
+            String.format("start server --locators=localhost[%d] --server-port=0", locatorPort))
             .withName("startCluster").execute(gfsh);
 
 
     assertThat(startCluster.getProcess().exitValue())
         .as("Cluster did not start correctly").isEqualTo(0);
 
-    Process process = launchClientProcess(outputJar);
+    Process process = launchClientProcess(outputJar, httpPort);
 
     boolean exited = process.waitFor(10, TimeUnit.SECONDS);
     assertThat(exited).as("Process did not exit within 10 seconds").isTrue();
     assertThat(process.exitValue()).as("Process did not exit with 0 return code").isEqualTo(0);
 
-    GfshExecution listRegionsResult = GfshScript.of("connect", "list regions")
+    GfshExecution listRegionsResult = GfshScript
+        .of(String.format("connect --locator=localhost[%d]", locatorPort), "list regions")
         .withName("listRegions").execute(gfsh);
     assertThat(listRegionsResult.getOutputText()).contains("REGION1");
   }
 
-  private Process launchClientProcess(File outputJar) throws IOException {
+  private Process launchClientProcess(File outputJar, int httpPort) throws IOException {
     Path javaBin = Paths.get(System.getProperty("java.home"), "bin", "java");
 
     ProcessBuilder pBuilder = new ProcessBuilder();
@@ -152,6 +160,7 @@ public class StandaloneClientManagementAPIAcceptanceTest {
     command.add("ManagementClientCreateRegion");
     command.add("REGION1");
     command.add(useSsl.toString());
+    command.add("" + httpPort);
 
     pBuilder.command(command);
 
@@ -180,7 +189,8 @@ public class StandaloneClientManagementAPIAcceptanceTest {
         .split(File.pathSeparator))
         .filter(x -> x.contains(module)
             && (x.endsWith("/classes") || x.endsWith("/classes/java/main")
-                || x.endsWith("/resources") || x.endsWith(".jar")))
+                || x.endsWith("/resources") || x.endsWith("/resources/main")
+                || x.endsWith(".jar")))
         .collect(Collectors.joining(File.pathSeparator));
 
     assertThat(classPath).as("no classes found for module: " + module)

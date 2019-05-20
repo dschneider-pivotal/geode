@@ -18,8 +18,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.apache.geode.annotations.Experimental;
 import org.apache.geode.management.configuration.RuntimeCacheElement;
@@ -59,7 +61,8 @@ public class ClusterManagementResult {
   private StatusCode statusCode = StatusCode.OK;
   private String statusMessage;
 
-  private List<RuntimeCacheElement> result = new ArrayList<>();
+  @JsonProperty
+  private List<? extends RuntimeCacheElement> result = new ArrayList<>();
 
   public ClusterManagementResult() {}
 
@@ -109,11 +112,11 @@ public class ClusterManagementResult {
     return statusCode;
   }
 
-  public List<RuntimeCacheElement> getResult() {
-    return result;
+  public <R extends RuntimeCacheElement> List<R> getResult(Class<R> clazz) {
+    return result.stream().map(clazz::cast).collect(Collectors.toList());
   }
 
-  public void setResult(List<RuntimeCacheElement> result) {
+  public void setResult(List<? extends RuntimeCacheElement> result) {
     this.result = result;
   }
 }

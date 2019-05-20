@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package org.apache.geode.cache.client.internal;
 
 import org.apache.geode.cache.NoSubscriptionServersAvailableException;
@@ -117,11 +118,6 @@ public interface ExecutablePool {
   Object executeOnPrimary(Op op);
 
   RegisterInterestTracker getRITracker();
-
-  /**
-   * Release the connection held by the calling thread if we're using thread local connections
-   */
-  void releaseThreadLocalConnection();
 
   /**
    * The calling thread will connect to only one server for executing all ops until it calls

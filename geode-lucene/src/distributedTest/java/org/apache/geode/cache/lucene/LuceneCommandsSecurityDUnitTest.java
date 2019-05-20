@@ -37,8 +37,6 @@ import org.apache.geode.examples.SimpleSecurityManager;
 import org.apache.geode.management.cli.Result;
 import org.apache.geode.management.internal.cli.i18n.CliStrings;
 import org.apache.geode.management.internal.cli.result.CommandResult;
-import org.apache.geode.management.internal.cli.result.ErrorResultData;
-import org.apache.geode.management.internal.cli.result.ResultBuilder;
 import org.apache.geode.management.internal.cli.util.CommandStringBuilder;
 import org.apache.geode.test.dunit.rules.ClusterStartupRule;
 import org.apache.geode.test.dunit.rules.MemberVM;
@@ -206,11 +204,9 @@ public class LuceneCommandsSecurityDUnitTest {
     this.gfshShell.disconnect();
   }
 
-  private void verifyResult(UserNameAndExpectedResponse user, CommandResult result) {
+  private void verifyResult(UserNameAndExpectedResponse user, Result result) {
     if (user.getExpectAuthorizationError()) {
-      assertTrue(result.getResultData() instanceof ErrorResultData);
-      assertEquals(ResultBuilder.ERRORCODE_UNAUTHORIZED,
-          ((ErrorResultData) result.getResultData()).getErrorCode());
+      assertEquals(Result.Status.ERROR, result.getStatus());
     } else {
       assertEquals(Result.Status.OK, result.getStatus());
     }

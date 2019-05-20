@@ -19,8 +19,6 @@ import static org.apache.geode.management.internal.cli.i18n.CliStrings.LIST_MEMB
 import static org.apache.geode.test.junit.rules.GfshCommandRule.PortType.jmxManager;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.junit.BeforeClass;
@@ -28,8 +26,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.apache.geode.management.cli.Result;
-import org.apache.geode.management.internal.cli.result.CommandResult;
 import org.apache.geode.test.dunit.rules.ClusterStartupRule;
 import org.apache.geode.test.dunit.rules.MemberVM;
 import org.apache.geode.test.junit.rules.GfshCommandRule;
@@ -62,15 +58,9 @@ public class ListMembersCommandDUnitTest {
 
   @Test
   public void listAllMembers() throws Exception {
-    CommandResult result = gfsh.executeCommand(LIST_MEMBER);
-
-    assertThat(result.getStatus()).isEqualTo(Result.Status.OK);
-
-    Map<String, List<String>> table =
-        result.getMapFromTableContent(ListMembersCommand.MEMBERS_SECTION);
-
-    assertThat(table.get("Name").size()).isEqualTo(4);
-    assertThat(table.get("Name")).contains("locator-0", "server-1", "server-2", "server-3");
+    gfsh.executeAndAssertThat(LIST_MEMBER).statusIsSuccess()
+        .hasTableSection(ListMembersCommand.MEMBERS_SECTION).hasColumn("Name")
+        .containsExactlyInAnyOrder("locator-0", "server-1", "server-2", "server-3");
   }
 
   @Test
@@ -105,16 +95,9 @@ public class ListMembersCommandDUnitTest {
 
   @Test
   public void listMembersInNonExistentGroup() throws Exception {
-    CommandResult result = gfsh.executeCommand(LIST_MEMBER + " --group=foo");
-
-    assertThat(result.getStatus()).isEqualTo(Result.Status.OK);
-
-    String output = result.getMessageFromContent();
-
-    assertThat(output).doesNotContain("locator-0");
-    assertThat(output).doesNotContain("server-1");
-    assertThat(output).doesNotContain("server-2");
-    assertThat(output).doesNotContain("server-3");
-    assertThat(output).contains("No Members Found");
+    gfsh.executeAndAssertThat(LIST_MEMBER + " --group=foo")
+        .statusIsSuccess()
+        .containsOutput("No Members Found")
+        .doesNotContainOutput("locator-0", "server-1", "server-2", "server-3");
   }
 }

@@ -15,9 +15,6 @@
 
 package org.apache.geode.management.internal.cli.commands;
 
-import static org.apache.geode.management.cli.Result.Status.ERROR;
-import static org.apache.geode.management.cli.Result.Status.OK;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -30,7 +27,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.junit.Before;
@@ -43,14 +39,12 @@ import org.apache.geode.cache.query.IndexType;
 import org.apache.geode.distributed.DistributedMember;
 import org.apache.geode.distributed.internal.InternalConfigurationPersistenceService;
 import org.apache.geode.management.internal.cli.functions.CliFunctionResult;
-import org.apache.geode.management.internal.cli.result.CommandResult;
 import org.apache.geode.test.junit.rules.GfshParserRule;
 
 public class CreateDefinedIndexesCommandTest {
   @Rule
   public GfshParserRule gfshParser = new GfshParserRule();
 
-  private CommandResult result;
   private ResultCollector resultCollector;
   private CreateDefinedIndexesCommand command;
 
@@ -64,18 +58,18 @@ public class CreateDefinedIndexesCommandTest {
 
   @Test
   public void noDefinitions() throws Exception {
-    result = gfshParser.executeCommandWithInstance(command, "create defined indexes");
-    assertThat(result.getStatus()).isEqualTo(OK);
-    assertThat(result.getMessageFromContent()).contains("No indexes defined");
+    gfshParser.executeAndAssertThat(command, "create defined indexes")
+        .statusIsSuccess()
+        .containsOutput("No indexes defined");
   }
 
   @Test
   public void noMembers() throws Exception {
     IndexDefinition.addIndex("indexName", "indexedExpression", "TestRegion", IndexType.FUNCTIONAL);
     doReturn(Collections.EMPTY_SET).when(command).findMembers(any(), any());
-    result = gfshParser.executeCommandWithInstance(command, "create defined indexes");
-    assertThat(result.getStatus()).isEqualTo(ERROR);
-    assertThat(result.getMessageFromContent()).contains("No Members Found");
+    gfshParser.executeAndAssertThat(command, "create defined indexes")
+        .statusIsError()
+        .containsOutput("No Members Found");
   }
 
   @Test
@@ -91,9 +85,7 @@ public class CreateDefinedIndexesCommandTest {
         "Exception Message."))).when(resultCollector).getResult();
 
     IndexDefinition.addIndex("index1", "value1", "TestRegion", IndexType.FUNCTIONAL);
-    result = gfshParser.executeCommandWithInstance(command, "create defined indexes");
-
-    assertThat(result.getStatus()).isEqualTo(ERROR);
+    gfshParser.executeAndAssertThat(command, "create defined indexes").statusIsError();
   }
 
   @Test
@@ -111,9 +103,8 @@ public class CreateDefinedIndexesCommandTest {
         .getResult();
 
     IndexDefinition.addIndex("index1", "value1", "TestRegion", IndexType.FUNCTIONAL);
-    result = gfshParser.executeCommandWithInstance(command, "create defined indexes");
+    gfshParser.executeAndAssertThat(command, "create defined indexes").statusIsSuccess();
 
-    assertThat(result.getStatus()).isEqualTo(OK);
     verify(command, Mockito.times(0)).updateConfigForGroup(any(), any(), any());
   }
 
@@ -139,12 +130,9 @@ public class CreateDefinedIndexesCommandTest {
     IndexDefinition.addIndex("index1", "value1", "TestRegion1", IndexType.FUNCTIONAL);
     IndexDefinition.addIndex("index2", "value2", "TestRegion2", IndexType.FUNCTIONAL);
 
-    result = gfshParser.executeCommandWithInstance(command, "create defined indexes");
-
-    assertThat(result.getStatus()).isEqualTo(OK);
-
-    Map<String, List<String>> table =
-        result.getMapFromTableContent(CreateDefinedIndexesCommand.CREATE_DEFINED_INDEXES_SECTION);
-    assertThat(table.get("Status")).contains("OK", "OK", "OK", "OK");
+    gfshParser.executeAndAssertThat(command, "create defined indexes").statusIsSuccess()
+        .hasTableSection()
+        .hasColumn("Status")
+        .containsExactly("OK", "OK");
   }
 }

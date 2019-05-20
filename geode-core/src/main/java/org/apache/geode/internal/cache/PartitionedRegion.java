@@ -1619,7 +1619,16 @@ public class PartitionedRegion extends LocalRegion
     }
   }
 
-  public void updatePRConfig(PartitionRegionConfig prConfig, boolean putOnlyIfUpdated) {
+  /**
+   *
+   * Set the global PartitionedRegionConfig metadata for this region.
+   *
+   * This method should *only* be called while holding the partitioned region lock. For code
+   * that is mutating the config, use
+   * {@link #updatePartitionRegionConfig(PartitionRegionConfigModifier)}
+   * instead.
+   */
+  void updatePRConfig(PartitionRegionConfig prConfig, boolean putOnlyIfUpdated) {
     final PartitionedRegion colocatedRegion = ColocationHelper.getColocatedRegion(this);
     RegionLock colocatedLock = null;
     boolean colocatedLockAcquired = false;
@@ -3210,22 +3219,15 @@ public class PartitionedRegion extends LocalRegion
     checkReadiness();
     checkForNoAccess();
     discoverJTA();
-    CachePerfStats stats = getCachePerfStats();
-    long start = stats.startGet();
     boolean miss = true;
-    try {
-      // if scope is local and there is no loader, then
-      // don't go further to try and get value
-      Object value = getDataView().findObject(getKeyInfo(key, aCallbackArgument), this,
-          true/* isCreate */, generateCallbacks, null /* no local value */, disableCopyOnRead,
-          preferCD, requestingClient, clientEvent, returnTombstones);
-      if (value != null && !Token.isInvalid(value)) {
-        miss = false;
-      }
-      return value;
-    } finally {
-      stats.endGet(start, miss);
+
+    Object value = getDataView().findObject(getKeyInfo(key, aCallbackArgument), this,
+        true/* isCreate */, generateCallbacks, null /* no local value */, disableCopyOnRead,
+        preferCD, requestingClient, clientEvent, returnTombstones);
+    if (value != null && !Token.isInvalid(value)) {
+      miss = false;
     }
+    return value;
   }
 
   public InternalDistributedMember getOrCreateNodeForBucketRead(int bucketId) {
@@ -9204,17 +9206,8 @@ public class PartitionedRegion extends LocalRegion
     PartitionRegionHelper.assignBucketsToPartitions(this);
     dataStore.lockBucketCreationAndVisit(
         (bucketId, r) -> r.getAttributesMutator().setEntryTimeToLive(timeToLive));
-    updatePRConfig(getPRConfigWithLatestExpirationAttributes(), false);
+    updatePartitionRegionConfig(config -> config.setEntryTimeToLive(timeToLive));
     return attr;
-  }
-
-  private PartitionRegionConfig getPRConfigWithLatestExpirationAttributes() {
-    PartitionRegionConfig prConfig = getPRRoot().get(getRegionIdentifier());
-
-    return new PartitionRegionConfig(prConfig.getPRId(), prConfig.getFullPath(),
-        prConfig.getPartitionAttrs(), prConfig.getScope(), prConfig.getEvictionAttributes(),
-        this.getRegionIdleTimeout(), this.getRegionTimeToLive(), this.getEntryIdleTimeout(),
-        this.getEntryTimeToLive(), prConfig.getGatewaySenderIds());
   }
 
   /**
@@ -9255,7 +9248,8 @@ public class PartitionedRegion extends LocalRegion
     // Set to Bucket regions as well
     dataStore.lockBucketCreationAndVisit(
         (bucketId, r) -> r.getAttributesMutator().setEntryIdleTimeout(idleTimeout));
-    updatePRConfig(getPRConfigWithLatestExpirationAttributes(), false);
+
+    updatePartitionRegionConfig(config -> config.setEntryIdleTimeout(idleTimeout));
     return attr;
   }
 

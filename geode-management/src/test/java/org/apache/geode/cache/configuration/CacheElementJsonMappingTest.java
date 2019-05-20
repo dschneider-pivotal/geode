@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.apache.geode.management.api.ClusterManagementResult;
 import org.apache.geode.management.configuration.MemberConfig;
 import org.apache.geode.management.configuration.RuntimeCacheElement;
+import org.apache.geode.management.configuration.RuntimeIndex;
 import org.apache.geode.management.configuration.RuntimeRegionConfig;
 import org.apache.geode.util.internal.GeodeJsonMapper;
 
@@ -40,7 +41,7 @@ public class CacheElementJsonMappingTest {
   public static void beforeClass() throws Exception {
     member = new MemberConfig();
     member.setId("server");
-    member.setPid("123");
+    member.setPid(123);
 
     region = new RuntimeRegionConfig();
     region.setName("test");
@@ -90,9 +91,11 @@ public class CacheElementJsonMappingTest {
     System.out.println(json);
 
     ClusterManagementResult result1 = mapper.readValue(json, ClusterManagementResult.class);
-    assertThat(result1.getResult()).hasSize(2);
-    assertThat(result1.getResult().get(0)).isInstanceOf(RegionConfig.class);
-    assertThat(result1.getResult().get(1)).isInstanceOf(MemberConfig.class);
+    assertThat(result1.getResult(RuntimeCacheElement.class)).hasSize(2);
+    assertThat(result1.getResult(RuntimeCacheElement.class).get(0))
+        .isInstanceOf(RegionConfig.class);
+    assertThat(result1.getResult(RuntimeCacheElement.class).get(1))
+        .isInstanceOf(MemberConfig.class);
   }
 
   @Test
@@ -145,6 +148,28 @@ public class CacheElementJsonMappingTest {
     String json = mapper.writeValueAsString(config);
     System.out.println(json);
     assertThat(json).contains("\"groups\":[\"group1\",\"group2\"]").doesNotContain("\"group\"");
+  }
+
+  @Test
+  public void serializeRuntimeRegionConfigWithIndex() throws Exception {
+    RegionConfig config = new RegionConfig();
+    config.setName("region1");
+    config.setType(RegionType.REPLICATE);
+    config.setGroup("group1");
+    RegionConfig.Index index = new RegionConfig.Index();
+    index.setName("index1");
+    index.setFromClause("/region1 r");
+    index.setExpression("id");
+    config.getIndexes().add(index);
+    RuntimeRegionConfig runtimeConfig = new RuntimeRegionConfig(config);
+    String json = mapper.writeValueAsString(runtimeConfig);
+    System.out.println(json);
+
+    runtimeConfig = mapper.readValue(json, RuntimeRegionConfig.class);
+    assertThat(runtimeConfig.getGroups()).containsExactly("group1");
+    List<RuntimeIndex> runtimeIndexes = runtimeConfig.getRuntimeIndexes(null);
+    assertThat(runtimeIndexes).hasSize(1);
+    assertThat(runtimeIndexes.get(0).getRegionName()).isEqualTo("region1");
   }
 
   @Test

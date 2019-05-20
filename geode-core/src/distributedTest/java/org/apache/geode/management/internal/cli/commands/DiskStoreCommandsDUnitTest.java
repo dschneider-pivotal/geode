@@ -44,18 +44,17 @@ import org.apache.geode.cache.DiskStore;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.configuration.CacheConfig;
 import org.apache.geode.cache.configuration.DiskDirType;
-import org.apache.geode.cache.configuration.DiskDirsType;
 import org.apache.geode.cache.configuration.DiskStoreType;
 import org.apache.geode.distributed.Locator;
 import org.apache.geode.distributed.internal.InternalConfigurationPersistenceService;
 import org.apache.geode.distributed.internal.InternalLocator;
 import org.apache.geode.internal.cache.InternalCache;
 import org.apache.geode.internal.cache.SnapshotTestUtil;
-import org.apache.geode.management.cli.Result;
-import org.apache.geode.management.internal.cli.result.CommandResult;
+import org.apache.geode.management.internal.cli.result.model.TabularResultModel;
 import org.apache.geode.test.dunit.SerializableRunnableIF;
 import org.apache.geode.test.dunit.rules.ClusterStartupRule;
 import org.apache.geode.test.dunit.rules.MemberVM;
+import org.apache.geode.test.junit.assertions.CommandResultAssert;
 import org.apache.geode.test.junit.categories.PersistenceTest;
 import org.apache.geode.test.junit.rules.GfshCommandRule;
 import org.apache.geode.test.junit.rules.ServerStarterRule;
@@ -77,9 +76,17 @@ public class DiskStoreCommandsDUnitTest implements Serializable {
   public transient TemporaryFolder tempDir = new TemporaryFolder();
 
   private void createDiskStoreAndRegion(MemberVM jmxManager, int serverCount) {
+    createDiskStore(jmxManager, serverCount);
+
+    gfsh.executeAndAssertThat(String.format(
+        "create region --name=%s --type=REPLICATE_PERSISTENT --disk-store=%s --group=%s --eviction-action=overflow-to-disk",
+        REGION_1, DISKSTORE, GROUP)).statusIsSuccess();
+  }
+
+  private void createDiskStore(MemberVM jmxManager, int serverCount) {
     gfsh.executeAndAssertThat(String.format(
         "create disk-store --name=%s --dir=%s --group=%s --auto-compact=false --compaction-threshold=99 --max-oplog-size=1 --allow-force-compaction=true",
-        DISKSTORE, DISKSTORE, GROUP));
+        DISKSTORE, DISKSTORE, GROUP)).statusIsSuccess();
 
     List<String> diskStores =
         IntStream.rangeClosed(1, serverCount).mapToObj(x -> DISKSTORE).collect(Collectors.toList());
@@ -87,10 +94,6 @@ public class DiskStoreCommandsDUnitTest implements Serializable {
         .tableHasColumnWithValuesContaining("Disk Store Name", diskStores.toArray(new String[0]));
 
     jmxManager.waitUntilDiskStoreIsReadyOnExactlyThisManyServers(DISKSTORE, serverCount);
-
-    gfsh.executeAndAssertThat(String.format(
-        "create region --name=%s --type=REPLICATE_PERSISTENT --disk-store=%s --group=%s --eviction-action=overflow-to-disk",
-        REGION_1, DISKSTORE, GROUP)).statusIsSuccess();
   }
 
   private static SerializableRunnableIF dataProducer() {
@@ -100,6 +103,25 @@ public class DiskStoreCommandsDUnitTest implements Serializable {
       Region<String, String> r = cache.getRegion(REGION_1);
       r.put("A", "B");
     };
+  }
+
+  @Test
+  public void createDuplicateDiskStoreFails() throws Exception {
+    Properties props = new Properties();
+    props.setProperty("groups", GROUP);
+
+    MemberVM locator = rule.startLocatorVM(0);
+    MemberVM server1 = rule.startServerVM(1, props, locator.getPort());
+
+    gfsh.connectAndVerify(locator);
+
+    createDiskStore(locator, 1);
+
+    gfsh.executeAndAssertThat(String.format(
+        "create disk-store --name=%s --dir=%s --group=%s --auto-compact=false --compaction-threshold=99 --max-oplog-size=1 --allow-force-compaction=true",
+        DISKSTORE, DISKSTORE, GROUP))
+        .statusIsError()
+        .containsOutput("Error: Disk store DISKSTORE already exists");
   }
 
   @Test
@@ -142,10 +164,12 @@ public class DiskStoreCommandsDUnitTest implements Serializable {
 
     locator.waitUntilDiskStoreIsReadyOnExactlyThisManyServers(DISKSTORE, 1);
 
-    gfsh.executeAndAssertThat("show missing-disk-stores").statusIsSuccess()
-        .containsOutput("Missing Disk Stores", "No missing colocated region found");
+    TabularResultModel table =
+        gfsh.executeAndAssertThat("show missing-disk-stores").statusIsSuccess()
+            .containsOutput("Missing Disk Stores", "No missing colocated region found")
+            .hasTableSection().getActual();
 
-    List<String> diskstoreIDs = gfsh.getCommandResult().getTableColumnValues("Disk Store ID");
+    List<String> diskstoreIDs = table.getValuesInColumn("Disk Store ID");
     assertThat(diskstoreIDs.size()).isEqualTo(1);
 
     gfsh.executeAndAssertThat("revoke missing-disk-store --id=" + diskstoreIDs.get(0))
@@ -328,15 +352,12 @@ public class DiskStoreCommandsDUnitTest implements Serializable {
       }
     });
 
-    gfsh.executeAndAssertThat(
+    CommandResultAssert resultAssert = gfsh.executeAndAssertThat(
         String.format("compact disk-store --name=%s --group=%s", DISKSTORE, GROUP))
         .statusIsSuccess();
 
-    CommandResult cmdResult = gfsh.getCommandResult();
-    assertThat(cmdResult.getMapFromSection("server-1").keySet()).contains("UUID", "Host",
-        "Directory");
-    assertThat(cmdResult.getMapFromSection("server-2").keySet()).contains("UUID", "Host",
-        "Directory");
+    resultAssert.hasDataSection("server-1").hasContent().containsKeys("UUID", "Host", "Directory");
+    resultAssert.hasDataSection("server-2").hasContent().containsKeys("UUID", "Host", "Directory");
   }
 
   @Test
@@ -349,24 +370,21 @@ public class DiskStoreCommandsDUnitTest implements Serializable {
 
     server1.invoke(dataProducer());
 
-    CommandResult result = gfsh.executeCommand(
-        String.format("describe disk-store --member=%s --name=%s", server1.getName(), DISKSTORE));
-    assertThat(result.getStatus()).isEqualTo(Result.Status.OK);
+    CommandResultAssert resultAssert = gfsh.executeAndAssertThat(
+        String.format("describe disk-store --member=%s --name=%s", server1.getName(), DISKSTORE))
+        .statusIsSuccess();
+    resultAssert.hasDataSection(DescribeDiskStoreCommand.DISK_STORE_SECTION)
+        .hasContent()
+        .containsKeys("Disk Store Name", "Member ID", "Member Name",
+            "Allow Force Compaction", "Auto Compaction", "Compaction Threshold", "Max Oplog Size",
+            "Queue Size", "Time Interval", "Write Buffer Size", "Disk Usage Warning Percentage",
+            "Disk Usage Critical Percentage", "PDX Serialization Meta-Data Stored");
 
-    Map<String, String> data =
-        result.getMapFromSection(DescribeDiskStoreCommand.DISK_STORE_SECTION);
-    assertThat(data.keySet()).contains("Disk Store Name", "Member ID", "Member Name",
-        "Allow Force Compaction", "Auto Compaction", "Compaction Threshold", "Max Oplog Size",
-        "Queue Size", "Time Interval", "Write Buffer Size", "Disk Usage Warning Percentage",
-        "Disk Usage Critical Percentage", "PDX Serialization Meta-Data Stored");
+    resultAssert.hasTableSection(DescribeDiskStoreCommand.DISK_DIR_SECTION)
+        .hasColumn("Disk Directory").hasSize(1);
 
-    Map<String, List<String>> directories =
-        result.getMapFromTableContent(DescribeDiskStoreCommand.DISK_DIR_SECTION);
-    assertThat(directories.get("Disk Directory").size()).isEqualTo(1);
-
-    Map<String, List<String>> regions =
-        result.getMapFromTableContent(DescribeDiskStoreCommand.REGION_SECTION);
-    assertThat(regions.get("Region Path").size()).isEqualTo(1);
+    resultAssert.hasTableSection(DescribeDiskStoreCommand.REGION_SECTION)
+        .hasColumn("Region Path").hasSize(1);
   }
 
   @Test
@@ -383,12 +401,10 @@ public class DiskStoreCommandsDUnitTest implements Serializable {
       r.put("A", "B");
     });
 
-    CommandResult result = gfsh.executeCommand(
-        String.format("describe disk-store --member=%s --name=%s", server1.getName(), "UNKNOWN"));
-
-    assertThat(result.getStatus()).isEqualTo(Result.Status.ERROR);
-    assertThat(result.getErrorMessage())
-        .isEqualTo("A disk store with name 'UNKNOWN' was not found on member 'server-0'.");
+    gfsh.executeAndAssertThat(
+        String.format("describe disk-store --member=%s --name=%s", server1.getName(), "UNKNOWN"))
+        .statusIsError()
+        .containsOutput("A disk store with name 'UNKNOWN' was not found on member 'server-0'.");
   }
 
   @Test
@@ -528,8 +544,7 @@ public class DiskStoreCommandsDUnitTest implements Serializable {
     List<DiskStoreType> diskStores = config.getDiskStores();
     assertThat(diskStores.size()).isEqualTo(1);
     DiskStoreType diskStore = diskStores.get(0);
-    DiskDirsType diskDirsType = diskStore.getDiskDirs();
-    List<DiskDirType> diskDirs = diskDirsType.getDiskDirs();
+    List<DiskDirType> diskDirs = diskStore.getDiskDirs();
     assertThat(diskDirs.size()).isEqualTo(1);
     DiskDirType diskDir = diskDirs.get(0);
     assertThat(diskDir.getContent()).isEqualTo(absoluteDirectoryName);

@@ -44,13 +44,10 @@ import org.apache.geode.connectors.jdbc.JdbcLoader;
 import org.apache.geode.connectors.jdbc.JdbcWriter;
 import org.apache.geode.connectors.jdbc.internal.configuration.FieldMapping;
 import org.apache.geode.connectors.jdbc.internal.configuration.RegionMapping;
-import org.apache.geode.connectors.util.internal.MappingCommandUtils;
-import org.apache.geode.connectors.util.internal.MappingConstants;
 import org.apache.geode.distributed.ConfigurationPersistenceService;
 import org.apache.geode.distributed.DistributedMember;
 import org.apache.geode.management.cli.CliMetaData;
 import org.apache.geode.management.cli.ConverterHint;
-import org.apache.geode.management.cli.Result;
 import org.apache.geode.management.cli.SingleGfshCommand;
 import org.apache.geode.management.internal.ManagementAgent;
 import org.apache.geode.management.internal.SystemManagementService;
@@ -59,9 +56,7 @@ import org.apache.geode.management.internal.cli.GfshParseResult;
 import org.apache.geode.management.internal.cli.functions.CliFunctionResult;
 import org.apache.geode.management.internal.cli.i18n.CliStrings;
 import org.apache.geode.management.internal.cli.remote.CommandExecutionContext;
-import org.apache.geode.management.internal.cli.result.FileResult;
-import org.apache.geode.management.internal.cli.result.ModelCommandResult;
-import org.apache.geode.management.internal.cli.result.ResultBuilder;
+import org.apache.geode.management.internal.cli.result.model.FileResultModel;
 import org.apache.geode.management.internal.cli.result.model.ResultModel;
 import org.apache.geode.management.internal.security.ResourceOperation;
 import org.apache.geode.security.ResourcePermission;
@@ -433,29 +428,28 @@ public class CreateMappingCommand extends SingleGfshCommand {
   public static class Interceptor extends AbstractCliAroundInterceptor {
 
     @Override
-    public Result preExecution(GfshParseResult parseResult) {
+    public ResultModel preExecution(GfshParseResult parseResult) {
       String pdxClassFileName = (String) parseResult.getParamValue(CREATE_MAPPING__PDX_CLASS_FILE);
 
       if (StringUtils.isBlank(pdxClassFileName)) {
-        return new ModelCommandResult(ResultModel.createInfo(""));
+        return ResultModel.createInfo("");
       }
 
-      FileResult fileResult = new FileResult();
+      ResultModel result = new ResultModel();
       File pdxClassFile = new File(pdxClassFileName);
       if (!pdxClassFile.exists()) {
-        return ResultBuilder.createUserErrorResult(pdxClassFile + " not found.");
+        return ResultModel.createError(pdxClassFile + " not found.");
       }
       if (!pdxClassFile.isFile()) {
-        return ResultBuilder.createUserErrorResult(pdxClassFile + " is not a file.");
+        return ResultModel.createError(pdxClassFile + " is not a file.");
       }
       String fileExtension = FilenameUtils.getExtension(pdxClassFileName);
       if (!fileExtension.equalsIgnoreCase("jar") && !fileExtension.equalsIgnoreCase("class")) {
-        return ResultBuilder
-            .createUserErrorResult(pdxClassFile + " must end with \".jar\" or \".class\".");
+        return ResultModel.createError(pdxClassFile + " must end with \".jar\" or \".class\".");
       }
-      fileResult.addFile(pdxClassFile);
+      result.addFile(pdxClassFile, FileResultModel.FILE_TYPE_FILE);
 
-      return fileResult;
+      return result;
     }
   }
 

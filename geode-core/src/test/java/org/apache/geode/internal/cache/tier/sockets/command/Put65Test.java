@@ -145,7 +145,7 @@ public class Put65Test {
     when(this.putOperationContext.getValue()).thenReturn(VALUE);
     when(this.putOperationContext.isObject()).thenReturn(true);
 
-    when(this.regionNamePart.getString()).thenReturn(REGION_NAME);
+    when(this.regionNamePart.getCachedString()).thenReturn(REGION_NAME);
 
     when(this.serverConnection.getCache()).thenReturn(this.cache);
     when(this.serverConnection.getCacheServerStats()).thenReturn(mock(CacheServerStats.class));
@@ -166,6 +166,32 @@ public class Put65Test {
     this.put65.cmdExecute(this.message, this.serverConnection, this.securityService, 0);
 
     verify(this.replyMessage).send(this.serverConnection);
+  }
+
+  @Test
+  public void noRegionNameShouldFail() throws Exception {
+    when(this.securityService.isClientSecurityRequired()).thenReturn(false);
+    when(this.regionNamePart.getCachedString()).thenReturn(null);
+
+    this.put65.cmdExecute(this.message, this.serverConnection, this.securityService, 0);
+
+    ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+    verify(this.errorResponseMessage).addStringPart(argument.capture());
+    assertThat(argument.getValue()).contains("The input region name for the put request is null");
+    verify(this.errorResponseMessage).send(this.serverConnection);
+  }
+
+  @Test
+  public void noKeyShouldFail() throws Exception {
+    when(this.securityService.isClientSecurityRequired()).thenReturn(false);
+    when(this.keyPart.getStringOrObject()).thenReturn(null);
+
+    this.put65.cmdExecute(this.message, this.serverConnection, this.securityService, 0);
+
+    ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+    verify(this.errorResponseMessage).addStringPart(argument.capture());
+    assertThat(argument.getValue()).contains("The input key for the put request is null");
+    verify(this.errorResponseMessage).send(this.serverConnection);
   }
 
   @Test

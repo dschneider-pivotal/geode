@@ -17,6 +17,7 @@ package org.apache.geode.management.internal.configuration.mutators;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -60,57 +61,80 @@ public class MemberConfigManager implements ConfigurationManager<MemberConfig> {
 
   @Override
   public List<MemberConfig> list(MemberConfig filter, CacheConfig existing) {
-    String coordinatorId = null;
-    List<MemberConfig> results = new ArrayList<>();
 
-    Set<DistributedMember> members = cache.getDistributionManager().getDistributionManagerIds()
-        .stream().filter(m -> (filter.getId() == null || filter.getId().equals(m.getName())))
-        .map(DistributedMember.class::cast).collect(Collectors.toSet());
+    Set<DistributedMember> distributedMembers =
+        cache.getDistributionManager().getDistributionManagerIds()
+            .stream().filter(internalDistributedMember -> (filter.getId() == null
+                || filter.getId().equals(internalDistributedMember.getName())))
+            .map(DistributedMember.class::cast).collect(Collectors.toSet());
 
-    if (members.size() == 0) {
-      return results;
+    if (distributedMembers.size() == 0) {
+      return Collections.emptyList();
     }
 
-    for (DistributedMember member : members) {
-      if (member == getCoordinator()) {
-        coordinatorId = member.getId();
-      }
-    }
+    ArrayList<MemberInformation> memberInformation = getMemberInformation(distributedMembers);
 
-    Execution execution = FunctionService.onMembers(members);
-    ResultCollector<?, ?> rc = execution.execute(new GetMemberInformationFunction());
-
-    ArrayList<MemberInformation> output = (ArrayList<MemberInformation>) rc.getResult();
-
-
-    for (MemberInformation mInfo : output) {
-      MemberConfig member = new MemberConfig();
-      member.setId(mInfo.getName());
-      member.setHost(mInfo.getHost());
-      member.setPid(mInfo.getProcessId());
-
-      if (mInfo.isServer() && mInfo.getCacheServeInfo() != null) {
-        member.setPorts(mInfo.getCacheServeInfo().stream().map(CacheServerInfo::getPort)
-            .collect(Collectors.toList()));
-        member.setLocator(false);
-      } else {
-        member.setPorts(Arrays.asList(mInfo.getLocatorPort()));
-        member.setLocator(true);
-      }
-
-      member.setCoordinator(mInfo.getId().equals(coordinatorId));
-      results.add(member);
-    }
-
-    return results;
+    return generateMemberConfigs(memberInformation);
   }
 
-  private DistributedMember getCoordinator() {
-    MembershipManager mmgr = cache.getDistributionManager().getMembershipManager();
-    if (mmgr == null) {
+  private ArrayList<MemberInformation> getMemberInformation(
+      Set<DistributedMember> distributedMembers) {
+    Execution execution = FunctionService.onMembers(distributedMembers);
+    ResultCollector<?, ?> resultCollector = execution.execute(new GetMemberInformationFunction());
+    return (ArrayList<MemberInformation>) resultCollector.getResult();
+  }
+
+  private List<MemberConfig> generateMemberConfigs(ArrayList<MemberInformation> memberInformation) {
+
+    final String coordinatorId = getCoordinatorId();
+    List<MemberConfig> memberConfigs = new ArrayList<>();
+    for (MemberInformation memberInfo : memberInformation) {
+      MemberConfig member = generateMemberConfig(coordinatorId, memberInfo);
+      memberConfigs.add(member);
+    }
+
+    return memberConfigs;
+  }
+
+  private MemberConfig generateMemberConfig(String coordinatorId, MemberInformation memberInfo) {
+    MemberConfig member = new MemberConfig();
+    member.setId(memberInfo.getName());
+    member.setHost(memberInfo.getHost());
+    member.setPid(memberInfo.getProcessId());
+    member.setStatus(memberInfo.getStatus());
+    member.setInitialHeap(memberInfo.getInitHeapSize());
+    member.setMaxHeap(memberInfo.getMaxHeapSize());
+    member.setGroups(Arrays.asList(memberInfo.getGroups().split(",")));
+    member.setCoordinator(memberInfo.getId().equals(coordinatorId));
+
+    if (memberInfo.isServer() && memberInfo.getCacheServeInfo() != null) {
+      for (CacheServerInfo info : memberInfo.getCacheServeInfo()) {
+        MemberConfig.CacheServerConfig csConfig = new MemberConfig.CacheServerConfig();
+        csConfig.setPort(info.getPort());
+        csConfig.setMaxConnections(info.getMaxConnections());
+        csConfig.setMaxThreads(info.getMaxThreads());
+        member.addCacheServer(csConfig);
+      }
+      member.setLocator(false);
+    } else {
+      member.setPort(memberInfo.getLocatorPort());
+      member.setLocator(true);
+    }
+    return member;
+  }
+
+  private String getCoordinatorId() {
+    final MembershipManager membershipManager =
+        cache.getDistributionManager().getMembershipManager();
+    if (membershipManager == null) {
       return null;
     }
 
-    return mmgr.getCoordinator();
+    final DistributedMember coordinator = membershipManager.getCoordinator();
+    if (coordinator == null) {
+      return null;
+    }
+
+    return coordinator.getId();
   }
 }

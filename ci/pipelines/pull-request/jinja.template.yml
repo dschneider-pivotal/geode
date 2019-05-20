@@ -17,13 +17,14 @@
 
 {% from 'shared_jinja.yml' import alpine_tools_config with context %}
 {% from 'shared_jinja.yml' import pipeline_prefix with context %}
+{% from 'shared_jinja.yml' import init_retry with context %}
 
 groups:
 - name: main
   jobs:
   - {{ build_test.name }}
 {%- for test in tests if not test.name.startswith("Windows") %}
-  {%- for java_test_version in (java_test_versions) %}
+  {%- for java_test_version in (java_test_versions) if not java_test_version.name.endswith("JDK8") %}
   - {{test.name}}Test{{java_test_version.name}}
   {%- endfor %}
 {%- endfor %}
@@ -87,6 +88,7 @@ jobs:
           get_params: {skip_download: true}
       - do:
         - put: concourse-metadata-resource
+        {{ init_retry()|indent(8) }}
         - task: create_instance
           {{- alpine_tools_config()|indent(10) }}
             params:
@@ -103,10 +105,14 @@ jobs:
             - name: concourse-metadata-resource
             - name: geode
             - name: geode-ci
+            - name: attempts-log
+              path: old
             outputs:
             - name: instance-data
+            - name: attempts-log
+              path: new
           timeout: 15m
-          attempts: 100
+          attempts: 10
     - task: rsync_code_up
       {{- alpine_tools_config()|indent(6) }}
         run:
@@ -202,7 +208,7 @@ jobs:
 
 
 {% for test in tests if not test.name.startswith("Windows")%}
-  {%- for java_test_version in (java_test_versions) %}
+  {%- for java_test_version in (java_test_versions) if not java_test_version.name.endswith("JDK8") %}
 - name: {{test.name}}Test{{java_test_version.name}}
   public: true
   plan:
@@ -223,6 +229,7 @@ jobs:
           get_params: {skip_download: true}
       - do:
         - put: concourse-metadata-resource
+        {{ init_retry()|indent(8) }}
         - task: create_instance-{{java_test_version.name}}
           {{- alpine_tools_config()|indent(10) }}
             params:
@@ -239,10 +246,14 @@ jobs:
             - name: concourse-metadata-resource
             - name: geode
             - name: geode-ci
+            - name: attempts-log
+              path: old
             outputs:
             - name: instance-data
+            - name: attempts-log
+              path: new
           timeout: 15m
-          attempts: 100
+          attempts: 10
     - task: rsync_code_up-{{java_test_version.name}}
       {{- alpine_tools_config()|indent(6) }}
         run:

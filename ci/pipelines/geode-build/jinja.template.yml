@@ -18,6 +18,7 @@
 {% from 'shared_jinja.yml' import alpine_tools_config with context %}
 {% from 'shared_jinja.yml' import pipeline_prefix with context %}
 {% from 'shared_jinja.yml' import github_access with context %}
+{% from 'shared_jinja.yml' import init_retry with context %}
 
 ---
 
@@ -104,6 +105,7 @@ groups:
   {%- if repository.sanitized_fork == "apache" and repository.branch == "develop" %}
   - UpdatePassingRef
   {%- endif %}
+  - UpdatePassingBuild
   {%- if repository.upstream_fork != "apache" or repository.branch == "develop" %}
   - PublishArtifacts
   {%- endif %}
@@ -118,6 +120,7 @@ groups:
   {%- if repository.sanitized_fork == "apache" and repository.branch == "develop" %}
   - UpdatePassingRef
   {%- endif %}
+  - UpdatePassingBuild
   {%- if repository.upstream_fork != "apache" or repository.branch == "develop" %}
   - PublishArtifacts
   {%- endif %}
@@ -187,6 +190,14 @@ resources:
     initial_version: 1.10.0
     json_key: ((!concourse-gcp-key))
     key: ((pipeline-prefix))((geode-build-branch))/version
+- name: geode-passing-version
+  type: semver
+  source:
+    bucket: ((version-bucket))
+    driver: gcs
+    initial_version: 1.10.0
+    json_key: ((!concourse-gcp-key))
+    key: ((pipeline-prefix))((geode-build-branch))/passing-version
 
 resource_types:
 - name: concourse-metadata-resource
@@ -224,6 +235,7 @@ jobs:
         pre: ((semver-prerelease-token))
     - do:
       - put: concourse-metadata-resource
+      {{ init_retry()|indent(6) }}
       - task: create_instance
         {{- alpine_tools_config()|indent(8) }}
           params:
@@ -234,9 +246,13 @@ jobs:
           run:
             path: geode-ci/ci/scripts/create_instance.sh
           inputs:
+          - name: attempts-log
+            path: old
           - name: concourse-metadata-resource
           - name: geode-ci
           outputs:
+          - name: attempts-log
+            path: new
           - name: instance-data
         timeout: 15m
         attempts: 10
@@ -328,8 +344,12 @@ jobs:
   serial: true
   plan:
   - get: geode
+{%- if repository.upstream_fork != "apache" or repository.branch == "develop" %}
+    passed: [PublishArtifacts]
+{% else %}
     passed:
-    {{ all_gating_jobs() | indent(4) }}
+    {{ all_gating_jobs() | indent(6) }}
+{% endif %}
     trigger: true
   - get: geode-ci
   - task: updatepassingref
@@ -346,6 +366,21 @@ jobs:
       outputs:
       - name: results
 {% endif %}
+- name: UpdatePassingBuild
+  public: true
+  serial: true
+  plan:
+  - get: geode-build-version
+{%- if repository.upstream_fork != "apache" or repository.branch == "develop" %}
+    passed: [PublishArtifacts]
+{% else %}
+    passed:
+    {{ all_gating_jobs() | indent(6) }}
+{% endif %}
+    trigger: true
+  - put: geode-passing-version
+    params:
+      file: geode-build-version/number
 - name: Benchmark
   public: true
   plan:
@@ -415,6 +450,7 @@ jobs:
       {{ all_gating_jobs() | indent(6) }}
     - do:
       - put: concourse-metadata-resource
+      {{ init_retry()|indent(6) }}
       - task: create_instance
         {{- alpine_tools_config()|indent(8) }}
           params:
@@ -427,8 +463,12 @@ jobs:
           inputs:
           - name: concourse-metadata-resource
           - name: geode-ci
+          - name: attempts-log
+            path: old
           outputs:
           - name: instance-data
+          - name: attempts-log
+            path: new
         timeout: 15m
         attempts: 10
   - task: rsync_code_up
@@ -484,6 +524,7 @@ jobs:
       - put: concourse-metadata-resource
     - aggregate:
       - do:
+        {{ init_retry()|indent(8) }}
         - task: create_instance-{{java_test_version.name}}
           {{- alpine_tools_config()|indent(10) }}
             params:
@@ -497,9 +538,13 @@ jobs:
             inputs:
             - name: concourse-metadata-resource
             - name: geode-ci
+            - name: attempts-log
+              path: old
             outputs:
             - name: instance-data-{{java_test_version.name}}
               path: instance-data
+            - name: attempts-log
+              path: new
           timeout: 15m
           attempts: 10
         - task: rsync_code_up-{{java_test_version.name}}

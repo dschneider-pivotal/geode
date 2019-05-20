@@ -16,23 +16,31 @@
 package org.apache.geode.management.internal.cli.commands;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 
+import org.apache.geode.annotations.VisibleForTesting;
 import org.apache.geode.cache.configuration.CacheConfig;
 import org.apache.geode.cache.configuration.DiskDirType;
-import org.apache.geode.cache.configuration.DiskDirsType;
 import org.apache.geode.cache.configuration.DiskStoreType;
+import org.apache.geode.cache.execute.Execution;
+import org.apache.geode.cache.execute.ResultCollector;
 import org.apache.geode.distributed.DistributedMember;
 import org.apache.geode.internal.cache.DiskStoreAttributes;
+import org.apache.geode.internal.cache.execute.AbstractExecution;
 import org.apache.geode.management.cli.CliMetaData;
 import org.apache.geode.management.cli.ConverterHint;
 import org.apache.geode.management.cli.SingleGfshCommand;
+import org.apache.geode.management.internal.cli.domain.DiskStoreDetails;
 import org.apache.geode.management.internal.cli.functions.CliFunctionResult;
 import org.apache.geode.management.internal.cli.functions.CreateDiskStoreFunction;
+import org.apache.geode.management.internal.cli.functions.ListDiskStoresFunction;
 import org.apache.geode.management.internal.cli.i18n.CliStrings;
 import org.apache.geode.management.internal.cli.result.model.ResultModel;
 import org.apache.geode.management.internal.security.ResourceOperation;
@@ -113,6 +121,12 @@ public class CreateDiskStoreCommand extends SingleGfshCommand {
       return ResultModel.createError(CliStrings.NO_MEMBERS_FOUND_MESSAGE);
     }
 
+    Pair<Boolean, String> validationResult =
+        validateDiskstoreAttributes(diskStoreAttributes, targetMembers);
+    if (validationResult.getLeft().equals(Boolean.FALSE)) {
+      return ResultModel.createError(validationResult.getRight());
+    }
+
     List<CliFunctionResult> functionResults = executeAndGetFunctionResult(
         new CreateDiskStoreFunction(), new Object[] {name, diskStoreAttributes}, targetMembers);
 
@@ -122,6 +136,22 @@ public class CreateDiskStoreCommand extends SingleGfshCommand {
     return result;
   }
 
+  @VisibleForTesting
+  Pair<Boolean, String> validateDiskstoreAttributes(
+      DiskStoreAttributes diskStoreAttributes,
+      Set<DistributedMember> targetMembers) {
+    List<DiskStoreDetails> currentDiskstores = getDiskStoreListing(targetMembers);
+
+    for (DiskStoreDetails detail : currentDiskstores) {
+      if (detail.getName().equals(diskStoreAttributes.getName())) {
+        return Pair.of(Boolean.FALSE,
+            String.format("Error: Disk store %s already exists", diskStoreAttributes.getName()));
+      }
+    }
+
+    return Pair.of(Boolean.TRUE, null);
+  }
+
   private DiskStoreType createDiskStoreType(String name, DiskStoreAttributes diskStoreAttributes) {
     DiskStoreType diskStoreType = new DiskStoreType();
     diskStoreType.setAllowForceCompaction(diskStoreAttributes.getAllowForceCompaction());
@@ -129,18 +159,15 @@ public class CreateDiskStoreCommand extends SingleGfshCommand {
     diskStoreType
         .setCompactionThreshold(Integer.toString(diskStoreAttributes.getCompactionThreshold()));
 
-    DiskDirsType diskDirsType = new DiskDirsType();
-    List<DiskDirType> diskDirs = diskDirsType.getDiskDirs();
+    List<DiskDirType> diskDirs = new ArrayList<>();
     for (int i = 0; i < diskStoreAttributes.getDiskDirs().length; i++) {
       DiskDirType diskDir = new DiskDirType();
       File diskDirFile = diskStoreAttributes.getDiskDirs()[i];
-      diskDir.setContent(
-          diskDirFile.isAbsolute() ? diskDirFile.getAbsolutePath() : diskDirFile.getName());
+      diskDir.setContent(diskDirFile.toString());
       diskDir.setDirSize(Integer.toString(diskStoreAttributes.getDiskDirSizes()[i]));
-
       diskDirs.add(diskDir);
     }
-    diskStoreType.setDiskDirs(diskDirsType);
+    diskStoreType.setDiskDirs(diskDirs);
     diskStoreType.setDiskUsageCriticalPercentage(
         Integer.toString((int) diskStoreAttributes.getDiskUsageCriticalPercentage()));
     diskStoreType.setDiskUsageWarningPercentage(
@@ -153,6 +180,32 @@ public class CreateDiskStoreCommand extends SingleGfshCommand {
 
     return diskStoreType;
   }
+
+  @SuppressWarnings("unchecked")
+  List<DiskStoreDetails> getDiskStoreListing(Set<DistributedMember> members) {
+    final Execution membersFunctionExecutor = getMembersFunctionExecutor(members);
+    if (membersFunctionExecutor instanceof AbstractExecution) {
+      ((AbstractExecution) membersFunctionExecutor).setIgnoreDepartedMembers(true);
+    }
+
+    final ResultCollector<?, ?> resultCollector =
+        membersFunctionExecutor.execute(new ListDiskStoresFunction());
+
+    final List<?> results = (List<?>) resultCollector.getResult();
+    final List<DiskStoreDetails> distributedSystemMemberDiskStores =
+        new ArrayList<>(results.size());
+
+    for (final Object result : results) {
+      if (result instanceof Set) {
+        distributedSystemMemberDiskStores.addAll((Set<DiskStoreDetails>) result);
+      }
+    }
+
+    Collections.sort(distributedSystemMemberDiskStores);
+
+    return distributedSystemMemberDiskStores;
+  }
+
 
   @Override
   public boolean updateConfigForGroup(String group, CacheConfig config, Object configObject) {

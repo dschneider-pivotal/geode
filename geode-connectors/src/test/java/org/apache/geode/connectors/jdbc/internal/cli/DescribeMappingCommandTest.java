@@ -14,15 +14,15 @@
  */
 package org.apache.geode.connectors.jdbc.internal.cli;
 
-import static org.apache.geode.connectors.util.internal.MappingConstants.CATALOG_NAME;
-import static org.apache.geode.connectors.util.internal.MappingConstants.DATA_SOURCE_NAME;
-import static org.apache.geode.connectors.util.internal.MappingConstants.ID_NAME;
-import static org.apache.geode.connectors.util.internal.MappingConstants.PDX_NAME;
-import static org.apache.geode.connectors.util.internal.MappingConstants.REGION_NAME;
-import static org.apache.geode.connectors.util.internal.MappingConstants.SCHEMA_NAME;
-import static org.apache.geode.connectors.util.internal.MappingConstants.SPECIFIED_ID_NAME;
-import static org.apache.geode.connectors.util.internal.MappingConstants.SYNCHRONOUS_NAME;
-import static org.apache.geode.connectors.util.internal.MappingConstants.TABLE_NAME;
+import static org.apache.geode.connectors.jdbc.internal.cli.MappingConstants.CATALOG_NAME;
+import static org.apache.geode.connectors.jdbc.internal.cli.MappingConstants.DATA_SOURCE_NAME;
+import static org.apache.geode.connectors.jdbc.internal.cli.MappingConstants.ID_NAME;
+import static org.apache.geode.connectors.jdbc.internal.cli.MappingConstants.PDX_NAME;
+import static org.apache.geode.connectors.jdbc.internal.cli.MappingConstants.REGION_NAME;
+import static org.apache.geode.connectors.jdbc.internal.cli.MappingConstants.SCHEMA_NAME;
+import static org.apache.geode.connectors.jdbc.internal.cli.MappingConstants.SPECIFIED_ID_NAME;
+import static org.apache.geode.connectors.jdbc.internal.cli.MappingConstants.SYNCHRONOUS_NAME;
+import static org.apache.geode.connectors.jdbc.internal.cli.MappingConstants.TABLE_NAME;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -41,8 +41,8 @@ import org.apache.geode.cache.configuration.RegionAttributesType;
 import org.apache.geode.cache.configuration.RegionConfig;
 import org.apache.geode.connectors.jdbc.internal.configuration.FieldMapping;
 import org.apache.geode.connectors.jdbc.internal.configuration.RegionMapping;
-import org.apache.geode.connectors.util.internal.MappingCommandUtils;
 import org.apache.geode.distributed.ConfigurationPersistenceService;
+import org.apache.geode.test.junit.assertions.CommandResultAssert;
 import org.apache.geode.test.junit.rules.GfshParserRule;
 
 
@@ -199,16 +199,17 @@ public class DescribeMappingCommandTest {
         .thenReturn(RegionAttributesDataPolicy.REPLICATE);
 
     gfsh.executeAndAssertThat(command, COMMAND).statusIsSuccess()
-        .containsOrderedOutput(DescribeMappingCommand.RESULT_SECTION_NAME + "0", REGION_NAME,
-            PDX_NAME,
-            TABLE_NAME, DATA_SOURCE_NAME, SYNCHRONOUS_NAME, ID_NAME, SPECIFIED_ID_NAME,
-            CATALOG_NAME, SCHEMA_NAME)
-        .containsOutput(REGION_NAME, "region1")
-        .containsOutput(DATA_SOURCE_NAME, "name1").containsOutput(TABLE_NAME, "table1")
-        .containsOutput(PDX_NAME, "class1").containsOutput(ID_NAME, "myId")
-        .containsOutput(SPECIFIED_ID_NAME, "true")
-        .containsOutput(SCHEMA_NAME, "mySchema").containsOutput(CATALOG_NAME, "myCatalog")
-        .containsOutput("true");
+        .hasDataSection()
+        .hasContent()
+        .containsEntry(REGION_NAME, "region1")
+        .containsEntry(DATA_SOURCE_NAME, "name1")
+        .containsEntry(TABLE_NAME, "table1")
+        .containsEntry(PDX_NAME, "class1")
+        .containsEntry(ID_NAME, "myId")
+        .containsEntry(SPECIFIED_ID_NAME, "true")
+        .containsEntry(SCHEMA_NAME, "mySchema")
+        .containsEntry(CATALOG_NAME, "myCatalog")
+        .containsEntry(SYNCHRONOUS_NAME, "true");
   }
 
   @Test
@@ -229,16 +230,14 @@ public class DescribeMappingCommandTest {
         .thenReturn(RegionAttributesDataPolicy.REPLICATE);
 
     gfsh.executeAndAssertThat(command, COMMAND).statusIsSuccess()
-        .containsOrderedOutput(DescribeMappingCommand.RESULT_SECTION_NAME + "0", REGION_NAME,
-            PDX_NAME,
-            TABLE_NAME, DATA_SOURCE_NAME, SYNCHRONOUS_NAME, ID_NAME, SPECIFIED_ID_NAME,
-            CATALOG_NAME, SCHEMA_NAME)
-        .containsOutput(REGION_NAME, "region1")
-        .containsOutput(DATA_SOURCE_NAME, "name1").containsOutput(TABLE_NAME, "table1")
-        .containsOutput(PDX_NAME, "class1").containsOutput(ID_NAME, "myId")
-        .containsOutput(SPECIFIED_ID_NAME, "false")
-        .containsOutput(SCHEMA_NAME, "mySchema").containsOutput(CATALOG_NAME, "myCatalog")
-        .containsOutput("true");
+        .hasDataSection()
+        .hasContent()
+        .containsEntry(REGION_NAME, "region1")
+        .containsEntry(DATA_SOURCE_NAME, "name1").containsEntry(TABLE_NAME, "table1")
+        .containsEntry(PDX_NAME, "class1").containsEntry(ID_NAME, "myId")
+        .containsEntry(SPECIFIED_ID_NAME, "false")
+        .containsEntry(SCHEMA_NAME, "mySchema").containsEntry(CATALOG_NAME, "myCatalog")
+        .containsEntry(SYNCHRONOUS_NAME, "true");
   }
 
   @Test
@@ -273,16 +272,14 @@ public class DescribeMappingCommandTest {
         .thenReturn(MappingCommandUtils.createAsyncEventQueueName("region3"));
 
     gfsh.executeAndAssertThat(command, COMMAND).statusIsSuccess()
-        .containsOrderedOutput(DescribeMappingCommand.RESULT_SECTION_NAME + "0", REGION_NAME,
-            PDX_NAME,
-            TABLE_NAME, DATA_SOURCE_NAME, SYNCHRONOUS_NAME, ID_NAME, SPECIFIED_ID_NAME,
-            CATALOG_NAME, SCHEMA_NAME)
-        .containsOutput(REGION_NAME, "region1")
-        .containsOutput(DATA_SOURCE_NAME, "name1").containsOutput(TABLE_NAME, "table1")
-        .containsOutput(PDX_NAME, "class1").containsOutput(ID_NAME, "myId")
-        .containsOutput(SPECIFIED_ID_NAME, "true")
-        .containsOutput(SCHEMA_NAME, "mySchema").containsOutput(CATALOG_NAME, "myCatalog")
-        .containsOutput("synchronous", "false");
+        .hasDataSection()
+        .hasContent()
+        .containsEntry(REGION_NAME, "region1")
+        .containsEntry(DATA_SOURCE_NAME, "name1").containsEntry(TABLE_NAME, "table1")
+        .containsEntry(PDX_NAME, "class1").containsEntry(ID_NAME, "myId")
+        .containsEntry(SPECIFIED_ID_NAME, "true")
+        .containsEntry(SCHEMA_NAME, "mySchema").containsEntry(CATALOG_NAME, "myCatalog")
+        .containsEntry("synchronous", "false");
   }
 
   @Test
@@ -308,19 +305,25 @@ public class DescribeMappingCommandTest {
     when(regionConfig.getRegionAttributes().getDataPolicy())
         .thenReturn(RegionAttributesDataPolicy.REPLICATE);
 
-    gfsh.executeAndAssertThat(command, COMMAND).statusIsSuccess()
-        .containsOrderedOutput(DescribeMappingCommand.RESULT_SECTION_NAME + "0", REGION_NAME,
-            PDX_NAME,
-            TABLE_NAME, DATA_SOURCE_NAME, SYNCHRONOUS_NAME, ID_NAME, SPECIFIED_ID_NAME,
-            CATALOG_NAME, SCHEMA_NAME)
-        .containsOutput(REGION_NAME, "region1")
-        .containsOutput(DATA_SOURCE_NAME, "name1").containsOutput(TABLE_NAME, "table1")
-        .containsOutput(PDX_NAME, "class1").containsOutput(ID_NAME, "myId")
-        .containsOutput(SPECIFIED_ID_NAME, "true")
-        .containsOutput(SCHEMA_NAME, "mySchema").containsOutput(CATALOG_NAME, "myCatalog")
-        .containsOutput("synchronous", "false")
-        .containsOutput("pdxName1", "pdxType1", "jdbcName1", "jdbcType1", "true")
-        .containsOutput("veryLongpdxName2", "pdxType2", "veryLongjdbcName2", "jdbcType2", "false");
+    CommandResultAssert resultAssert =
+        gfsh.executeAndAssertThat(command, COMMAND).statusIsSuccess();
+    resultAssert
+        .hasDataSection()
+        .hasContent()
+        .containsEntry(REGION_NAME, "region1")
+        .containsEntry(DATA_SOURCE_NAME, "name1")
+        .containsEntry(TABLE_NAME, "table1")
+        .containsEntry(PDX_NAME, "class1")
+        .containsEntry(ID_NAME, "myId")
+        .containsEntry(SPECIFIED_ID_NAME, "false")
+        .containsEntry(SCHEMA_NAME, "mySchema")
+        .containsEntry(CATALOG_NAME, "myCatalog")
+        .containsEntry("synchronous", "true");
+    resultAssert.hasTableSection()
+        .hasAnyRow()
+        .containsExactly("pdxName1", "pdxType1", "jdbcName1", "jdbcType1", "true")
+        .hasAnyRow()
+        .containsExactly("veryLongpdxName2", "pdxType2", "veryLongjdbcName2", "jdbcType2", "false");
   }
 
   @Test
@@ -344,16 +347,14 @@ public class DescribeMappingCommandTest {
 
 
     gfsh.executeAndAssertThat(command, COMMAND + " --groups=group1").statusIsSuccess()
-        .containsOrderedOutput(DescribeMappingCommand.RESULT_SECTION_NAME + "0", REGION_NAME,
-            PDX_NAME,
-            TABLE_NAME, DATA_SOURCE_NAME, SYNCHRONOUS_NAME, ID_NAME, SPECIFIED_ID_NAME,
-            CATALOG_NAME, SCHEMA_NAME)
-        .containsOutput(REGION_NAME, "region1")
-        .containsOutput(DATA_SOURCE_NAME, "name1").containsOutput(TABLE_NAME, "table1")
-        .containsOutput(PDX_NAME, "class1").containsOutput(ID_NAME, "myId")
-        .containsOutput(SPECIFIED_ID_NAME, "true")
-        .containsOutput(SCHEMA_NAME, "mySchema").containsOutput(CATALOG_NAME, "myCatalog")
-        .containsOutput("true");
+        .hasDataSection()
+        .hasContent()
+        .containsEntry(REGION_NAME, "region1")
+        .containsEntry(DATA_SOURCE_NAME, "name1").containsEntry(TABLE_NAME, "table1")
+        .containsEntry(PDX_NAME, "class1").containsEntry(ID_NAME, "myId")
+        .containsEntry(SPECIFIED_ID_NAME, "false")
+        .containsEntry(SCHEMA_NAME, "mySchema").containsEntry(CATALOG_NAME, "myCatalog")
+        .containsEntry(SYNCHRONOUS_NAME, "true");
   }
 
   @Test
