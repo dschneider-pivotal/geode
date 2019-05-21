@@ -58,6 +58,7 @@ import org.apache.geode.internal.ByteArrayDataInput;
 import org.apache.geode.internal.HeapDataOutputStream;
 import org.apache.geode.internal.Version;
 import org.apache.geode.internal.cache.EventID;
+import org.apache.geode.internal.cache.EventIDHolder;
 import org.apache.geode.internal.cache.InternalCache;
 import org.apache.geode.internal.cache.tier.Acceptor;
 import org.apache.geode.internal.cache.tier.CachedRegionHelper;
@@ -1243,6 +1244,7 @@ public abstract class ServerConnection implements Runnable {
     private static final int MAX_CACHED_BYTE_ARRAY_SIZE = 1024;
     private final ArrayList<byte[]>[] byteArrayCache = new ArrayList[MAX_CACHED_BYTE_ARRAY_SIZE];
     private final ByteArrayDataInput byteArrayDataInputCache = new ByteArrayDataInput();
+    private EventIDHolder eventIDHolderCache = null;
 
     public HeapDataOutputStream pollHeapDataOutputStream() {
       if (idx < 0) {
@@ -1290,6 +1292,14 @@ public abstract class ServerConnection implements Runnable {
 
     public ByteArrayDataInput getByteArrayDataInput() {
       return byteArrayDataInputCache;
+    }
+
+    public EventIDHolder getEventIDHolder() {
+      return this.eventIDHolderCache;
+    }
+
+    public void setEventIDHolder(EventIDHolder value) {
+      this.eventIDHolderCache = value;
     }
   }
 
@@ -1348,6 +1358,21 @@ public abstract class ServerConnection implements Runnable {
       return partCache.getByteArrayDataInput();
     } else {
       return new ByteArrayDataInput();
+    }
+  }
+
+  public static EventIDHolder allocateEventIDHolder(byte[] memId, long threadId, long seqId) {
+    PartCache partCache = partCacheReference.get();
+    if (partCache != null) {
+      EventIDHolder result = partCache.getEventIDHolder();
+      if (result == null) {
+        result = new EventIDHolder(new EventID(memId, threadId, seqId));
+      } else {
+        result.initializeForReuse(memId, threadId, seqId);
+      }
+      return result;
+    } else {
+      return new EventIDHolder(new EventID(memId, threadId, seqId));
     }
   }
 

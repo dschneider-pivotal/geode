@@ -29,4 +29,12 @@ public class EventIDHolder extends EntryEventImpl {
     setEventId(id);
     disallowOffHeapValues();
   }
+
+  public void initializeForReuse(byte[] memId, long threadId, long seqId) {
+    EventID modifiedEventId = this.eventID;
+    modifiedEventId.initializeForReuse(memId, threadId, seqId);
+    super.initializeForReuse();
+    setEventId(modifiedEventId);
+    disallowOffHeapValues();
+  }
 }

@@ -245,6 +245,13 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
     this.bucketID = -1;
   }
 
+  public void initializeForReuse(byte[] memId, long threadId, long seqId) {
+    this.membershipID = memId;
+    this.threadID = threadId;
+    this.sequenceID = seqId;
+    this.bucketID = -1;
+  }
+
   public EventID(byte[] memId, long threadId, long seqId, int bucketId) {
     this.membershipID = memId;
     this.threadID = threadId;

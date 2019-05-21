@@ -206,8 +206,8 @@ public class Put65 extends BaseCommand {
     final long sequenceId =
         EventID.readEventIdPart(eventIdPartsBytes, 2 + threadIdByteCount, sequenceIdType);
 
-    final EventIDHolder clientEvent = new EventIDHolder(
-        new EventID(serverConnection.getEventMemberIDByteArray(), threadId, sequenceId));
+    final EventIDHolder clientEvent = ServerConnection
+        .allocateEventIDHolder(serverConnection.getEventMemberIDByteArray(), threadId, sequenceId);
 
     Breadcrumbs.setEventId(clientEvent.getEventId());
 
