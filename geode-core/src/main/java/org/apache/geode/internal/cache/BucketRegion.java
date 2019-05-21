@@ -2428,4 +2428,15 @@ public class BucketRegion extends DistributedRegion implements Bucket {
     return entries.clear(rvv, this);
   }
 
+  @Override
+  protected long startGet() {
+    return 0;
+  }
+
+  @Override
+  protected void endGet(long start, boolean isMiss) {
+    // get stats are recorded by the PartitionedRegion
+    // so nothing is needed on the BucketRegion.
+  }
+
 }
