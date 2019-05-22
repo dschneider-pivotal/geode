@@ -1012,17 +1012,19 @@ public class GMSMembershipManager implements MembershipManager, Manager {
    * @param msg the message to process
    */
   protected void handleOrDeferMessage(DistributionMessage msg) {
-    synchronized (startupLock) {
-      if (beingSick || playingDead) {
-        // cache operations are blocked in a "sick" member
-        if (msg.containsRegionContentChange() || msg instanceof PartitionMessageWithDirectReply) {
+    if (!processingEvents || beingSick || playingDead) {
+      synchronized (startupLock) {
+        if (beingSick || playingDead) {
+          // cache operations are blocked in a "sick" member
+          if (msg.containsRegionContentChange() || msg instanceof PartitionMessageWithDirectReply) {
+            startupMessages.add(new StartupEvent(msg));
+            return;
+          }
+        }
+        if (!processingEvents) {
           startupMessages.add(new StartupEvent(msg));
           return;
         }
-      }
-      if (!processingEvents) {
-        startupMessages.add(new StartupEvent(msg));
-        return;
       }
     }
     dispatchMessage(msg);
@@ -2426,8 +2428,8 @@ public class GMSMembershipManager implements MembershipManager, Manager {
     }
   }
 
-  private boolean beingSick;
-  private boolean playingDead;
+  private volatile boolean beingSick;
+  private volatile boolean playingDead;
 
   /**
    * Test hook - be a sick member
