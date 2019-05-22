@@ -1051,7 +1051,7 @@ public class DistributionStats implements DMStats {
       while (!done) {
         long currentSentMessagesMaxTime = sentMessagesMaxTime.get();
         if (millis > currentSentMessagesMaxTime) {
-          done = replyWaitMaxTime.compareAndSet(currentSentMessagesMaxTime, millis);
+          done = sentMessagesMaxTime.compareAndSet(currentSentMessagesMaxTime, millis);
           if (done) {
             stats.setLong(sentMessagesMaxTimeId, millis);
           }
