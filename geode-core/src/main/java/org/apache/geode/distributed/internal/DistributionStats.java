@@ -14,6 +14,8 @@
  */
 package org.apache.geode.distributed.internal;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.StatisticDescriptor;
@@ -1602,6 +1604,8 @@ public class DistributionStats implements DMStats {
     return getStatTime();
   }
 
+  private final AtomicLong replyWaitMaxTime = new AtomicLong();
+
   @Override
   public void endReplyWait(long startNanos, long initTime) {
     if (enableClockStats) {
@@ -1610,8 +1614,17 @@ public class DistributionStats implements DMStats {
     }
     if (initTime != 0) {
       long mswait = System.currentTimeMillis() - initTime;
-      if (mswait > getReplyWaitMaxTime()) {
-        stats.setLong(replyWaitMaxTimeId, mswait);
+      boolean done = false;
+      while (!done) {
+        long currentReplyWaitMaxTime = replyWaitMaxTime.get();
+        if (mswait > currentReplyWaitMaxTime) {
+          done = replyWaitMaxTime.compareAndSet(currentReplyWaitMaxTime, mswait);
+          if (done) {
+            stats.setLong(replyWaitMaxTimeId, mswait);
+          }
+        } else {
+          done = true;
+        }
       }
     }
     stats.incInt(replyWaitsInProgressId, -1);
