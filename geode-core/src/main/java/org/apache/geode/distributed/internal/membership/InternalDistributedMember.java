@@ -1022,7 +1022,7 @@ public class InternalDistributedMember implements DistributedMember, Externaliza
     if (vmKind == ClusterDistributionManager.LONER_DM_TYPE) {
       DataSerializer.writeString(this.uniqueTag, out);
     } else { // added in 6.5 for unique identifiers in P2P
-      DataSerializer.writeString(String.valueOf(netMbr.getVmViewId()), out);
+      DataSerializer.writeString(netMbr.getVmViewIdString(), out);
     }
     DurableClientAttributes durableClientAttributes = netMbr.getDurableClientAttributes();
     DataSerializer
@@ -1200,7 +1200,7 @@ public class InternalDistributedMember implements DistributedMember, Externaliza
     if (vmKind == ClusterDistributionManager.LONER_DM_TYPE) {
       DataSerializer.writeString(this.uniqueTag, out);
     } else { // added in 6.5 for unique identifiers in P2P
-      DataSerializer.writeString(String.valueOf(netMbr.getVmViewId()), out);
+      DataSerializer.writeString(netMbr.getVmViewIdString(), out);
     }
     // write name last to fix bug 45160
     DataSerializer.writeString(netMbr.getName(), out);
