@@ -31,6 +31,8 @@ public class StoppableCountDownLatch {
 
   static final String RETRY_TIME_MILLIS_PROPERTY = GEMFIRE_PREFIX + "stoppable-retry-interval";
   static final long RETRY_TIME_MILLIS_DEFAULT = 2000;
+  private static final long RETRY_TIME_NANOS =
+      MILLISECONDS.toNanos(Long.getLong(RETRY_TIME_MILLIS_PROPERTY, RETRY_TIME_MILLIS_DEFAULT));
 
   private final CountDownLatch delegate;
 
@@ -51,9 +53,7 @@ public class StoppableCountDownLatch {
    * @throws IllegalArgumentException if {@code count} is negative
    */
   public StoppableCountDownLatch(final CancelCriterion stopper, final int count) {
-    this(stopper, count,
-        MILLISECONDS.toNanos(Long.getLong(RETRY_TIME_MILLIS_PROPERTY, RETRY_TIME_MILLIS_DEFAULT)),
-        System::nanoTime);
+    this(stopper, count, RETRY_TIME_NANOS, System::nanoTime);
   }
 
   StoppableCountDownLatch(final CancelCriterion stopper, final int count,
