@@ -15,10 +15,11 @@
 package org.apache.geode.distributed.internal;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.geode.internal.Assert;
-import org.apache.geode.internal.ObjIdConcurrentMap;
 
 /**
  * A message processor class typically creates an instance of ProcessorKeeper and holds it in a
@@ -39,7 +40,8 @@ public class ProcessorKeeper21 {
   /**
    * Key is a unique id, value is an instance of some processor class
    */
-  private final ObjIdConcurrentMap<Object> map = new ObjIdConcurrentMap<Object>();
+  // private final ObjIdConcurrentMap<Object> map = new ObjIdConcurrentMap<Object>();
+  private final ConcurrentMap<Integer, Object> map = new ConcurrentHashMap<>();
 
   /**
    * If true then use weak refs to reference the processors.
