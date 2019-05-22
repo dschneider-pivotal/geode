@@ -10065,4 +10065,15 @@ public class PartitionedRegion extends LocalRegion
       rl.unlock();
     }
   }
+
+  @Override
+  protected long startGet() {
+    return 0;
+  }
+
+  @Override
+  protected void endGet(long start, boolean isMiss) {
+    // get stats are recorded by the BucketRegion
+    // so nothing is needed on the PartitionedRegion.
+  }
 }
