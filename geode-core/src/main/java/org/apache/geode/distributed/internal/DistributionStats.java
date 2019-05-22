@@ -1035,6 +1035,8 @@ public class DistributionStats implements DMStats {
     return this.stats.getLong(sentMessagesTimeId);
   }
 
+  private final AtomicLong sentMessagesMaxTime = new AtomicLong();
+
   /**
    * Increments the total number of nanoseconds spend sending messages.
    * <p>
@@ -1045,8 +1047,17 @@ public class DistributionStats implements DMStats {
     if (enableClockStats) {
       this.stats.incLong(sentMessagesTimeId, nanos);
       long millis = nanos / 1000000;
-      if (getSentMessagesMaxTime() < millis) {
-        this.stats.setLong(sentMessagesMaxTimeId, millis);
+      boolean done = false;
+      while (!done) {
+        long currentSentMessagesMaxTime = sentMessagesMaxTime.get();
+        if (millis > currentSentMessagesMaxTime) {
+          done = replyWaitMaxTime.compareAndSet(currentSentMessagesMaxTime, millis);
+          if (done) {
+            stats.setLong(sentMessagesMaxTimeId, millis);
+          }
+        } else {
+          done = true;
+        }
       }
     }
   }
