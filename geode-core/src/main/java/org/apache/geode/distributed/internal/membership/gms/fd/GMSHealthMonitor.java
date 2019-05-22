@@ -382,10 +382,13 @@ public class GMSHealthMonitor implements HealthMonitor, MessageHandler {
    * Record member activity at a specified time
    */
   private void contactedBy(InternalDistributedMember sender, long timeStamp) {
-    TimeStamp cTS = new TimeStamp(timeStamp);
-    cTS = memberTimeStamps.putIfAbsent(sender, cTS);
-    if (cTS != null && cTS.getTime() < timeStamp) {
-      cTS.setTime(timeStamp);
+    TimeStamp existingTimeStamp = memberTimeStamps.get(sender);
+    if (existingTimeStamp == null) {
+      TimeStamp cTS = new TimeStamp(timeStamp);
+      existingTimeStamp = memberTimeStamps.putIfAbsent(sender, cTS);
+    }
+    if (existingTimeStamp != null && existingTimeStamp.getTime() < timeStamp) {
+      existingTimeStamp.setTime(timeStamp);
     }
     if (suspectedMemberIds.containsKey(sender)) {
       memberUnsuspected(sender);
