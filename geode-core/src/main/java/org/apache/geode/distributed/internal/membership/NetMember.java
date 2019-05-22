@@ -80,6 +80,8 @@ public interface NetMember extends Comparable<NetMember> {
 
   int getVmViewId();
 
+  String getVmViewIdString();
+
   void setVmViewId(int id);
 
   int getDirectPort();

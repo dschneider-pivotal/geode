@@ -82,6 +82,7 @@ public class GMSMember implements NetMember, DataSerializableFixedID {
     vmKind = (byte) attr.getVmKind();
     directPort = attr.getPort();
     vmViewId = attr.getVmViewId();
+    vmViewIdString = null;
     name = attr.getName();
     groups = attr.getGroups();
     durableClientAttributes = attr.getDurableClientAttributes();
@@ -377,9 +378,23 @@ public class GMSMember implements NetMember, DataSerializableFixedID {
     return vmViewId;
   }
 
+  private transient String vmViewIdString;
+
+  @Override
+  public String getVmViewIdString() {
+    String result = vmViewIdString;
+    if (result == null) {
+      result = String.valueOf(getVmViewId());
+      vmViewIdString = result;
+    }
+    return result;
+  }
+
+
   @Override
   public void setVmViewId(int id) {
     this.vmViewId = id;
+    vmViewIdString = null;
   }
 
   @Override
@@ -435,6 +450,7 @@ public class GMSMember implements NetMember, DataSerializableFixedID {
 
   public void setBirthViewId(int birthViewId) {
     this.vmViewId = birthViewId;
+    vmViewIdString = null;
   }
 
   @Override
@@ -541,6 +557,7 @@ public class GMSMember implements NetMember, DataSerializableFixedID {
     this.inetAddr = DataSerializer.readInetAddress(in);
     this.udpPort = in.readInt();
     this.vmViewId = in.readInt();
+    vmViewIdString = null;
     this.uuidMSBs = in.readLong();
     this.uuidLSBs = in.readLong();
     if (InternalDataSerializer.getVersionForDataStream(in).compareTo(Version.GEODE_1_2_0) >= 0) {
