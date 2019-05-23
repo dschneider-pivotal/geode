@@ -234,6 +234,31 @@ public class DistributedEventTracker implements EventTracker {
     } while (removed);
   }
 
+  private void recordSequenceNumber(ThreadIdentifier threadID, long id, VersionTag tag) {
+    boolean removed;
+    do {
+      removed = false;
+      EventSequenceNumberHolder oldEvh = recordedEvents.get(threadID);
+      if (oldEvh == null) {
+        oldEvh = recordedEvents.putIfAbsent(threadID, new EventSequenceNumberHolder(id, tag));
+      }
+      if (oldEvh != null) {
+        synchronized (oldEvh) {
+          if (oldEvh.isRemoved()) {
+            // need to wait for an entry being removed by the sweeper to go away
+            removed = true;
+          } else {
+            oldEvh.setEndOfLifeTimestamp(0);
+            if (oldEvh.getLastSequenceNumber() < id) {
+              oldEvh.setLastSequenceNumber(id);
+              oldEvh.setVersionTag(tag);
+            }
+          }
+        }
+      }
+    } while (removed);
+  }
+
   @Override
   public void recordEvent(InternalCacheEvent event) {
     EventID eventID = event.getEventId();
@@ -251,11 +276,10 @@ public class DistributedEventTracker implements EventTracker {
       canonicalizeIDs(tag, v);
     }
 
-    EventSequenceNumberHolder newEvh = new EventSequenceNumberHolder(eventID.getSequenceID(), tag);
     if (logger.isTraceEnabled()) {
       logger.trace("region event tracker recording {}", event);
     }
-    recordSequenceNumber(membershipID, newEvh);
+    recordSequenceNumber(membershipID, eventID.getSequenceID(), tag);
 
     // If this is a bulkOp, and concurrency checks are enabled, we need to
     // save the version tag in case we retry.
