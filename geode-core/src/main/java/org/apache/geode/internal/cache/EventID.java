@@ -370,16 +370,14 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
     } else {
       DataSerializer.writeByteArray(this.membershipID, dop);
     }
-    DataSerializer.writeByteArray(getOptimizedByteArrayForEventID(this.threadID, this.sequenceID),
-        dop);
+    writeThreadAndSequenceId(dop, threadID, sequenceID);
     dop.writeInt(this.bucketID);
     dop.writeByte(this.breadcrumbCounter);
   }
 
   public void toDataPre_GFE_8_0_0_0(DataOutput dop) throws IOException {
     DataSerializer.writeByteArray(this.membershipID, dop);
-    DataSerializer.writeByteArray(getOptimizedByteArrayForEventID(this.threadID, this.sequenceID),
-        dop);
+    writeThreadAndSequenceId(dop, threadID, sequenceID);
   }
 
   @Override
@@ -403,8 +401,7 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     DataSerializer.writeByteArray(this.membershipID, out);
-    DataSerializer.writeByteArray(getOptimizedByteArrayForEventID(this.threadID, this.sequenceID),
-        out);
+    writeThreadAndSequenceId(out, threadID, sequenceID);
     out.writeInt(this.bucketID);
   }
 
@@ -643,6 +640,18 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
 
   }
 
+  public static void writeThreadAndSequenceId(DataOutput out, long threadId, long sequenceId)
+      throws IOException {
+    int threadIdLength = getByteSizeForValue(threadId);
+    int sequenceIdLength = getByteSizeForValue(sequenceId);
+    int byteArrayLength = 2 + threadIdLength + sequenceIdLength;
+    InternalDataSerializer.writeArrayLength(byteArrayLength, out);
+    int threadIdIndex = (threadIdLength == 1) ? 0 : ((threadIdLength / 4) + 1);
+    int sequenceIdIndex = (sequenceIdLength == 1) ? 0 : ((sequenceIdLength / 4) + 1);
+    fillerArray.get(threadIdIndex).write(out, threadId);
+    fillerArray.get(sequenceIdIndex).write(out, sequenceId);
+  }
+
   /**
    * Reads the optimized byte-array representation of an eventId and returns the long value of
    * threadId or sequenceId ( the first invocation of this method on bytebuffer returns the threadId
@@ -710,6 +719,8 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
      */
     public abstract void fill(ByteBuffer buffer, long id);
 
+    public abstract void write(DataOutput out, long id) throws IOException;
+
     /**
      * Reads the given buffer and returns the value as long.
      *
@@ -769,6 +780,12 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
     public long read(byte[] eventIdPartsBytes, int startIdx) {
       return eventIdPartsBytes[startIdx];
     }
+
+    @Override
+    public void write(DataOutput out, long id) throws IOException {
+      out.writeByte(EVENTID_BYTE);
+      out.writeByte((byte) id);
+    }
   }
 
   protected static class ShortEventIDByteArrayFiller extends AbstractEventIDByteArrayFiller {
@@ -809,6 +826,12 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
       result <<= 8;
       result |= eventIdPartsBytes[startIdx + 1] & 0xff;
       return result;
+    }
+
+    @Override
+    public void write(DataOutput out, long id) throws IOException {
+      out.writeByte(EVENTID_SHORT);
+      out.writeShort((short) id);
     }
   }
 
@@ -854,6 +877,12 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
       result <<= 8;
       result |= eventIdPartsBytes[startIdx + 3] & 0xff;
       return result;
+    }
+
+    @Override
+    public void write(DataOutput out, long id) throws IOException {
+      out.writeByte(EVENTID_INT);
+      out.writeInt((int) id);
     }
   }
 
@@ -907,6 +936,12 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
       result <<= 8;
       result |= eventIdPartsBytes[startIdx + 7] & 0xff;
       return result;
+    }
+
+    @Override
+    public void write(DataOutput out, long id) throws IOException {
+      out.writeByte(EVENTID_LONG);
+      out.writeLong(id);
     }
   }
 
