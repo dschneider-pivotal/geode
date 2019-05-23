@@ -250,6 +250,7 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
     this.threadID = threadId;
     this.sequenceID = seqId;
     this.bucketID = -1;
+    canonicalThreadId = null;
   }
 
   public EventID(byte[] memId, long threadId, long seqId, int bucketId) {
