@@ -1367,6 +1367,7 @@ public abstract class ServerConnection implements Runnable {
       EventIDHolder result = partCache.getEventIDHolder();
       if (result == null) {
         result = new EventIDHolder(new EventID(memId, threadId, seqId));
+        partCache.setEventIDHolder(result);
       } else {
         result.initializeForReuse(memId, threadId, seqId);
       }

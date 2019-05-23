@@ -188,36 +188,36 @@ public class EntryEventImpl implements InternalEntryEvent, InternalCacheEvent,
   }
 
   protected void initializeForReuse() {
-    // cachedSerializedNewValue = null;
-    // causedByMessage = null;
-    // context = null;
-    // deltaBytes = null;
-    // distributedMember = null;
-    // eventFlags = 0;
-    // eventID = null;
-    // eventType = null;
-    // filterInfo = null;
-    // hasRetried = false;
-    // invokeCallbacksThread = null;
-    // isEvicted = false;
-    // isPendingSecondaryExpireDestroy = false;
-    // keyInfo = null;
-    // newValue = null;
-    // newValueBucketSize = 0;
-    // newValueBytes = null;
-    // nextRegionVersion = -1L;
-    // offHeapOk = true;
-    // oldValue = null;
-    // oldValueBytes = null;
-    // op = null;
-    // putAllOp = null;
-    // re = null;
-    // readOldValueFromDisk = false;
-    // region = null;
-    // removeAllOp = null;
-    // tailKey = -1L;
-    // txId = null;
-    // versionTag = null;
+    cachedSerializedNewValue = null;
+    causedByMessage = null;
+    context = null;
+    deltaBytes = null;
+    distributedMember = null;
+    eventFlags = 0;
+    eventID = null;
+    eventType = null;
+    filterInfo = null;
+    hasRetried = false;
+    invokeCallbacksThread = null;
+    isEvicted = false;
+    isPendingSecondaryExpireDestroy = false;
+    keyInfo = null;
+    newValue = null;
+    newValueBucketSize = 0;
+    newValueBytes = null;
+    nextRegionVersion = -1L;
+    offHeapOk = true;
+    oldValue = null;
+    oldValueBytes = null;
+    op = null;
+    putAllOp = null;
+    re = null;
+    readOldValueFromDisk = false;
+    region = null;
+    removeAllOp = null;
+    tailKey = -1L;
+    txId = null;
+    versionTag = null;
   }
 
   /**
