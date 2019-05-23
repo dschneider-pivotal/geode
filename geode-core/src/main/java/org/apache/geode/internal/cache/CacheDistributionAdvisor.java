@@ -232,10 +232,18 @@ public class CacheDistributionAdvisor extends DistributionAdvisor {
     });
   }
 
+  // This is just a hack to see how much caching this instead of creating from scratch
+  // each time would improve performance.
+  // TODO: if we do want to cache it then we need profile changes to invalidate the cache.
+  private FilterRoutingInfo cachedFilterRouting = null;
+
   public FilterRoutingInfo adviseFilterRouting(CacheEvent event, Set cacheOpRecipients) {
     FilterProfile fp = ((LocalRegion) event.getRegion()).getFilterProfile();
     if (fp != null) {
-      return fp.getFilterRoutingInfoPart1(event, profiles, cacheOpRecipients);
+      if (cachedFilterRouting == null) {
+        cachedFilterRouting = fp.getFilterRoutingInfoPart1(event, profiles, cacheOpRecipients);
+      }
+      return cachedFilterRouting;
     }
     return null;
   }
