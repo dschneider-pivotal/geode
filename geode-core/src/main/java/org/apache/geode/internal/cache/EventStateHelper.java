@@ -124,7 +124,7 @@ public class EventStateHelper {
 
       for (int j = 0; j < subMapSize; j++) {
         long threadId = dip.readLong();
-        ThreadIdentifier key = new ThreadIdentifier(numberToMember.get(idNumber), threadId);
+        ThreadIdentifier key = ThreadIdentifier.create(numberToMember.get(idNumber), threadId);
         if (isHARegion) {
           DispatchedAndCurrentEvents value = new DispatchedAndCurrentEvents();
           InternalDataSerializer.invokeFromData(value, dip);

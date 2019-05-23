@@ -140,6 +140,10 @@ public class ThreadIdentifier implements DataSerializable {
 
   public ThreadIdentifier() {}
 
+  public static ThreadIdentifier create(byte[] mid, long threadId) {
+    return new ThreadIdentifier(mid, threadId);
+  }
+
   public ThreadIdentifier(final byte[] mid, long threadId) {
     this.membershipID = mid;
     this.threadID = threadId;
@@ -147,6 +151,9 @@ public class ThreadIdentifier implements DataSerializable {
 
   @Override
   public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
     if ((obj == null) || !(obj instanceof ThreadIdentifier)) {
       return false;
     }

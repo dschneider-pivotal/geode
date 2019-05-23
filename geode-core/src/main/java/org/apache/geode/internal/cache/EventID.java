@@ -976,7 +976,7 @@ public class EventID implements DataSerializableFixedID, Serializable, Externali
   public ThreadIdentifier createThreadIdentifier() {
     ThreadIdentifier result = this.canonicalThreadId;
     if (result == null) {
-      result = new ThreadIdentifier(getMembershipID(), getThreadID());
+      result = ThreadIdentifier.create(getMembershipID(), getThreadID());
       this.canonicalThreadId = result;
     }
     return result;
