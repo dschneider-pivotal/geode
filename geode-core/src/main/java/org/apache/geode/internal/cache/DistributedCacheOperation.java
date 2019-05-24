@@ -163,6 +163,8 @@ public abstract class DistributedCacheOperation {
 
   protected Set departedMembers;
 
+  protected Set originalRecipients;
+
   @MutableForTesting
   static Runnable internalBeforePutOutgoing;
 
@@ -338,7 +340,6 @@ public abstract class DistributedCacheOperation {
     try {
       // Recipients with CacheOp
       Set<InternalDistributedMember> recipients = getRecipients();
-      boolean recipientsModifiable = false;
       Map<InternalDistributedMember, PersistentMemberID> persistentIds = null;
       if (region.getDataPolicy().withPersistence()) {
         persistentIds = region.getDistributionAdvisor().adviseInitializedPersistentMembers();
@@ -384,13 +385,7 @@ public abstract class DistributedCacheOperation {
           needsOldValueInCacheOp =
               region.getCacheDistributionAdvisor().adviseRequiresOldValueInCacheOp();
         }
-        if (!recipients.isEmpty() && !needsOldValueInCacheOp.isEmpty()) {
-          if (!recipientsModifiable) {
-            recipientsModifiable = true;
-            recipients = new HashSet<>(recipients);
-          }
-          recipients.removeAll(needsOldValueInCacheOp);
-        }
+        recipients.removeAll(needsOldValueInCacheOp);
       }
 
       Set cachelessNodes = Collections.emptySet();
@@ -406,14 +401,8 @@ public abstract class DistributedCacheOperation {
               list.remove(member);
             }
           }
-          if (!recipients.isEmpty() && !list.isEmpty()) {
-            if (!recipientsModifiable) {
-              recipientsModifiable = true;
-              recipients = new HashSet<>(recipients);
-            }
-            recipients.removeAll(list);
-          }
           cachelessNodes.clear();
+          recipients.removeAll(list);
           cachelessNodes.addAll(list);
         }
         if (!cachelessNodes.isEmpty()) {
@@ -468,13 +457,7 @@ public abstract class DistributedCacheOperation {
         if (entryEvent != null) {
           RemoteOperationMessage rmsg = entryEvent.getRemoteOperationMessage();
           if (rmsg != null) {
-            if (recipientsModifiable || recipients.contains(rmsg.getSender())) {
-              if (!recipientsModifiable) {
-                recipientsModifiable = true;
-                recipients = new HashSet<>(recipients);
-              }
-              recipients.remove(rmsg.getSender());
-            }
+            recipients.remove(rmsg.getSender());
             useMulticast = false; // bug #45106: can't mcast or the sender of the one-hop op will
                                   // get it
           }
@@ -516,11 +499,7 @@ public abstract class DistributedCacheOperation {
                 logger.debug("loss simulation is inhibiting message transmission to {}",
                     recipients);
               }
-              if (waitForMembers == recipients) {
-                waitForMembers = Collections.emptySet();
-              } else {
-                waitForMembers.removeAll(recipients);
-              }
+              waitForMembers.removeAll(recipients);
               recipients = Collections.emptySet();
             }
           }
@@ -648,10 +627,6 @@ public abstract class DistributedCacheOperation {
             if (recipients.isEmpty()) {
               recipients = cachelessNodes;
             } else {
-              if (!recipientsModifiable) {
-                recipientsModifiable = true;
-                recipients = new HashSet<>(recipients);
-              }
               recipients.addAll(cachelessNodes);
             }
           }
@@ -847,7 +822,8 @@ public abstract class DistributedCacheOperation {
 
   protected Set getRecipients() {
     CacheDistributionAdvisor advisor = getRegion().getCacheDistributionAdvisor();
-    return advisor.adviseCacheOp();
+    this.originalRecipients = advisor.adviseCacheOp();
+    return this.originalRecipients;
   }
 
   protected FilterRoutingInfo getRecipientFilterRouting(Set cacheOpRecipients) {
