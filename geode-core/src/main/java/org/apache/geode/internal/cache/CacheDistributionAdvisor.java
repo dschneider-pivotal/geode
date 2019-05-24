@@ -132,18 +132,30 @@ public class CacheDistributionAdvisor extends DistributionAdvisor {
 
   // moved addMembershipListenerAndAdviseGeneric to DistributionAdvisor
 
+  // TODO: when the profiles change this needs to be nulled out
+  private volatile Set<InternalDistributedMember> cachedAdviseAllEventsOrCached;
+
   /**
    * Returns a the set of members that either want all events or are caching data.
-   *
-   * @param excludeInRecovery if true then members in recovery are excluded
+   * Members that are still in recovery are excluded.
    */
-  private Set<InternalDistributedMember> adviseAllEventsOrCached(final boolean excludeInRecovery)
-      throws IllegalStateException {
+  private Set<InternalDistributedMember> adviseAllEventsOrCached() {
     getAdvisee().getCancelCriterion().checkCancelInProgress(null);
+    Set<InternalDistributedMember> result = cachedAdviseAllEventsOrCached;
+    if (result == null) {
+      result = computeAllEventsOrCached();
+      if (!result.isEmpty()) {
+        result = Collections.unmodifiableSet(result);
+        cachedAdviseAllEventsOrCached = result;
+      }
+    }
+    return result;
+  }
+
+  private Set<InternalDistributedMember> computeAllEventsOrCached() {
     return adviseFilter(profile -> {
-      assert profile instanceof CacheProfile;
       CacheProfile cp = (CacheProfile) profile;
-      if (excludeInRecovery && cp.inRecovery) {
+      if (cp.inRecovery) {
         return false;
       }
       return cp.cachedOrAllEventsWithListener();
@@ -157,7 +169,7 @@ public class CacheDistributionAdvisor extends DistributionAdvisor {
   Set adviseUpdate(final EntryEventImpl event) throws IllegalStateException {
     if (event.hasNewValue() || event.getOperation().isPutAll()) {
       // only need to distribute it to members that want all events or cache data
-      return adviseAllEventsOrCached(true/* fixes 41147 */);
+      return adviseAllEventsOrCached();
     } else {
       // The new value is null so this is a create with a null value,
       // in which case we only need to distribute this message to replicates
@@ -253,7 +265,7 @@ public class CacheDistributionAdvisor extends DistributionAdvisor {
    * Same as adviseGeneric except in recovery excluded.
    */
   public Set<InternalDistributedMember> adviseCacheOp() {
-    return adviseAllEventsOrCached(true);
+    return adviseAllEventsOrCached();
   }
 
   /*
