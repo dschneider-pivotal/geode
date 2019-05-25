@@ -411,10 +411,10 @@ public class BucketRegion extends DistributedRegion implements Bucket {
     synchronized (allKeysMap) {
       // check if there's any key in map
       for (Object key : keys) {
-        if (allKeysMap.containsKey(key)) {
-          foundLock = allKeysMap.get(key);
+        foundLock = allKeysMap.get(key);
+        if (foundLock != null) {
           if (isDebugEnabled) {
-            logger.debug("LockKeys: found key: {}:{}", key, foundLock.lockedTimeStamp);
+            logger.debug("LockKeys: found key: {}", key);
           }
           foundLock.waiting();
           break;
@@ -424,11 +424,10 @@ public class BucketRegion extends DistributedRegion implements Bucket {
       // save the keys when still locked
       if (foundLock == null) {
         for (Object key : keys) {
-          LockObject lockValue =
-              new LockObject(key, isDebugEnabled ? System.currentTimeMillis() : 0);
+          LockObject lockValue = new LockObject();
           allKeysMap.put(key, lockValue);
           if (isDebugEnabled) {
-            logger.debug("LockKeys: add key: {}:{}", key, lockValue.lockedTimeStamp);
+            logger.debug("LockKeys: add key: {}", key);
           }
         }
       }
@@ -437,13 +436,33 @@ public class BucketRegion extends DistributedRegion implements Bucket {
     return foundLock;
   }
 
+  LockObject searchAndLockKey(Object key) {
+    final boolean isDebugEnabled = logger.isDebugEnabled();
+    LockObject lockValue = new LockObject();
+    synchronized (allKeysMap) {
+      // In most cases key will not be locked. So it is probably
+      // faster to just call putIfAbsent instead of get+put
+      LockObject foundLock = allKeysMap.putIfAbsent(key, lockValue);
+      if (foundLock != null) {
+        if (isDebugEnabled) {
+          logger.debug("searchAndLockKey: found key: {}", key);
+        }
+        foundLock.waiting();
+        return foundLock;
+      } else {
+        if (isDebugEnabled) {
+          logger.debug("searchAndLockKey: add key: {}", key);
+        }
+        return null;
+      }
+    }
+  }
+
   /**
    * After processed the keys, this method will remove them from CM. And notifyAll for each key. The
    * thread needs to acquire lock of CM first.
    */
   public void removeAndNotifyKeys(Object[] keys) {
-    final boolean isTraceEnabled = logger.isTraceEnabled();
-
     synchronized (allKeysMap) {
       for (Object key : keys) {
         LockObject lockValue = allKeysMap.remove(key);
@@ -451,17 +470,27 @@ public class BucketRegion extends DistributedRegion implements Bucket {
           // let current thread become the monitor of the key object
           synchronized (lockValue) {
             lockValue.setRemoved();
-            if (isTraceEnabled) {
-              long waitTime = System.currentTimeMillis() - lockValue.lockedTimeStamp;
-              logger.trace("LockKeys: remove key {}, notifyAll for {}. It waited {}", key,
-                  lockValue, waitTime);
-            }
             if (lockValue.isSomeoneWaiting()) {
               lockValue.notifyAll();
             }
           }
         }
       } // for
+    }
+  }
+
+  public void removeAndNotifyKey(Object key) {
+    synchronized (allKeysMap) {
+      LockObject lockValue = allKeysMap.remove(key);
+      if (lockValue != null) {
+        // let current thread become the monitor of the key object
+        synchronized (lockValue) {
+          lockValue.setRemoved();
+          if (lockValue.isSomeoneWaiting()) {
+            lockValue.notifyAll();
+          }
+        }
+      }
     }
   }
 
@@ -492,9 +521,35 @@ public class BucketRegion extends DistributedRegion implements Bucket {
               logger.debug("{} interrupted while waiting for {}", title, foundLock);
             }
           }
-          if (isDebugEnabled) {
-            long waitTime = System.currentTimeMillis() - foundLock.lockedTimeStamp;
-            logger.debug("{} waited {} ms to lock {}", title, waitTime, foundLock);
+        }
+      } else {
+        // now the keys have been locked by this thread
+        return true;
+      } // to lock and process
+    } // while
+  }
+
+  public boolean waitUntilKeyLocked(Object key) {
+    final boolean isDebugEnabled = logger.isDebugEnabled();
+
+    final String title = "BucketRegion.waitUntilLocked:";
+    while (true) {
+      LockObject foundLock = searchAndLockKey(key);
+
+      if (foundLock != null) {
+        synchronized (foundLock) {
+          try {
+            while (!foundLock.isRemoved()) {
+              partitionedRegion.checkReadiness();
+              foundLock.wait(1000);
+              // primary could be changed by prRebalancing while waiting here
+              checkForPrimary();
+            }
+          } catch (InterruptedException e) {
+            // TODO this isn't a localizable string and it's being logged at info level
+            if (isDebugEnabled) {
+              logger.debug("{} interrupted while waiting for {}", title, foundLock);
+            }
           }
         }
       } else {
@@ -747,8 +802,7 @@ public class BucketRegion extends DistributedRegion implements Bucket {
       throw cache.getCacheClosedException("Cache is shutting down");
     }
 
-    Object[] keys = getKeysToBeLocked(event);
-    waitUntilLocked(keys); // it might wait for long time
+    waitUntilKeyLocked(event.getKey()); // it might wait for long time
 
     boolean lockedForPrimary = false;
     try {
@@ -759,12 +813,13 @@ public class BucketRegion extends DistributedRegion implements Bucket {
       return lockedForPrimary;
     } finally {
       if (!lockedForPrimary) {
-        removeAndNotifyKeys(keys);
+        removeAndNotifyKey(event.getKey());
       }
     }
   }
 
   Object[] getKeysToBeLocked(EntryEventImpl event) {
+    // TODO: remove this method
     Object[] keys = new Object[1];
     keys[0] = event.getKey();
     return keys;
@@ -870,9 +925,7 @@ public class BucketRegion extends DistributedRegion implements Bucket {
    */
   void releaseLockForKeysAndPrimary(EntryEventImpl event) {
     doUnlockForPrimary();
-
-    Object[] keys = getKeysToBeLocked(event);
-    removeAndNotifyKeys(keys);
+    removeAndNotifyKey(event.getKey());
   }
 
   protected boolean needWriteLock(EntryEventImpl event) {

@@ -15,14 +15,14 @@
 package org.apache.geode.internal.cache.partitioned;
 
 public class LockObject {
-  public Object key;
-  public long lockedTimeStamp;
+  // public Object key;
+  // public long lockedTimeStamp;
   private boolean removed;
   private boolean waiting = false;
 
-  public LockObject(Object key, long lockedTimeStamp) {
-    this.key = key;
-    this.lockedTimeStamp = lockedTimeStamp;
+  public LockObject(/* Object key, long lockedTimeStamp */) {
+    // this.key = key;
+    // this.lockedTimeStamp = lockedTimeStamp;
   }
 
   public void waiting() {
@@ -45,7 +45,8 @@ public class LockObject {
 
   @Override
   public String toString() {
-    return "LockObject [key=" + key + ", lockedTimeStamp=" + lockedTimeStamp + ", removed="
+    return "LockObject ["
+        /* + "key=" + key + ", lockedTimeStamp=" + lockedTimeStamp */ + ", removed="
         + removed + ", waiting=" + waiting + "]";
   }
 }
