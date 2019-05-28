@@ -16,7 +16,6 @@ package org.apache.geode.internal.tcp;
 
 import java.io.IOException;
 import java.io.NotSerializableException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
 
@@ -41,7 +40,7 @@ class DirectReplySender implements ReplySender {
   private static final Logger logger = LogService.getLogger();
 
   @Immutable
-  private static final DMStats DUMMY_STATS = new DummyDMStats();
+  static final DMStats DUMMY_STATS = new DummyDMStats();
 
   private final Connection conn;
   private boolean sentReply = false;
@@ -63,9 +62,7 @@ class DirectReplySender implements ReplySender {
       logger.trace(LogMarker.DM_VERBOSE, "Sending a direct reply {} to {}", msg,
           conn.getRemoteAddress());
     }
-    ArrayList<Connection> conns = new ArrayList<Connection>(1);
-    conns.add(conn);
-    MsgStreamer ms = (MsgStreamer) MsgStreamer.create(conns, msg, false, DUMMY_STATS);
+    MsgStreamer ms = conn.getDirectReplyMsgStreamer(msg);
     try {
       ms.writeMessage();
       ConnectExceptions ce = ms.getConnectExceptions();
@@ -89,7 +86,5 @@ class DirectReplySender implements ReplySender {
         throw new InternalGemFireException("Unknown error serializing message", e);
       }
     }
-
   }
-
 }

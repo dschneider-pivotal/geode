@@ -30,6 +30,7 @@ import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -3588,6 +3589,24 @@ public class Connection implements Runnable {
     // and release the permit until all the connections currently waiting to acquire
     // will complete by throwing a ConnectionException.
     releaseSendPermission();
+  }
+
+  // TODO: need to unset reuse and then call release on this MsgStreamer when this connection is
+  // closed
+  private MsgStreamer directReplyMsgStreamer;
+
+  public MsgStreamer getDirectReplyMsgStreamer(DistributionMessage msg) {
+    MsgStreamer result = directReplyMsgStreamer;
+    if (result != null) {
+      result.initializeForReuse(msg);
+    } else {
+      ArrayList<Connection> conns = new ArrayList<Connection>(1);
+      conns.add(this);
+      result = (MsgStreamer) MsgStreamer.create(conns, msg, false, DirectReplySender.DUMMY_STATS);
+      result.configureForReuse();
+      directReplyMsgStreamer = result;
+    }
+    return result;
   }
 
 }

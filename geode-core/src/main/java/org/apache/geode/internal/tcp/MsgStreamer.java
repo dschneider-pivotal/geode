@@ -70,7 +70,7 @@ public class MsgStreamer extends OutputStream
   private final ByteBuffer buffer;
   private int flushedBytes = 0;
   // the message this streamer is to send
-  private final DistributionMessage msg;
+  private DistributionMessage msg;
   /**
    * True if this message went out as a normal one (it fit it one chunk) False if this message
    * needed to be chunked.
@@ -97,8 +97,10 @@ public class MsgStreamer extends OutputStream
   protected void release() {
     MsgIdGenerator.release(this.msgId);
     this.buffer.clear();
-    this.overflowBuf = null;
-    Buffers.releaseSenderBuffer(this.buffer, this.stats);
+    this.overflowBuf = null; // TODO if reuseEnabled then consider reusing this HDOS
+    if (!reuseEnabled) {
+      Buffers.releaseSenderBuffer(this.buffer, this.stats);
+    }
   }
 
   /**
@@ -355,6 +357,16 @@ public class MsgStreamer extends OutputStream
         }
       }
     } finally {
+      if (reuseEnabled) {
+        ce = null;
+        doneWritingMsg = false;
+        flushedBytes = 0;
+        msgId = 0;
+        normalMsg = false;
+        overflowMode = 0;
+        serStartTime = 0;
+        startedSerializingMsg = false;
+      }
       super.close();
     }
   }
@@ -970,5 +982,17 @@ public class MsgStreamer extends OutputStream
     }
   }
 
+  private boolean reuseEnabled;
 
+  public void configureForReuse() {
+    this.reuseEnabled = true;
+  }
+
+  public void initializeForReuse(DistributionMessage msg) {
+    this.msg = msg;
+    this.buffer.clear();
+    this.buffer.position(Connection.MSG_HEADER_BYTES);
+    this.msgId = MsgIdGenerator.NO_MSG_ID;
+    startSerialization();
+  }
 }
