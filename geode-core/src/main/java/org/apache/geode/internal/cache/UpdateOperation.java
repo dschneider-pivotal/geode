@@ -92,11 +92,7 @@ public class UpdateOperation extends AbstractUpdateOperation {
   @Override
   protected void initProcessor(CacheOperationReplyProcessor p, CacheOperationMessage msg) {
     if (processor != null) {
-      if (msg instanceof UpdateWithContextMessage) {
-        processor.msg = new UpdateWithContextMessage((UpdateWithContextMessage) msg);
-      } else {
-        processor.msg = new UpdateMessage((UpdateMessage) msg);
-      }
+      processor.msg = msg;
     }
   }
 
@@ -234,6 +230,7 @@ public class UpdateOperation extends AbstractUpdateOperation {
                 updateMsg.setRecipient(replyMessage.getSender());
                 updateMsg.setSendDelta(false);
                 updateMsg.setSendDeltaWithFullValue(false);
+                updateMsg.clearOldValue();
                 if (logger.isDebugEnabled()) {
                   logger.debug("Sending full object ({}) to {}", updateMsg,
                       replyMessage.getSender());

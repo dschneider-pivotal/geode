@@ -121,11 +121,6 @@ public class DistributedClearOperation extends DistributedCacheOperation {
   }
 
   @Override
-  protected void initProcessor(CacheOperationReplyProcessor p, CacheOperationMessage msg) {
-    super.initProcessor(p, msg);
-  }
-
-  @Override
   protected boolean supportsAdjunctMessaging() {
     return false;
   }

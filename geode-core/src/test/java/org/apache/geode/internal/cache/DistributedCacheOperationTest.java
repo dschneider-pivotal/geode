@@ -37,14 +37,12 @@ public class DistributedCacheOperationTest {
   @Test
   public void shouldBeMockable() throws Exception {
     DistributedCacheOperation mockDistributedCacheOperation = mock(DistributedCacheOperation.class);
-    CacheOperationMessage mockCacheOperationMessage = mock(CacheOperationMessage.class);
     Map<InternalDistributedMember, PersistentMemberID> persistentIds = new HashMap<>();
     when(mockDistributedCacheOperation.supportsDirectAck()).thenReturn(false);
 
-    mockDistributedCacheOperation.waitForAckIfNeeded(mockCacheOperationMessage, persistentIds);
+    mockDistributedCacheOperation.waitForAckIfNeeded(persistentIds);
 
-    verify(mockDistributedCacheOperation, times(1)).waitForAckIfNeeded(mockCacheOperationMessage,
-        persistentIds);
+    verify(mockDistributedCacheOperation, times(1)).waitForAckIfNeeded(persistentIds);
 
     assertThat(mockDistributedCacheOperation.supportsDirectAck()).isFalse();
   }

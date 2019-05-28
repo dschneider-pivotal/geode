@@ -589,6 +589,8 @@ public abstract class DistributedCacheOperation {
           msg.resetRecipients();
           msg.setRecipients(needsOldValueInCacheOp);
           Set newFailures = mgr.putOutgoing(msg);
+          // after sending this msg out; clear the old value
+          msg.clearOldValue();
           if (newFailures != null) {
             if (logger.isDebugEnabled()) {
               logger.debug("Failed sending ({}) to {}", msg, newFailures);
@@ -689,7 +691,7 @@ public abstract class DistributedCacheOperation {
           event.setLocalFilterInfo(filterInfo);
         }
 
-        waitForAckIfNeeded(msg, persistentIds);
+        waitForAckIfNeeded(persistentIds);
 
         if (/* msg != null && */reliableOp) {
           Set successfulRecips = new HashSet(recipients);
@@ -784,7 +786,7 @@ public abstract class DistributedCacheOperation {
     // nothing to do here - see UpdateMessage
   }
 
-  protected void waitForAckIfNeeded(CacheOperationMessage msg,
+  protected void waitForAckIfNeeded(
       Map<InternalDistributedMember, PersistentMemberID> persistentIds) {
     if (this.processor == null) {
       return;
@@ -1549,6 +1551,12 @@ public abstract class DistributedCacheOperation {
       this.oldValueIsSerialized = isSerialized;
       this.oldValue = ov;
       this.hasOldValue = true;
+    }
+
+    void clearOldValue() {
+      this.oldValueIsSerialized = false;
+      this.oldValue = null;
+      this.hasOldValue = false;
     }
 
     protected boolean _mayAddToMultipleSerialGateways(ClusterDistributionManager dm) {
