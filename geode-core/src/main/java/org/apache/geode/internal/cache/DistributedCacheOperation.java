@@ -795,8 +795,10 @@ public abstract class DistributedCacheOperation {
       // keep waiting even if interrupted
       try {
         this.processor.waitForRepliesUninterruptibly();
-        Set<InternalDistributedMember> closedMembers = this.processor.closedMembers.getSnapshot();
-        handleClosedMembers(closedMembers, persistentIds);
+        if (!this.processor.closedMembers.isEmpty()) {
+          Set<InternalDistributedMember> closedMembers = this.processor.closedMembers.getSnapshot();
+          handleClosedMembers(closedMembers, persistentIds);
+        }
       } catch (ReplyException e) {
         if (this instanceof DestroyRegionOperation) {
           logger.fatal("waitForAckIfNeeded: exception", e);
