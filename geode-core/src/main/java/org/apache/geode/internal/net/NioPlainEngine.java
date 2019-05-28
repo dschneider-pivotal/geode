@@ -24,7 +24,6 @@ import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.distributed.internal.DMStats;
 import org.apache.geode.internal.Assert;
-import org.apache.geode.internal.cache.tier.sockets.ServerConnection;
 import org.apache.geode.internal.logging.LogService;
 
 /**
@@ -68,11 +67,7 @@ public class NioPlainEngine implements NioFilter {
       if (bufferSize < minimumBufferSize) {
         bufferSize = minimumBufferSize;
       }
-      if (bufferType == Buffers.BufferType.TRACKED_RECEIVER) {
-        buffer = ServerConnection.allocateReceiveByteBuffer(bufferSize, stats);
-      } else {
-        buffer = Buffers.acquireBuffer(bufferType, bufferSize, stats);
-      }
+      buffer = Buffers.acquireBuffer(bufferType, bufferSize, stats);
       buffer.clear();
       lastProcessedPosition = 0;
       lastReadPosition = 0;
