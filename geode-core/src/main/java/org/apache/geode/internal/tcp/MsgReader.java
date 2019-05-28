@@ -53,7 +53,10 @@ public class MsgReader {
         version == null ? new ByteBufferInputStream() : new VersionedByteBufferInputStream(version);
   }
 
+  private boolean beingReused;
+
   void initializeForReuse() {
+    beingReused = true;
     ioFilter.initializeForReuse();
     peerNetData.clear();
   }
@@ -102,7 +105,9 @@ public class MsgReader {
     int position = nioInputBuffer.position();
     int limit = nioInputBuffer.limit();
     try {
-      byteBufferInputStream.setBuffer(nioInputBuffer);
+      if (!beingReused) {
+        byteBufferInputStream.setBuffer(nioInputBuffer);
+      }
       ReplyProcessor21.initMessageRPId();
       // dumpState("readMessage ready to deserialize", null, nioInputBuffer, position, limit);
       return (DistributionMessage) InternalDataSerializer.readDSFID(byteBufferInputStream);
