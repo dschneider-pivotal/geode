@@ -2820,6 +2820,9 @@ public class Connection implements Runnable {
   /** set to true if we exceeded the ack-wait-threshold waiting for a response */
   private volatile boolean ackTimedOut;
 
+  // TODO: when this connection is closed; close ackMsgReader
+  private MsgReader ackMsgReader = null;
+
   /**
    * @throws SocketTimeoutException if wait expires.
    * @throws ConnectionException if ack is not received
@@ -2840,7 +2843,16 @@ public class Connection implements Runnable {
     DMStats stats = owner.getConduit().getStats();
     final Version version = getRemoteVersion();
     try {
-      msgReader = new MsgReader(this, ioFilter, version);
+      if (ioFilter.supportsReuse()) {
+        if (ackMsgReader == null) {
+          ackMsgReader = new MsgReader(this, ioFilter, version);
+        } else {
+          ackMsgReader.initializeForReuse();
+        }
+        msgReader = ackMsgReader;
+      } else {
+        msgReader = new MsgReader(this, ioFilter, version);
+      }
 
       Header header = msgReader.readHeader();
 
@@ -2915,7 +2927,7 @@ public class Connection implements Runnable {
             getRemoteAddress());
         this.ackTimedOut = false;
       }
-      if (msgReader != null) {
+      if (ackMsgReader == null && msgReader != null) {
         msgReader.close();
       }
     }

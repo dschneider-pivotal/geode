@@ -83,5 +83,12 @@ public interface NioFilter {
    */
   ByteBuffer getUnwrappedBuffer(ByteBuffer wrappedBuffer);
 
+  default void initializeForReuse() {
+    // nothing by default
+  }
+
+  default boolean supportsReuse() {
+    return false;
+  }
 
 }

@@ -1377,6 +1377,10 @@ public abstract class ServerConnection implements Runnable {
     }
   }
 
+  public static boolean isServerConnectionThread() {
+    return partCacheReference.get() != null;
+  }
+
 
   /**
    * Register this connection with the given selector for read events. Note that switch the channel

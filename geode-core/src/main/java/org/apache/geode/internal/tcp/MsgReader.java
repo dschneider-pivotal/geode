@@ -53,6 +53,11 @@ public class MsgReader {
         version == null ? new ByteBufferInputStream() : new VersionedByteBufferInputStream(version);
   }
 
+  void initializeForReuse() {
+    ioFilter.initializeForReuse();
+    peerNetData.clear();
+  }
+
   Header readHeader() throws IOException {
     ByteBuffer unwrappedBuffer = readAtLeast(Connection.MSG_HEADER_BYTES);
 

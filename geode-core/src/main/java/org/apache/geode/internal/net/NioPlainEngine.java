@@ -47,6 +47,17 @@ public class NioPlainEngine implements NioFilter {
   }
 
   @Override
+  public boolean supportsReuse() {
+    return true;
+  }
+
+  @Override
+  public void initializeForReuse() {
+    lastReadPosition = 0;
+    lastProcessedPosition = 0;
+  }
+
+  @Override
   public ByteBuffer wrap(ByteBuffer buffer) {
     return buffer;
   }
