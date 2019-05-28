@@ -53,6 +53,7 @@ import org.apache.geode.annotations.internal.MutableForTesting;
 import org.apache.geode.cache.UnsupportedVersionException;
 import org.apache.geode.cache.client.internal.Connection;
 import org.apache.geode.distributed.DistributedSystem;
+import org.apache.geode.distributed.internal.DMStats;
 import org.apache.geode.internal.Assert;
 import org.apache.geode.internal.ByteArrayDataInput;
 import org.apache.geode.internal.HeapDataOutputStream;
@@ -70,6 +71,7 @@ import org.apache.geode.internal.cache.tier.ServerSideHandshake;
 import org.apache.geode.internal.cache.tier.sockets.command.Default;
 import org.apache.geode.internal.logging.InternalLogWriter;
 import org.apache.geode.internal.logging.LogService;
+import org.apache.geode.internal.net.Buffers;
 import org.apache.geode.internal.security.AuthorizeRequest;
 import org.apache.geode.internal.security.AuthorizeRequestPP;
 import org.apache.geode.internal.security.SecurityService;
@@ -1245,6 +1247,7 @@ public abstract class ServerConnection implements Runnable {
     private final ArrayList<byte[]>[] byteArrayCache = new ArrayList[MAX_CACHED_BYTE_ARRAY_SIZE];
     private final ByteArrayDataInput byteArrayDataInputCache = new ByteArrayDataInput();
     private EventIDHolder eventIDHolderCache = null;
+    private ByteBuffer receiveByteBuffer = null;
 
     public HeapDataOutputStream pollHeapDataOutputStream() {
       if (idx < 0) {
@@ -1300,6 +1303,14 @@ public abstract class ServerConnection implements Runnable {
 
     public void setEventIDHolder(EventIDHolder value) {
       this.eventIDHolderCache = value;
+    }
+
+    public ByteBuffer getReceiveByteBuffer() {
+      return this.receiveByteBuffer;
+    }
+
+    public void setReceiveByteBuffer(ByteBuffer value) {
+      this.receiveByteBuffer = value;
     }
   }
 
@@ -1377,6 +1388,35 @@ public abstract class ServerConnection implements Runnable {
     }
   }
 
+  public static ByteBuffer allocateReceiveByteBuffer(int capacity, DMStats stats) {
+    PartCache partCache = partCacheReference.get();
+    if (partCache != null) {
+      ByteBuffer result = partCache.getReceiveByteBuffer();
+      if (result == null || result.capacity() != capacity) {
+        ByteBuffer newBuffer = Buffers.acquireReceiveBuffer(capacity, stats);
+        if (result == null) {
+          partCache.setReceiveByteBuffer(newBuffer);
+        }
+        result = newBuffer;
+      }
+      return result;
+    } else {
+      return Buffers.acquireReceiveBuffer(capacity, stats);
+    }
+    // TODO: need to add some code that will release this ByteBuffer when ServerConnection is closed
+  }
+
+  public static void releaseReceiveByteBuffer(ByteBuffer buffer, DMStats stats) {
+    PartCache partCache = partCacheReference.get();
+    if (partCache != null) {
+      ByteBuffer cachedBuffer = partCache.getReceiveByteBuffer();
+      if (cachedBuffer != buffer) {
+        Buffers.releaseReceiveBuffer(buffer, stats);
+      }
+    } else {
+      Buffers.releaseReceiveBuffer(buffer, stats);
+    }
+  }
 
   /**
    * Register this connection with the given selector for read events. Note that switch the channel
