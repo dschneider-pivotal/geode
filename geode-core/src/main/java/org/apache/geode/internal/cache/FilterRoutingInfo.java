@@ -17,6 +17,7 @@ package org.apache.geode.internal.cache;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -65,8 +66,16 @@ public class FilterRoutingInfo implements VersionedDataSerializable {
   /**
    * Map containing peer-server to filter message.
    */
-  private HashMap<InternalDistributedMember, FilterInfo> serverFilterInfo =
-      new HashMap<InternalDistributedMember, FilterInfo>();
+  private Map<InternalDistributedMember, FilterInfo> serverFilterInfo;
+
+
+  public FilterRoutingInfo() {
+    this(new HashMap<>());
+  }
+
+  public FilterRoutingInfo(Map<InternalDistributedMember, FilterInfo> map) {
+    this.serverFilterInfo = map;
+  }
 
   /**
    * Sets the local CQ filter information.
@@ -225,17 +234,23 @@ public class FilterRoutingInfo implements VersionedDataSerializable {
     if (cache != null) {
       myID = cache.getMyId();
     }
+    if (myID == null) {
+      this.serverFilterInfo = new HashMap<>();
+    }
     int size = in.readInt();
     for (int i = 0; i < size; i++) {
       InternalDistributedMember member = readInternalDistributedMember(in, myID);
-      FilterInfo fInfo = new FilterInfo();
-      InternalDataSerializer.invokeFromData(fInfo, in);
       // we only need to retain the recipient's entry
       if (member == null) {
+        FilterInfo.skipFromData(in);
         continue;
       }
-      if (myID == null || myID.equals(member)) {
+      FilterInfo fInfo = new FilterInfo();
+      InternalDataSerializer.invokeFromData(fInfo, in);
+      if (myID == null) {
         this.serverFilterInfo.put(member, fInfo);
+      } else if (myID.equals(member)) {
+        this.serverFilterInfo = Collections.singletonMap(member, fInfo);
       }
     }
   }
@@ -425,6 +440,11 @@ public class FilterRoutingInfo implements VersionedDataSerializable {
     public void fromData(DataInput in) throws IOException, ClassNotFoundException {
       this.myData = DataSerializer.readByteArray(in);
     }
+
+    public static void skipFromData(DataInput in) throws IOException {
+      InternalDataSerializer.skipByteArray(in);
+    }
+
 
     @Override
     public void toData(DataOutput out) throws IOException {

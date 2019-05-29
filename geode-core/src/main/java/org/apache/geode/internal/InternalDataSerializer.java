@@ -2626,6 +2626,15 @@ public abstract class InternalDataSerializer extends DataSerializer {
     return readString(in, DscodeHelper.toDSCODE(header));
   }
 
+  public static void skipByteArray(DataInput in) throws IOException {
+    InternalDataSerializer.checkIn(in);
+
+    int length = InternalDataSerializer.readArrayLength(in);
+    if (length != -1) {
+      in.skipBytes(length);
+    }
+  }
+
   public static void skipString(ByteBufferInputStream in) throws IOException {
     DSCODE dscode = DscodeHelper.toDSCODE(in.readByte());
     switch (dscode) {

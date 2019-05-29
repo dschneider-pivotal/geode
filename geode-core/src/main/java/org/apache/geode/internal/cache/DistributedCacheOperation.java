@@ -1413,7 +1413,7 @@ public abstract class DistributedCacheOperation {
       boolean hasFilterInfo = (bits & FILTER_INFO_MASK) != 0;
       this.needsRouting = (bits & NEEDS_ROUTING_MASK) != 0;
       if (hasFilterInfo) {
-        this.filterRouting = new FilterRoutingInfo();
+        this.filterRouting = new FilterRoutingInfo(null);
         InternalDataSerializer.invokeFromData(this.filterRouting, in);
       }
       if ((bits & VERSION_TAG_MASK) != 0) {
