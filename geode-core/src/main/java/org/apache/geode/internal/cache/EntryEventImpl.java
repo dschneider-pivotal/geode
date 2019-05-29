@@ -187,7 +187,7 @@ public class EntryEventImpl implements InternalEntryEvent, InternalCacheEvent,
     // do nothing
   }
 
-  public void initializeForReuse() {
+  protected void initializeForReuse() {
     cachedSerializedNewValue = null;
     causedByMessage = null;
     context = null;
@@ -303,19 +303,7 @@ public class EntryEventImpl implements InternalEntryEvent, InternalCacheEvent,
     }
     setOriginRemote(originRemote);
     setGenerateCallbacks(generateCallbacks);
-    setDistributedMember(distributedMember);
-  }
-
-  public void setTxIdFromRegion() {
-    this.txId = region.getTXId();
-  }
-
-  public void setDistributedMember(DistributedMember value) {
-    distributedMember = value;
-  }
-
-  public void setKeyInfoFromRegion(Object key, Object value, Object callbackArg) {
-    this.keyInfo = region.getKeyInfo(key, value, callbackArg);
+    this.distributedMember = distributedMember;
   }
 
   /**
