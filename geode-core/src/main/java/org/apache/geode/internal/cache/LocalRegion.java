@@ -5188,6 +5188,9 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
     }
   }
 
+  // This is a hack to have servers just hold on to one byte[] to see what it does to perf
+  private static byte[] canonicalValue;
+
   public boolean basicBridgePut(Object key, Object value, byte[] deltaBytes, boolean isObject,
       Object callbackArg, ClientProxyMembershipID memberId, boolean fromClient,
       EntryEventImpl clientEvent) throws TimeoutException, CacheWriterException {
@@ -5227,6 +5230,11 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
       // Set the new value to the input byte[]. If the byte[] represents an object, then store it
       // serialized in a CachedDeserializable; otherwise store it directly as a byte[].
       if (isObject && value instanceof byte[]) {
+        if (canonicalValue == null) {
+          canonicalValue = (byte[]) value;
+        } else {
+          value = canonicalValue;
+        }
         event.setSerializedNewValue((byte[]) value);
       } else {
         event.setNewValue(value);
