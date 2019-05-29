@@ -193,6 +193,7 @@ import org.apache.geode.internal.cache.tier.sockets.ClientHealthMonitor;
 import org.apache.geode.internal.cache.tier.sockets.ClientProxyMembershipID;
 import org.apache.geode.internal.cache.tier.sockets.ClientTombstoneMessage;
 import org.apache.geode.internal.cache.tier.sockets.ClientUpdateMessage;
+import org.apache.geode.internal.cache.tier.sockets.ServerConnection;
 import org.apache.geode.internal.cache.tier.sockets.VersionedObjectList;
 import org.apache.geode.internal.cache.versions.ConcurrentCacheModificationException;
 import org.apache.geode.internal.cache.versions.RegionVersionHolder;
@@ -5204,11 +5205,17 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
     }
 
     @Released
-    final EntryEventImpl event = entryEventFactory.create(this, Operation.UPDATE, key,
-        null, theCallbackArg, false,
-        memberId.getDistributedMember(), true, eventID);
-
+    final EntryEventImpl event = ServerConnection.allocateEntryEventImpl();
     try {
+      event.setRegion(this);
+      event.setOperation(Operation.UPDATE);
+      event.setNewValue(null);
+      event.setKeyInfoFromRegion(key, null, theCallbackArg);
+      event.setTxIdFromRegion();
+      event.setDistributedMember(memberId.getDistributedMember());
+      event.setOriginRemote(false);
+      event.setGenerateCallbacks(true);
+      event.setEventId(eventID);
       event.setContext(memberId);
       event.setDeltaBytes(deltaBytes);
 
