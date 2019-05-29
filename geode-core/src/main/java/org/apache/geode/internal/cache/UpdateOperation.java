@@ -37,6 +37,7 @@ import org.apache.geode.internal.Assert;
 import org.apache.geode.internal.InternalDataSerializer;
 import org.apache.geode.internal.cache.EntryEventImpl.NewValueImporter;
 import org.apache.geode.internal.cache.tier.sockets.ClientProxyMembershipID;
+import org.apache.geode.internal.cache.tier.sockets.ServerConnection;
 import org.apache.geode.internal.logging.LogService;
 import org.apache.geode.internal.offheap.annotations.Retained;
 import org.apache.geode.internal.offheap.annotations.Unretained;
@@ -291,11 +292,16 @@ public class UpdateOperation extends AbstractUpdateOperation {
 
     @Retained
     protected EntryEventImpl createEntryEvent(DistributedRegion rgn) {
-      Object argNewValue = null;
-      final boolean originRemote = true, generateCallbacks = true;
       @Retained
-      EntryEventImpl result = EntryEventImpl.create(rgn, getOperation(), this.key, argNewValue, // oldValue,
-          this.callbackArg, originRemote, getSender(), generateCallbacks);
+      EntryEventImpl result = ServerConnection.allocateEntryEventImpl();
+      result.setRegion(rgn);
+      result.setOperation(getOperation());
+      result.setNewValue(null);
+      result.setKeyInfoFromRegion(this.key, null, this.callbackArg);
+      result.setTxIdFromRegion();
+      result.setDistributedMember(getSender());
+      result.setOriginRemote(true);
+      result.setGenerateCallbacks(true);
       setOldValueInEvent(result);
       result.setTailKey(this.tailKey);
       if (this.versionTag != null) {

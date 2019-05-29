@@ -57,6 +57,7 @@ import org.apache.geode.internal.Assert;
 import org.apache.geode.internal.ByteArrayDataInput;
 import org.apache.geode.internal.HeapDataOutputStream;
 import org.apache.geode.internal.Version;
+import org.apache.geode.internal.cache.EntryEventImpl;
 import org.apache.geode.internal.cache.EventID;
 import org.apache.geode.internal.cache.EventIDHolder;
 import org.apache.geode.internal.cache.InternalCache;
@@ -1245,6 +1246,7 @@ public abstract class ServerConnection implements Runnable {
     private final ArrayList<byte[]>[] byteArrayCache = new ArrayList[MAX_CACHED_BYTE_ARRAY_SIZE];
     private final ByteArrayDataInput byteArrayDataInputCache = new ByteArrayDataInput();
     private EventIDHolder eventIDHolderCache = null;
+    private EntryEventImpl entryEventImpl = null;
 
     public HeapDataOutputStream pollHeapDataOutputStream() {
       if (idx < 0) {
@@ -1295,11 +1297,19 @@ public abstract class ServerConnection implements Runnable {
     }
 
     public EventIDHolder getEventIDHolder() {
-      return this.eventIDHolderCache;
+      return eventIDHolderCache;
     }
 
     public void setEventIDHolder(EventIDHolder value) {
-      this.eventIDHolderCache = value;
+      eventIDHolderCache = value;
+    }
+
+    public EntryEventImpl getEntryEventImpl() {
+      return entryEventImpl;
+    }
+
+    public void setEntryEventImpl(EntryEventImpl value) {
+      entryEventImpl = value;
     }
   }
 
@@ -1374,6 +1384,22 @@ public abstract class ServerConnection implements Runnable {
       return result;
     } else {
       return new EventIDHolder(new EventID(memId, threadId, seqId));
+    }
+  }
+
+  public static EntryEventImpl allocateEntryEventImpl() {
+    PartCache partCache = partCacheReference.get();
+    if (partCache != null) {
+      EntryEventImpl result = partCache.getEntryEventImpl();
+      if (result == null) {
+        result = new EntryEventImpl();
+        partCache.setEntryEventImpl(result);
+      } else {
+        result.initializeForReuse();
+      }
+      return result;
+    } else {
+      return new EntryEventImpl();
     }
   }
 
