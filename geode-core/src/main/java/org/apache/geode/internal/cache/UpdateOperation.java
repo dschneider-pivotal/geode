@@ -347,8 +347,6 @@ public class UpdateOperation extends AbstractUpdateOperation {
       return UPDATE_MESSAGE;
     }
 
-    private static byte[] canonicalValue;
-
     @Override
     public void fromData(DataInput in) throws IOException, ClassNotFoundException {
       super.fromData(in);
@@ -372,11 +370,6 @@ public class UpdateOperation extends AbstractUpdateOperation {
         this.deltaBytes = DataSerializer.readByteArray(in);
       } else {
         this.newValue = DataSerializer.readByteArray(in);
-        if (canonicalValue == null) {
-          canonicalValue = this.newValue;
-        } else {
-          this.newValue = canonicalValue;
-        }
         if ((extraFlags & HAS_DELTA_WITH_FULL_VALUE) != 0) {
           this.deltaBytes = DataSerializer.readByteArray(in);
         }
