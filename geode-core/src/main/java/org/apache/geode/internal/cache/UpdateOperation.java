@@ -507,19 +507,19 @@ public class UpdateOperation extends AbstractUpdateOperation {
     @Override
     @Retained
     public EntryEventImpl createEntryEvent(DistributedRegion rgn) {
-      // Object oldValue = null;
-      final Object argNewValue = null;
-      // boolean localLoad = false, netLoad = false, netSearch = false,
-      // distributed = true;
-      final boolean originRemote = true, generateCallbacks = true;
       @Retained
-      EntryEventImpl ev = EntryEventImpl.create(rgn, getOperation(), this.key, argNewValue,
-          this.callbackArg, originRemote, getSender(), generateCallbacks);
-      ev.setContext(this.clientID);
-      setOldValueInEvent(ev);
-      return ev;
-      // localLoad, netLoad, netSearch,
-      // distributed, this.isExpiration, originRemote, this.context);
+      EntryEventImpl result = ServerConnection.allocateEntryEventImpl();
+      result.setRegion(rgn);
+      result.setOperation(getOperation());
+      result.setNewValue(null);
+      result.setKeyInfoFromRegion(this.key, null, this.callbackArg);
+      result.setTxIdFromRegion();
+      result.setDistributedMember(getSender());
+      result.setOriginRemote(true);
+      result.setGenerateCallbacks(true);
+      result.setContext(this.clientID);
+      setOldValueInEvent(result);
+      return result;
     }
 
     public UpdateWithContextMessage() {}
