@@ -303,7 +303,7 @@ public class GatewayReceiverCommand extends BaseCommand {
                   }
                   clientEvent.setPossibleDuplicate(possibleDuplicate);
                   handleMessageRetry(region, clientEvent);
-                  byte[] value = valuePart.getSerializedForm();
+                  byte[] value = valuePart.getSerializedFormCopy();
                   boolean isObject = valuePart.isObject();
                   // [sumedh] This should be done on client while sending
                   // since that is the WAN gateway
@@ -413,7 +413,7 @@ public class GatewayReceiverCommand extends BaseCommand {
                   }
                   clientEvent.setPossibleDuplicate(possibleDuplicate);
                   handleMessageRetry(region, clientEvent);
-                  byte[] value = valuePart.getSerializedForm();
+                  byte[] value = valuePart.getSerializedFormCopy();
                   boolean isObject = valuePart.isObject();
                   AuthorizeRequest authzRequest = serverConnection.getAuthzRequest();
                   if (authzRequest != null) {

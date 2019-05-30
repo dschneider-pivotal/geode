@@ -200,11 +200,11 @@ public class PutAll80 extends BaseCommand {
           if (skipCallbacks && Token.INVALID.isSerializedValue(valuePart.getSerializedForm())) {
             value = Token.INVALID;
           } else {
-            value = CachedDeserializableFactory.create(valuePart.getSerializedForm(),
+            value = CachedDeserializableFactory.create(valuePart.getSerializedFormCopy(),
                 region.getCache());
           }
         } else {
-          value = valuePart.getSerializedForm();
+          value = valuePart.getSerializedFormCopy();
         }
         // put serializedform for auth. It will be modified with auth callback
         if (clientMessage.isRetry()) {

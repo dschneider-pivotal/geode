@@ -382,6 +382,17 @@ public class Part {
     }
   }
 
+  public byte[] getSerializedFormCopy() {
+    if (this.part == null) {
+      return null;
+    } else if (this.part instanceof byte[]) {
+      byte[] original = (byte[]) this.part;
+      return Arrays.copyOf(original, original.length);
+    } else {
+      return null; // should not be called on sender side?
+    }
+  }
+
   public Object getObject(boolean unzip) throws IOException, ClassNotFoundException {
     if (isBytes()) {
       return this.part;

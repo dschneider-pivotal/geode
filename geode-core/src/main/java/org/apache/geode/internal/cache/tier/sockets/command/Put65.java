@@ -234,7 +234,7 @@ public class Put65 extends BaseCommand {
     try {
       Object value = null;
       if (!isDelta) {
-        value = valuePart.getSerializedForm();
+        value = valuePart.getSerializedFormCopy();
       }
       boolean isObject = valuePart.isObject();
       boolean isMetaRegion = region.isUsedForMetaRegion();
@@ -383,7 +383,7 @@ public class Put65 extends BaseCommand {
         // Put the entry
         byte[] delta = null;
         if (isDelta) {
-          delta = valuePart.getSerializedForm();
+          delta = valuePart.getSerializedFormCopy();
         }
         TXManagerImpl txMgr =
             (TXManagerImpl) serverConnection.getCache().getCacheTransactionManager();

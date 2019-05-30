@@ -148,9 +148,10 @@ public class PutAll extends BaseCommand {
         Object value;
         if (valuePart.isObject()) {
           value =
-              CachedDeserializableFactory.create(valuePart.getSerializedForm(), region.getCache());
+              CachedDeserializableFactory.create(valuePart.getSerializedFormCopy(),
+                  region.getCache());
         } else {
-          value = valuePart.getSerializedForm();
+          value = valuePart.getSerializedFormCopy();
         }
         // put serializedform for auth. It will be modified with auth callback
         map.put(key, value);

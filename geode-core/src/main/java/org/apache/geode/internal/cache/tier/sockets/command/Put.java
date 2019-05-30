@@ -144,7 +144,7 @@ public class Put extends BaseCommand {
         new EventID(serverConnection.getEventMemberIDByteArray(), threadId, sequenceId);
 
     try {
-      byte[] value = valuePart.getSerializedForm();
+      byte[] value = valuePart.getSerializedFormCopy();
       boolean isObject = valuePart.isObject();
 
       securityService.authorize(Resource.DATA, Operation.WRITE, regionName, key.toString());
