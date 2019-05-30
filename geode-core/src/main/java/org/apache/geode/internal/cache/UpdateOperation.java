@@ -371,11 +371,10 @@ public class UpdateOperation extends AbstractUpdateOperation {
       if (hasDelta()) {
         this.deltaBytes = DataSerializer.readByteArray(in);
       } else {
+        this.newValue = DataSerializer.readByteArray(in);
         if (canonicalValue == null) {
-          this.newValue = DataSerializer.readByteArray(in);
           canonicalValue = this.newValue;
         } else {
-          InternalDataSerializer.skipByteArray(in);
           this.newValue = canonicalValue;
         }
         if ((extraFlags & HAS_DELTA_WITH_FULL_VALUE) != 0) {
