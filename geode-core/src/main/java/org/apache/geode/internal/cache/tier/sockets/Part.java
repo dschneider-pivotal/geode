@@ -395,6 +395,7 @@ public class Part {
 
   public Object getObject(boolean unzip) throws IOException, ClassNotFoundException {
     if (isBytes()) {
+      // TODO: if we keep caching byte arrays in the PartCache then we may need to copy them here
       return this.part;
     } else {
       ByteArrayDataInput input = ServerConnection.allocatePartByteArrayDataInput();
