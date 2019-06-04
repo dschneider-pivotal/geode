@@ -14,6 +14,8 @@
  */
 package org.apache.geode.internal.offheap;
 
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+
 import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.internal.offheap.FreeListManager.LongStack;
@@ -24,6 +26,8 @@ import org.apache.geode.internal.offheap.FreeListManager.LongStack;
  * free-list of the FreeListManager. This class is thread safe.
  */
 public class OffHeapStoredObjectAddressStack implements LongStack {
+  private static final AtomicLongFieldUpdater<OffHeapStoredObjectAddressStack> topAddrUpdater =
+      AtomicLongFieldUpdater.newUpdater(OffHeapStoredObjectAddressStack.class, "topAddr");
   // Ok to read without sync but must be synced on write
   private volatile long topAddr;
 
@@ -44,21 +48,22 @@ public class OffHeapStoredObjectAddressStack implements LongStack {
   public void offer(long e) {
     assert e != 0;
     MemoryAllocatorImpl.validateAddress(e);
-    synchronized (this) {
-      OffHeapStoredObject.setNext(e, this.topAddr);
-      this.topAddr = e;
-    }
+    long currentTopAddr;
+    do {
+      currentTopAddr = this.topAddr;
+      OffHeapStoredObject.setNext(e, currentTopAddr);
+    } while (!topAddrUpdater.compareAndSet(this, currentTopAddr, e));
   }
 
   @Override
   public long poll() {
     long result;
-    synchronized (this) {
+    do {
       result = this.topAddr;
-      if (result != 0L) {
-        this.topAddr = OffHeapStoredObject.getNext(result);
+      if (result == 0L) {
+        break;
       }
-    }
+    } while (!topAddrUpdater.compareAndSet(this, result, OffHeapStoredObject.getNext(result)));
     return result;
   }
 
