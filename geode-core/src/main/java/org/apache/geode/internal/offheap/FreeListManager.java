@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import org.apache.logging.log4j.Logger;
 
@@ -46,8 +45,13 @@ public class FreeListManager {
   private final Slab[] slabs;
   private final long totalSlabSize;
 
-  private final AtomicReferenceArray<OffHeapStoredObjectAddressStack> tinyFreeLists =
-      new AtomicReferenceArray<OffHeapStoredObjectAddressStack>(TINY_FREE_LIST_COUNT);
+  private final OffHeapStoredObjectAddressStack[] tinyFreeLists =
+      new OffHeapStoredObjectAddressStack[TINY_FREE_LIST_COUNT];
+  {
+    for (int i = 0; i < tinyFreeLists.length; i++) {
+      tinyFreeLists[i] = new OffHeapStoredObjectAddressStack();
+    }
+  }
   // hugeChunkSet is sorted by chunk size in ascending order. It will only contain chunks larger
   // than MAX_TINY.
   private final ConcurrentSkipListSet<OffHeapStoredObject> hugeChunkSet =
@@ -117,8 +121,8 @@ public class FreeListManager {
 
   long getFreeTinyMemory() {
     long tinyFree = 0;
-    for (int i = 0; i < this.tinyFreeLists.length(); i++) {
-      OffHeapStoredObjectAddressStack cl = this.tinyFreeLists.get(i);
+    for (int i = 0; i < this.tinyFreeLists.length; i++) {
+      OffHeapStoredObjectAddressStack cl = this.tinyFreeLists[i];
       if (cl != null) {
         tinyFree += cl.computeTotalSize();
       }
@@ -268,8 +272,8 @@ public class FreeListManager {
   }
 
   private void logTinyState(Logger lw) {
-    for (int i = 0; i < this.tinyFreeLists.length(); i++) {
-      OffHeapStoredObjectAddressStack cl = this.tinyFreeLists.get(i);
+    for (int i = 0; i < this.tinyFreeLists.length; i++) {
+      OffHeapStoredObjectAddressStack cl = this.tinyFreeLists[i];
       if (cl != null) {
         cl.logSizes(lw, "Free tiny of size ");
       }
@@ -623,8 +627,8 @@ public class FreeListManager {
   }
 
   private void collectFreeTinyChunks(List<LongStack> l) {
-    for (int i = 0; i < this.tinyFreeLists.length(); i++) {
-      OffHeapStoredObjectAddressStack cl = this.tinyFreeLists.get(i);
+    for (int i = 0; i < this.tinyFreeLists.length; i++) {
+      OffHeapStoredObjectAddressStack cl = this.tinyFreeLists[i];
       if (cl != null) {
         long head = cl.clear();
         if (head != 0L) {
@@ -704,16 +708,14 @@ public class FreeListManager {
   }
 
   private OffHeapStoredObject basicAllocate(int idx, int multiple, int offset,
-      AtomicReferenceArray<OffHeapStoredObjectAddressStack> freeLists, boolean useFragments) {
-    OffHeapStoredObjectAddressStack clq = freeLists.get(idx);
-    if (clq != null) {
-      long memAddr = clq.poll();
-      if (memAddr != 0) {
-        OffHeapStoredObject result = new OffHeapStoredObject(memAddr);
-        checkDataIntegrity(result);
-        result.readyForAllocation();
-        return result;
-      }
+      OffHeapStoredObjectAddressStack[] freeLists, boolean useFragments) {
+    OffHeapStoredObjectAddressStack clq = freeLists[idx];
+    long memAddr = clq.poll();
+    if (memAddr != 0) {
+      OffHeapStoredObject result = new OffHeapStoredObject(memAddr);
+      checkDataIntegrity(result);
+      result.readyForAllocation();
+      return result;
     }
     if (useFragments) {
       return allocateFromFragments(((idx + 1) * multiple) + offset);
@@ -801,26 +803,9 @@ public class FreeListManager {
   }
 
   private void basicFree(long addr, int idx,
-      AtomicReferenceArray<OffHeapStoredObjectAddressStack> freeLists) {
-    OffHeapStoredObjectAddressStack clq = freeLists.get(idx);
-    if (clq != null) {
-      clq.offer(addr);
-    } else {
-      clq = createFreeListForEmptySlot(freeLists, idx);
-      clq.offer(addr);
-      if (!freeLists.compareAndSet(idx, null, clq)) {
-        clq = freeLists.get(idx);
-        clq.offer(addr);
-      }
-    }
-  }
-
-  /**
-   * Tests override this method to simulate concurrent modification
-   */
-  protected OffHeapStoredObjectAddressStack createFreeListForEmptySlot(
-      AtomicReferenceArray<OffHeapStoredObjectAddressStack> freeLists, int idx) {
-    return new OffHeapStoredObjectAddressStack();
+      OffHeapStoredObjectAddressStack[] freeLists) {
+    OffHeapStoredObjectAddressStack clq = freeLists[idx];
+    clq.offer(addr);
   }
 
   private void freeHuge(long addr, int cSize) {
@@ -863,10 +848,8 @@ public class FreeListManager {
   private List<MemoryBlock> getTinyFreeBlocks() {
     final List<MemoryBlock> value = new ArrayList<MemoryBlock>();
     final MemoryAllocatorImpl sma = this.ma;
-    for (int i = 0; i < this.tinyFreeLists.length(); i++) {
-      if (this.tinyFreeLists.get(i) == null)
-        continue;
-      long addr = this.tinyFreeLists.get(i).getTopAddress();
+    for (int i = 0; i < this.tinyFreeLists.length; i++) {
+      long addr = this.tinyFreeLists[i].getTopAddress();
       while (addr != 0L) {
         value.add(new MemoryBlockNode(sma, new TinyMemoryBlock(addr, i)));
         addr = OffHeapStoredObject.getNext(addr);

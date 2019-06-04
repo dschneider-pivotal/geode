@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
@@ -931,19 +930,6 @@ public class FreeListManagerTest {
     @Override
     protected Fragment createFragment(long addr, int size) {
       return new TestableFragment(addr, size);
-    }
-
-    @Override
-    protected OffHeapStoredObjectAddressStack createFreeListForEmptySlot(
-        AtomicReferenceArray<OffHeapStoredObjectAddressStack> freeLists, int idx) {
-      if (this.firstTime) {
-        this.firstTime = false;
-        OffHeapStoredObjectAddressStack clq = super.createFreeListForEmptySlot(freeLists, idx);
-        if (!freeLists.compareAndSet(idx, null, clq)) {
-          fail("this should never happen. Indicates a concurrent modification");
-        }
-      }
-      return super.createFreeListForEmptySlot(freeLists, idx);
     }
 
     @Override
