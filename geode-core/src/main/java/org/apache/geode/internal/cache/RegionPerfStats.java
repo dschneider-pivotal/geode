@@ -335,15 +335,16 @@ class RegionPerfStats extends CachePerfStats {
    */
   @Override
   public void endGet(long start, boolean miss) {
+    long delta = 0;
     if (enableClockStats) {
-      long totalNanos = getClockTime() - start;
-      stats.incLong(getTimeId, totalNanos);
+      delta = getClockTime() - start;
+      stats.incLong(getTimeId, delta);
     }
     stats.incLong(getsId, 1L);
     if (miss) {
       stats.incLong(missesId, 1L);
     }
-    cachePerfStats.endGet(start, miss);
+    cachePerfStats.endGetWithDelta(delta, miss);
   }
 
   /**

@@ -1107,6 +1107,16 @@ public class CachePerfStats {
     }
   }
 
+  void endGetWithDelta(long delta, boolean miss) {
+    if (delta != 0) {
+      stats.incLong(getTimeId, delta);
+    }
+    stats.incLong(getsId, 1L);
+    if (miss) {
+      stats.incLong(missesId, 1L);
+    }
+  }
+
   /**
    * @param start the timestamp taken when the operation started
    * @param isUpdate true if the put was an update (origin remote)
