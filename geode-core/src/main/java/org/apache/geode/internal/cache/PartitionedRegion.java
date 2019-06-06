@@ -9480,6 +9480,8 @@ public class PartitionedRegion extends LocalRegion
     return getKeyInfo(key, null, callbackArg);
   }
 
+  private static ThreadLocal<KeyInfo> keyInfoThreadLocal = new ThreadLocal<>();
+
   @Override
   public KeyInfo getKeyInfo(Object key, Object value, Object callbackArg) {
     final int bucketId;
@@ -9489,7 +9491,16 @@ public class PartitionedRegion extends LocalRegion
     } else {
       bucketId = PartitionedRegionHelper.getHashKey(this, null, key, value, callbackArg);
     }
-    return new KeyInfo(key, callbackArg, bucketId);
+    KeyInfo result = keyInfoThreadLocal.get();
+    if (result == null) {
+      result = new KeyInfo(key, callbackArg, bucketId);
+      keyInfoThreadLocal.set(result);
+    } else {
+      result.setKey(key);
+      result.setCallbackArg(callbackArg);
+      result.setBucketId(bucketId);
+    }
+    return result;
   }
 
   public static class SizeEntry implements Serializable {

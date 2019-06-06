@@ -10408,10 +10408,22 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
     return getKeyInfo(key, null, callbackArg);
   }
 
+  private static ThreadLocal<KeyInfo> keyInfoThreadLocal = new ThreadLocal<>();
+
   @Override
   public KeyInfo getKeyInfo(Object key, Object value, Object callbackArg) {
-    return new KeyInfo(key, null, callbackArg);
+    KeyInfo result = keyInfoThreadLocal.get();
+    if (result == null) {
+      result = new KeyInfo(key, null, callbackArg);
+      keyInfoThreadLocal.set(result);
+    } else {
+      result.setKey(key);
+      result.setCallbackArg(callbackArg);
+      result.setBucketId(0);
+    }
+    return result;
   }
+
 
   /**
    * @see #basicGetEntry(Object)
