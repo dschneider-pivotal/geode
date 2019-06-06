@@ -6460,6 +6460,8 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
    * @since GemFire tx
    */
   void discoverJTA() {
+    if (true)
+      return;
     if (!isSecret() && !isUsedForPartitionedRegionAdmin() && !isUsedForMetaRegion()) {
       // prevent internal regions from participating in a TX
       getJTAEnlistedTX();
