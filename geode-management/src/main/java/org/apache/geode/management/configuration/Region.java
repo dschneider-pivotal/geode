@@ -43,6 +43,7 @@ public class Region extends GroupableConfiguration<RuntimeRegionInfo> {
   private Integer redundantCopies;
 
   private List<Expiration> expirations;
+  private Eviction eviction;
 
   public Region() {}
 
@@ -151,6 +152,14 @@ public class Region extends GroupableConfiguration<RuntimeRegionInfo> {
     expirations.add(new Expiration(type, timeout, action));
   }
 
+  public void setEviction(Eviction eviction) {
+    this.eviction = eviction;
+  }
+
+  public Eviction getEviction() {
+    return eviction;
+  }
+
   public enum ExpirationType {
     ENTRY_TIME_TO_LIVE,
     ENTRY_IDLE_TIME,
@@ -211,6 +220,47 @@ public class Region extends GroupableConfiguration<RuntimeRegionInfo> {
 
     public void setAction(ExpirationAction action) {
       this.action = action;
+    }
+  }
+
+  public enum EvictionType {
+    HEAP_PERCENTAGE,
+    MAX_MEMORY,
+    ENTRY_COUNT
+  }
+
+  public enum EvictionAction {
+    LOCAL_DESTROY,
+    OVERFLOW_TO_DISK
+  }
+
+  public static class Eviction implements Serializable {
+    private EvictionType type;
+    private EvictionAction action;
+    private Integer limit;
+
+    public EvictionType getType() {
+      return type;
+    }
+
+    public void setType(EvictionType type) {
+      this.type = type;
+    }
+
+    public EvictionAction getAction() {
+      return action;
+    }
+
+    public void setAction(EvictionAction action) {
+      this.action = action;
+    }
+
+    public Integer getLimit() {
+      return limit;
+    }
+
+    public void setLimit(Integer limit) {
+      this.limit = limit;
     }
   }
 }
