@@ -485,7 +485,7 @@ public class RegionProvider implements Closeable {
   /**
    * @return the setRegion
    */
-  public Region<ByteArrayWrapper, Set<ByteArrayWrapper>> getSetRegion() {
+  public Region<?, ?> getSetRegion() {
     return setRegion;
   }
 

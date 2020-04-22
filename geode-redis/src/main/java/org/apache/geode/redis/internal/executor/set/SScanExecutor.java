@@ -124,7 +124,8 @@ public class SScanExecutor extends AbstractScanExecutor {
 
   private Region<ByteArrayWrapper, Set<ByteArrayWrapper>> getRegion(
       ExecutionHandlerContext context) {
-    return context.getRegionProvider().getSetRegion();
+    return (Region<ByteArrayWrapper, Set<ByteArrayWrapper>>) context.getRegionProvider()
+        .getSetRegion();
   }
 
   @SuppressWarnings("unchecked")

@@ -33,7 +33,8 @@ public abstract class SetExecutor extends AbstractExecutor {
    * @return the set Region
    */
   Region<ByteArrayWrapper, Set<ByteArrayWrapper>> getRegion(ExecutionHandlerContext context) {
-    return context.getRegionProvider().getSetRegion();
+    return (Region<ByteArrayWrapper, Set<ByteArrayWrapper>>) context.getRegionProvider()
+        .getSetRegion();
   }
 
   protected AutoCloseableLock withRegionLock(ExecutionHandlerContext context, ByteArrayWrapper key)

@@ -70,7 +70,8 @@ class GeodeRedisSetSynchronized implements RedisSet {
   }
 
   Region<ByteArrayWrapper, Set<ByteArrayWrapper>> region() {
-    return context.getRegionProvider().getSetRegion();
+    return (Region<ByteArrayWrapper, Set<ByteArrayWrapper>>) context.getRegionProvider()
+        .getSetRegion();
   }
 
   private Set<ByteArrayWrapper> createSet(Collection<ByteArrayWrapper> membersToAdd) {

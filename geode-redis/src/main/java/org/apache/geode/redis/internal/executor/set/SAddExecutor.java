@@ -41,7 +41,7 @@ public class SAddExecutor extends SetExecutor {
     context.getKeyRegistrar().register(command.getKey(), RedisDataType.REDIS_SET);
 
     ByteArrayWrapper key = command.getKey();
-    RedisSet geodeRedisSet = new GeodeRedisSetSynchronized(key, context);
+    RedisSet geodeRedisSet = new GeodeRedisSetCompoundKeys(key, context);
     Set<ByteArrayWrapper> membersToAdd =
         new HashSet<>(commandElements.subList(2, commandElements.size()));
 
