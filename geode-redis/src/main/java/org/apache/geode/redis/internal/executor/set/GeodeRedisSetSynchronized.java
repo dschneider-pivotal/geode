@@ -79,6 +79,7 @@ class GeodeRedisSetSynchronized implements RedisSet {
     return region().remove(key) != null;
   }
 
+  @SuppressWarnings("unchecked")
   Region<ByteArrayWrapper, Set<ByteArrayWrapper>> region() {
     return (Region<ByteArrayWrapper, Set<ByteArrayWrapper>>) regionProvider.getSetRegion();
   }

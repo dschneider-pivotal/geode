@@ -108,6 +108,8 @@ public class GeodeRedisSetCompoundKeys implements RedisSet {
     return region().containsKey(compoundKey);
   }
 
+
+  @SuppressWarnings("unchecked")
   Region<String, ByteArrayWrapper> region() {
     return (Region<String, ByteArrayWrapper>) regionProvider.getSetRegion();
   }
