@@ -15,9 +15,7 @@
 package org.apache.geode.redis.internal.executor.set;
 
 import java.util.List;
-import java.util.Set;
 
-import org.apache.geode.cache.Region;
 import org.apache.geode.redis.internal.ByteArrayWrapper;
 import org.apache.geode.redis.internal.Coder;
 import org.apache.geode.redis.internal.Command;
@@ -42,16 +40,14 @@ public class SIsMemberExecutor extends SetExecutor {
     }
 
     ByteArrayWrapper key = command.getKey();
-    if (!context.getKeyRegistrar().isRegistered(key)) {
+    if (context.getKeyRegistrar().getType(key) != RedisDataType.REDIS_SET) {
       command.setResponse(Coder.getIntegerResponse(context.getByteBufAllocator(), NOT_EXISTS));
       return;
     }
 
     ByteArrayWrapper member = new ByteArrayWrapper(commandElems.get(2));
 
-    Region<ByteArrayWrapper, Set<ByteArrayWrapper>> region = this.getRegion(context);
-
-    Set<ByteArrayWrapper> set = region.get(key);
+    RedisSet set = getRedisSet(context, key);
 
     if (set == null) {
       command.setResponse(Coder.getIntegerResponse(context.getByteBufAllocator(), NOT_EXISTS));
@@ -61,7 +57,9 @@ public class SIsMemberExecutor extends SetExecutor {
     if (set.contains(member)) {
       command.setResponse(Coder.getIntegerResponse(context.getByteBufAllocator(), EXISTS));
       // save key for next quick lookup
-      context.getKeyRegistrar().register(key, RedisDataType.REDIS_SET);
+      context.getKeyRegistrar().register(key, RedisDataType.REDIS_SET); // TODO: why call register
+                                                                        // right after we found it
+                                                                        // registered?
     } else {
       command.setResponse(Coder.getIntegerResponse(context.getByteBufAllocator(), NOT_EXISTS));
     }

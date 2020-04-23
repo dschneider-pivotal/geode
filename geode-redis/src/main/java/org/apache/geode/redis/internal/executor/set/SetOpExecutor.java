@@ -19,7 +19,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.geode.cache.Region;
 import org.apache.geode.cache.TimeoutException;
 import org.apache.geode.redis.internal.AutoCloseableLock;
 import org.apache.geode.redis.internal.ByteArrayWrapper;
@@ -71,14 +70,13 @@ public abstract class SetOpExecutor extends SetExecutor implements Extendable {
       List<byte[]> commandElems, int setsStartIndex,
       RegionProvider regionProvider, ByteArrayWrapper destination,
       ByteArrayWrapper firstSetKey) {
-    Region<ByteArrayWrapper, Set<ByteArrayWrapper>> region = this.getRegion(context);
-    Set<ByteArrayWrapper> firstSet = region.get(firstSetKey);
+    Set<ByteArrayWrapper> firstSet = getSet(context, firstSetKey);
 
     List<Set<ByteArrayWrapper>> setList = new ArrayList<>();
     for (int i = setsStartIndex; i < commandElems.size(); i++) {
       ByteArrayWrapper key = new ByteArrayWrapper(commandElems.get(i));
 
-      Set<ByteArrayWrapper> entry = region.get(key);
+      Set<ByteArrayWrapper> entry = getSet(context, key);
       if (entry != null) {
         setList.add(entry);
       } else if (this instanceof SInterExecutor) {
@@ -93,16 +91,13 @@ public abstract class SetOpExecutor extends SetExecutor implements Extendable {
 
     Set<ByteArrayWrapper> resultSet = setOp(firstSet, setList);
     if (isStorage()) {
-      Set<ByteArrayWrapper> newSet = null;
-      regionProvider.removeKey(destination);
+      RedisSet destinationSet = getRedisSet(context, destination);
+      destinationSet.del();
       if (resultSet != null) {
-        Set<ByteArrayWrapper> set = new HashSet<>();
-        for (ByteArrayWrapper entry : resultSet) {
-          set.add(entry);
-        }
+        Set<ByteArrayWrapper> set = new HashSet<>(resultSet); // TODO: why make this copy?
         if (!set.isEmpty()) {
-          newSet = new HashSet<>(set);
-          region.put(destination, newSet);
+          Set<ByteArrayWrapper> newSet = new HashSet<>(set); // TODO: why make this copy?
+          destinationSet.sadd(newSet);
           context.getKeyRegistrar().register(destination, RedisDataType.REDIS_SET);
         }
         command

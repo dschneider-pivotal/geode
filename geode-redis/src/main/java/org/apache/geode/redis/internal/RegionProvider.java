@@ -49,6 +49,7 @@ import org.apache.geode.redis.GeodeRedisServer;
 import org.apache.geode.redis.internal.executor.ExpirationExecutor;
 import org.apache.geode.redis.internal.executor.ListQuery;
 import org.apache.geode.redis.internal.executor.SortedSetQuery;
+import org.apache.geode.redis.internal.executor.set.GeodeRedisSetCompoundKeys;
 
 /**
  * This class stands between {@link Executor} and {@link Cache#getRegion(String)}. This is needed
@@ -214,8 +215,7 @@ public class RegionProvider implements Closeable {
           return destroyRegion(key, type);
         } else if (type == RedisDataType.REDIS_SET) {
           // remove the set
-          setRegion.remove(key);
-          return true;
+          return new GeodeRedisSetCompoundKeys(key, this).del();
         } else if (type == RedisDataType.REDIS_HASH) {
           // Check hash
           hashRegion.remove(key);

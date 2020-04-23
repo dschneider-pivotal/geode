@@ -22,16 +22,16 @@ import java.util.Set;
 
 import org.apache.geode.cache.Region;
 import org.apache.geode.redis.internal.ByteArrayWrapper;
-import org.apache.geode.redis.internal.ExecutionHandlerContext;
+import org.apache.geode.redis.internal.RegionProvider;
 
-class GeodeRedisSetCompoundKeys implements RedisSet {
+public class GeodeRedisSetCompoundKeys implements RedisSet {
 
   private ByteArrayWrapper key;
-  private ExecutionHandlerContext context;
+  private RegionProvider regionProvider;
 
-  public GeodeRedisSetCompoundKeys(ByteArrayWrapper key, ExecutionHandlerContext context) {
+  public GeodeRedisSetCompoundKeys(ByteArrayWrapper key, RegionProvider regionProvider) {
     this.key = key;
-    this.context = context;
+    this.regionProvider = regionProvider;
   }
 
   private String createCompoundKey(ByteArrayWrapper key, ByteArrayWrapper member) {
@@ -57,7 +57,7 @@ class GeodeRedisSetCompoundKeys implements RedisSet {
   private boolean sadd(ByteArrayWrapper memberToAdd) {
     String compoundKey = createCompoundKey(this.key, memberToAdd);
     ByteArrayWrapper oldValue = region().putIfAbsent(compoundKey, memberToAdd);
-    return oldValue != null;
+    return oldValue == null;
   }
 
   @Override
@@ -88,7 +88,27 @@ class GeodeRedisSetCompoundKeys implements RedisSet {
     return result;
   }
 
+  @Override
+  public boolean del() {
+    boolean result = false;
+    for (String entryKey : region().keySet()) {
+      if (containsKey(entryKey, this.key)) {
+        boolean removedThisEntry = region().remove(entryKey) != null;
+        if (removedThisEntry) {
+          result = true;
+        }
+      }
+    }
+    return result;
+  }
+
+  @Override
+  public boolean contains(ByteArrayWrapper member) {
+    String compoundKey = createCompoundKey(this.key, member);
+    return region().containsKey(compoundKey);
+  }
+
   Region<String, ByteArrayWrapper> region() {
-    return (Region<String, ByteArrayWrapper>) context.getRegionProvider().getSetRegion();
+    return (Region<String, ByteArrayWrapper>) regionProvider.getSetRegion();
   }
 }

@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.geode.cache.Region;
 import org.apache.geode.cache.TimeoutException;
 import org.apache.geode.redis.internal.AutoCloseableLock;
 import org.apache.geode.redis.internal.ByteArrayWrapper;
@@ -56,9 +55,9 @@ public class SPopExecutor extends SetExecutor {
 
     List<ByteArrayWrapper> popped = new ArrayList<>();
     try (AutoCloseableLock regionLock = withRegionLock(context, key)) {
-      Region<ByteArrayWrapper, Set<ByteArrayWrapper>> region = getRegion(context);
+      RedisSet redisSet = getRedisSet(context, key);
 
-      Set<ByteArrayWrapper> set = region.get(key);
+      Set<ByteArrayWrapper> set = redisSet.members();
 
       if (set == null || set.isEmpty()) {
         command.setResponse(Coder.getNilResponse(context.getByteBufAllocator()));
@@ -80,10 +79,11 @@ public class SPopExecutor extends SetExecutor {
         counter++;
       }
 
-      set.removeAll(popped);
-
-      // save the updated set
-      region.put(key, set);
+      // TODO: the following srem should find all these values to remove since we hold the region
+      // lock.
+      // However, that lock may not help with concurrency and it seems possible to implement
+      // SPOP by retrying until we have popped the requested number or the set is empty.
+      redisSet.srem(popped);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       command.setResponse(

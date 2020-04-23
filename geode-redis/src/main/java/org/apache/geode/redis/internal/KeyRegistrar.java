@@ -59,7 +59,8 @@ public class KeyRegistrar {
   }
 
   public RedisDataType getType(ByteArrayWrapper key) {
-    return this.redisMetaRegion.get(key.toString());
+    RedisDataType result = this.redisMetaRegion.get(key.toString());
+    return result;
   }
 
   /**

@@ -26,4 +26,10 @@ interface RedisSet {
   long srem(Collection<ByteArrayWrapper> membersToAdd);
 
   Set<ByteArrayWrapper> members();
+
+  boolean contains(ByteArrayWrapper member);
+
+  boolean del();
+
+  // TODO: add create region
 }

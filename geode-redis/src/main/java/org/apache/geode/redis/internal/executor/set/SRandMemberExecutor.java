@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.geode.cache.Region;
 import org.apache.geode.cache.TimeoutException;
 import org.apache.geode.redis.internal.AutoCloseableLock;
 import org.apache.geode.redis.internal.ByteArrayWrapper;
@@ -47,9 +46,9 @@ public class SRandMemberExecutor extends SetExecutor {
 
     ByteArrayWrapper key = command.getKey();
 
-    try (AutoCloseableLock regionLock = withRegionLock(context, key)) {
-      Region<ByteArrayWrapper, Set<ByteArrayWrapper>> region = getRegion(context);
-
+    try (AutoCloseableLock regionLock = withRegionLock(context, key)) { // TODO: why is the region
+                                                                        // locked? It only reads it
+                                                                        // once
       int count = 1;
 
       if (commandElems.size() > 2) {
@@ -62,7 +61,7 @@ public class SRandMemberExecutor extends SetExecutor {
         }
       }
 
-      Set<ByteArrayWrapper> set = region.get(key);
+      Set<ByteArrayWrapper> set = getSet(context, key);
 
       if (set == null || count == 0) {
         command.setResponse(Coder.getNilResponse(context.getByteBufAllocator()));

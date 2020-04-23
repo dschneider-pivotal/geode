@@ -23,16 +23,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.geode.cache.Region;
 import org.apache.geode.redis.internal.ByteArrayWrapper;
-import org.apache.geode.redis.internal.ExecutionHandlerContext;
+import org.apache.geode.redis.internal.RegionProvider;
 
 class GeodeRedisSetSynchronized implements RedisSet {
 
-  private ByteArrayWrapper key;
-  private ExecutionHandlerContext context;
+  private final ByteArrayWrapper key;
+  private final RegionProvider regionProvider;
 
-  public GeodeRedisSetSynchronized(ByteArrayWrapper key, ExecutionHandlerContext context) {
+  public GeodeRedisSetSynchronized(ByteArrayWrapper key, RegionProvider regionProvider) {
     this.key = key;
-    this.context = context;
+    this.regionProvider = regionProvider;
   }
 
   @Override
@@ -69,9 +69,18 @@ class GeodeRedisSetSynchronized implements RedisSet {
     return region().getOrDefault(key, Collections.emptySet());
   }
 
+  @Override
+  public boolean contains(ByteArrayWrapper member) {
+    return members().contains(member);
+  }
+
+  @Override
+  public boolean del() {
+    return region().remove(key) != null;
+  }
+
   Region<ByteArrayWrapper, Set<ByteArrayWrapper>> region() {
-    return (Region<ByteArrayWrapper, Set<ByteArrayWrapper>>) context.getRegionProvider()
-        .getSetRegion();
+    return (Region<ByteArrayWrapper, Set<ByteArrayWrapper>>) regionProvider.getSetRegion();
   }
 
   private Set<ByteArrayWrapper> createSet(Collection<ByteArrayWrapper> membersToAdd) {
