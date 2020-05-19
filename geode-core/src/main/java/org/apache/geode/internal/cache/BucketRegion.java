@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.geode.CancelException;
 import org.apache.geode.CopyHelper;
 import org.apache.geode.DataSerializer;
+import org.apache.geode.Delta;
 import org.apache.geode.DeltaSerializationException;
 import org.apache.geode.InternalGemFireError;
 import org.apache.geode.InvalidDeltaException;
@@ -1848,20 +1849,23 @@ public class BucketRegion extends DistributedRegion implements Bucket {
         return;
       }
       Object instance = cd.getValue();
-      if (instance instanceof org.apache.geode.Delta
-          && ((org.apache.geode.Delta) instance).hasDelta()) {
-        try {
-          HeapDataOutputStream hdos = new HeapDataOutputStream(Version.CURRENT);
-          long start = DistributionStats.getStatTime();
-          ((org.apache.geode.Delta) instance).toDelta(hdos);
-          event.setDeltaBytes(hdos.toByteArray());
-          partitionedRegion.getCachePerfStats().endDeltaPrepared(start);
-        } catch (RuntimeException re) {
-          throw re;
-        } catch (Exception e) {
-          throw new DeltaSerializationException(
-              "Caught exception while sending delta. ",
-              e);
+      if (instance instanceof Delta) {
+        Delta delta = (Delta) instance;
+        Object callbackArg = event.getCallbackArgument();
+        if (delta.hasDelta(callbackArg)) {
+          try {
+            HeapDataOutputStream hdos = new HeapDataOutputStream(Version.CURRENT);
+            long start = DistributionStats.getStatTime();
+            delta.toDelta(hdos, callbackArg);
+            event.setDeltaBytes(hdos.toByteArray());
+            partitionedRegion.getCachePerfStats().endDeltaPrepared(start);
+          } catch (RuntimeException re) {
+            throw re;
+          } catch (Exception e) {
+            throw new DeltaSerializationException(
+                "Caught exception while sending delta. ",
+                e);
+          }
         }
       }
     }
@@ -2055,7 +2059,7 @@ public class BucketRegion extends DistributedRegion implements Bucket {
       return 0;
     }
     if (!(value instanceof byte[]) && !(value instanceof CachedDeserializable)
-        && !(value instanceof org.apache.geode.Delta)
+        && !(value instanceof Delta)
         && !(value instanceof GatewaySenderEventImpl)) {
       // ezoerner:20090401 it's possible this value is a Delta
       throw new InternalGemFireError(

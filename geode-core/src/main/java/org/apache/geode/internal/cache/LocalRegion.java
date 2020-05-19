@@ -1726,11 +1726,11 @@ public class LocalRegion extends AbstractRegion implements LoaderHelperFactory,
           // This is a client region
           extractDelta = true;
         }
-        if (extractDelta && ((Delta) value).hasDelta()) {
+        if (extractDelta && ((Delta) value).hasDelta(event.getCallbackArgument())) {
           HeapDataOutputStream hdos = new HeapDataOutputStream(Version.CURRENT);
           long start = DistributionStats.getStatTime();
           try {
-            ((Delta) value).toDelta(hdos);
+            ((Delta) value).toDelta(hdos, event.getCallbackArgument());
           } catch (RuntimeException re) {
             throw re;
           } catch (Exception e) {
