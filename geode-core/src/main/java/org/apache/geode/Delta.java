@@ -38,6 +38,19 @@ public interface Delta {
   boolean hasDelta();
 
   /**
+   * Returns true if this object has pending changes it can write out as a delta.
+   * Returns false if this object must be transmitted in its entirety.
+   *
+   * @parameter callbackArgument the callback argument passed to the method that caused the instance
+   *            that implements this interface to be distributed.
+   *
+   * @since Geode 1.14
+   */
+  default boolean hasDelta(Object callbackArgument) {
+    return hasDelta();
+  }
+
+  /**
    * This method is invoked on an application object at the delta sender, if GemFire determines the
    * presence of a delta by calling {@link Delta#hasDelta()} on the object. The delta is written to
    * the {@link DataOutput} object provided by GemFire.
@@ -46,6 +59,22 @@ public interface Delta {
    *
    */
   void toDelta(DataOutput out) throws IOException;
+
+  /**
+   * This method is invoked on an application object at the delta sender, if GemFire determines the
+   * presence of a delta by calling {@link Delta#hasDelta()} on the object. The delta is written to
+   * the {@link DataOutput} object provided by GemFire.
+   *
+   * Any delta state should be reset in this method.
+   *
+   * @parameter callbackArgument the callback argument passed to the method that caused the instance
+   *            that implements this interface to be distributed.
+   *
+   * @since Geode 1.14
+   */
+  default void toDelta(DataOutput out, Object callbackArgument) throws IOException {
+    toDelta(out);
+  }
 
 
   /**
