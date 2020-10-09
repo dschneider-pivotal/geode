@@ -33,6 +33,7 @@ import org.apache.geode.redis.internal.executor.connection.AuthExecutor;
 import org.apache.geode.redis.internal.executor.connection.EchoExecutor;
 import org.apache.geode.redis.internal.executor.connection.PingExecutor;
 import org.apache.geode.redis.internal.executor.connection.QuitExecutor;
+import org.apache.geode.redis.internal.executor.connection.SelectExecutor;
 import org.apache.geode.redis.internal.executor.hash.HDelExecutor;
 import org.apache.geode.redis.internal.executor.hash.HExistsExecutor;
 import org.apache.geode.redis.internal.executor.hash.HGetAllExecutor;
@@ -180,6 +181,7 @@ public enum RedisCommandType {
    ***************************************/
 
   ECHO(new EchoExecutor(), UNSUPPORTED),
+  SELECT(new SelectExecutor(), UNSUPPORTED, new ExactParameterRequirements(2)),
 
   /***************************************
    *************** Keys ******************
@@ -327,7 +329,6 @@ public enum RedisCommandType {
   RPUSHX(null, UNIMPLEMENTED),
   SAVE(null, UNIMPLEMENTED),
   SCRIPT(null, UNIMPLEMENTED),
-  SELECT(null, UNIMPLEMENTED),
   SLAVEOF(null, UNIMPLEMENTED),
   REPLICAOF(null, UNIMPLEMENTED),
   SLOWLOG(null, UNIMPLEMENTED),
