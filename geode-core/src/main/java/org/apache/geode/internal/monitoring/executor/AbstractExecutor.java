@@ -16,7 +16,6 @@ package org.apache.geode.internal.monitoring.executor;
 
 import static java.lang.Integer.min;
 
-import java.lang.management.LockInfo;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
@@ -136,17 +135,17 @@ public abstract class AbstractExecutor {
     for (int i = 0; i < min(thread.getStackTrace().length, THREAD_DUMP_DEPTH); i++) {
       String row = thread.getStackTrace()[i].toString();
       strb.append(INDENT).append("at ").append(row).append(lineSeparator);
-      appendLockedMonitor(strb, i, lockedMonitors);
+      // appendLockedMonitor(strb, i, lockedMonitors);
     }
-    strb.append("Locked ownable synchronizers:").append(lineSeparator);
-    LockInfo[] lockedSynchronizers = thread.getLockedSynchronizers();
-    if (lockedSynchronizers.length == 0) {
-      strb.append(INDENT).append("- None").append(lineSeparator);
-    } else {
-      for (LockInfo lockInfo : lockedSynchronizers) {
-        strb.append(INDENT).append("- ").append(lockInfo).append(lineSeparator);
-      }
-    }
+    // strb.append("Locked ownable synchronizers:").append(lineSeparator);
+    // LockInfo[] lockedSynchronizers = thread.getLockedSynchronizers();
+    // if (lockedSynchronizers.length == 0) {
+    // strb.append(INDENT).append("- None").append(lineSeparator);
+    // } else {
+    // for (LockInfo lockInfo : lockedSynchronizers) {
+    // strb.append(INDENT).append("- ").append(lockInfo).append(lineSeparator);
+    // }
+    // }
   }
 
   private void appendLockedMonitor(StringBuilder strb, int stackDepth,
