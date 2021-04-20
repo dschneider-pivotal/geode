@@ -54,16 +54,16 @@ public abstract class AbstractExecutor {
   }
 
   private static ThreadInfo getThreadInfo(long threadId) {
-    // return ManagementFactory.getThreadMXBean().getThreadInfo(threadId, THREAD_DUMP_DEPTH);
-    ThreadInfo[] threadInfos =
-        ManagementFactory.getThreadMXBean().getThreadInfo(new long[] {threadId},
-            true,
-            true);
-    if (threadInfos != null) {
-      return threadInfos[0];
-    } else {
-      return null;
-    }
+    return ManagementFactory.getThreadMXBean().getThreadInfo(threadId, THREAD_DUMP_DEPTH);
+    // ThreadInfo[] threadInfos =
+    // ManagementFactory.getThreadMXBean().getThreadInfo(new long[] {threadId},
+    // true,
+    // true);
+    // if (threadInfos != null) {
+    // return threadInfos[0];
+    // } else {
+    // return null;
+    // }
   }
 
   String createThreadReport(long stuckTime) {
