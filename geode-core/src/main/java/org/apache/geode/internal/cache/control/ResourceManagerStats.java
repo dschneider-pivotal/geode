@@ -77,6 +77,9 @@ public class ResourceManagerStats {
   private static final int resourceEventQueueSizeId;
   private static final int thresholdEventProcessorThreadJobsId;
   private static final int numThreadsStuckId;
+  private static final int threadMonInProgressId;
+  private static final int threadMonsId;
+  private static final int threadMonTimeId;
 
 
 
@@ -202,7 +205,10 @@ public class ResourceManagerStats {
                 "jobs"),
             f.createIntGauge("numThreadsStuck",
                 "Number of running threads that have not changed state within the thread-monitor-time-limit-ms interval.",
-                "stuck Threads")});
+                "stuck Threads"),
+            f.createLongGauge("threadMonInProgress", "", "threadMons"),
+            f.createLongCounter("threadMons", "", "threadMons"),
+            f.createLongCounter("threadMonTime", "", "nanoseconds")});
 
     rebalancesInProgressId = type.nameToId("rebalancesInProgress");
     rebalancesCompletedId = type.nameToId("rebalancesCompleted");
@@ -248,6 +254,9 @@ public class ResourceManagerStats {
     resourceEventQueueSizeId = type.nameToId("resourceEventQueueSize");
     thresholdEventProcessorThreadJobsId = type.nameToId("thresholdEventProcessorThreadJobs");
     numThreadsStuckId = type.nameToId("numThreadsStuck");
+    threadMonInProgressId = type.nameToId("threadMonInProgress");
+    threadMonsId = type.nameToId("threadMons");
+    threadMonTimeId = type.nameToId("threadMonTime");
   }
 
   private final Statistics stats;
@@ -617,4 +626,18 @@ public class ResourceManagerStats {
   public void setNumThreadStuck(int value) {
     this.stats.setInt(numThreadsStuckId, value);
   }
+
+
+  public long startThreadMon() {
+    this.stats.incLong(threadMonInProgressId, 1);
+    return System.nanoTime();
+  }
+
+  public void endThreadMon(long start) {
+    long end = System.nanoTime();
+    this.stats.incLong(threadMonInProgressId, -1);
+    this.stats.incLong(threadMonTimeId, end - start);
+    this.stats.incLong(threadMonsId, 1);
+  }
+
 }

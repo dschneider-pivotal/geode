@@ -68,7 +68,12 @@ public class ThreadsMonitoringProcess extends TimerTask {
       if (delta >= timeLimitMillis) {
         numOfStuck++;
         logger.warn("Thread {} (0x{}) is stuck", threadId, Long.toHexString(threadId));
-        executor.handleExpiry(delta);
+        long start = getResourceManagerStats().startThreadMon();
+        try {
+          executor.handleExpiry(delta);
+        } finally {
+          getResourceManagerStats().endThreadMon(start);
+        }
       }
     }
     updateNumThreadStuckStatistic(numOfStuck);
