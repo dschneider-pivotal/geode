@@ -15,6 +15,9 @@
 
 package org.apache.geode.internal.monitoring;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.util.ArrayList;
 import java.util.TimerTask;
 
 import org.apache.logging.log4j.Logger;
@@ -52,12 +55,13 @@ public class ThreadsMonitoringProcess extends TimerTask {
    */
   public boolean mapValidation() {
     int numOfStuck = 0;
+    final long currentTime = System.currentTimeMillis();
+    ArrayList<AbstractExecutor> stuckThreads = new ArrayList<>();
     for (AbstractExecutor executor : threadsMonitoring.getMonitorMap().values()) {
       if (executor.isMonitoringSuspended()) {
         continue;
       }
       final long startTime = executor.getStartTime();
-      final long currentTime = System.currentTimeMillis();
       if (startTime == 0) {
         executor.setStartTime(currentTime);
         continue;
@@ -68,12 +72,44 @@ public class ThreadsMonitoringProcess extends TimerTask {
       if (delta >= timeLimitMillis) {
         numOfStuck++;
         logger.warn("Thread {} (0x{}) is stuck", threadId, Long.toHexString(threadId));
-        long start = getResourceManagerStats().startThreadMon();
-        try {
-          executor.handleExpiry(delta);
-        } finally {
-          getResourceManagerStats().endThreadMon(start);
+        stuckThreads.add(executor);
+        // long start = getResourceManagerStats().startThreadMon();
+        // try {
+        // executor.handleExpiry(delta);
+        // } finally {
+        // getResourceManagerStats().endThreadMon(start);
+        // }
+      }
+    }
+    if (!stuckThreads.isEmpty()) {
+      final long start = getResourceManagerStats().startThreadMon();
+      try {
+        long[] stuckThreadIds = new long[stuckThreads.size()];
+        int idx = 0;
+        for (AbstractExecutor executor : stuckThreads) {
+          stuckThreadIds[idx] = executor.getThreadID();
+          idx++;
         }
+        ThreadInfo[] threadInfos =
+            ManagementFactory.getThreadMXBean().getThreadInfo(stuckThreadIds,
+                true,
+                true);
+        idx = 0;
+        for (AbstractExecutor executor : stuckThreads) {
+          final long startTime = executor.getStartTime();
+          if (startTime == 0) {
+            executor.setStartTime(currentTime);
+            idx++;
+            continue;
+          }
+          long delta = currentTime - startTime;
+          if (delta >= timeLimitMillis) {
+            executor.handleExpiry(threadInfos[idx], delta);
+          }
+          idx++;
+        }
+      } finally {
+        getResourceManagerStats().endThreadMon(start);
       }
     }
     updateNumThreadStuckStatistic(numOfStuck);

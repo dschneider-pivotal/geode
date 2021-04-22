@@ -49,8 +49,12 @@ public abstract class AbstractExecutor {
   }
 
   public void handleExpiry(long stuckTime) {
+    handleExpiry(getThreadInfo(threadID), stuckTime);
+  }
+
+  public void handleExpiry(ThreadInfo threadInfo, long stuckTime) {
     this.incNumIterationsStuck();
-    logger.warn(createThreadReport(stuckTime));
+    logger.warn(createThreadReport(threadInfo, stuckTime));
   }
 
   private static ThreadInfo getThreadInfo(long threadId) {
@@ -66,11 +70,10 @@ public abstract class AbstractExecutor {
     }
   }
 
-  String createThreadReport(long stuckTime) {
+  String createThreadReport(ThreadInfo thread, long stuckTime) {
 
     DateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
 
-    ThreadInfo thread = getThreadInfo(threadID);
     boolean logThreadDetails = (thread != null);
 
     StringBuilder stringBuilder = new StringBuilder();
@@ -191,5 +194,4 @@ public abstract class AbstractExecutor {
   public boolean isMonitoringSuspended() {
     return false;
   }
-
 }
